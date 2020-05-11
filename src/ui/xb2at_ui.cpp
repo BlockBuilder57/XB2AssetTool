@@ -75,7 +75,7 @@ namespace ui {
 #ifdef _WIN32
 			ui.outputDir->setText(dir.replace('/', '\\'));
 #else
-			ui.outputDir->setText(file);
+			ui.outputDir->setText(dir);
 #endif
 		}
 	}
@@ -114,8 +114,13 @@ namespace ui {
 
 			
 			if(message.data.empty()) {
-				if(message.finished)
+				if(message.finished) {
 					ui.extractButton->setDisabled(false);
+
+					// Stop ourselves.
+					if(queue_empty_timer)
+						queue_empty_timer->stop();
+				}
 				return;
 			}
 
@@ -142,20 +147,14 @@ namespace ui {
 	void MainWindow::ExtractFile(std::string filename) {
 			using namespace std::placeholders;
 
-			auto fileExists = [](std::string& filename) -> bool {
-				std::ifstream stream(filename, std::ifstream::binary);
-
-				if(!stream)
-					return false;
-
-				stream.close();
-				return true;
-			};
 
 			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), core::ProgressType::Info);
 
-			if(fileExists(filename + ".wismt")) {
-				std::ifstream stream(filename + ".wismt", std::ifstream::binary);
+			core::fs::path path(filename);
+			path.replace_extension(".wismt");
+
+			if(core::fs::exists(path)) {
+				std::ifstream stream(path.string(), std::ifstream::binary);
 				core::msrdReader reader(stream);
 
 				reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
@@ -177,10 +176,6 @@ namespace ui {
 					}
 				}
 			}
-
-			// Stop the log timer since we've finished
-			if(queue_empty_timer)
-				queue_empty_timer->stop();
 
 			// Signal finish
 			ProgressFunction("", core::ProgressType::Verbose, true);
