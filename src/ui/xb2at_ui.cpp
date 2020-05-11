@@ -4,8 +4,10 @@
 #include <thread>
 
 #include <core.h>
-#include <msrd_reader.h>
-#include <xbc1_reader.h>
+#include <readers/msrd_reader.h>
+#include <readers/mesh_reader.h>
+
+#include "version.h"
 
 using namespace xb2at;
 
@@ -15,13 +17,8 @@ namespace ui {
 	MainWindow::MainWindow(QWidget *parent)
 		: QMainWindow(parent) {
 		ui.setupUi(this);
-
-		LogMessage("Hello World!", LogType::Info);
-	
-		LogMessage("Warning test", LogType::Warning);
-		LogMessage("Error test", LogType::Error);
-
 		setFixedSize(width(), height());
+		setWindowTitle(tr("%1 %2").arg(windowTitle(), QString::fromLatin1(version::tag)));
 
 		// connect UI events
 		connect(ui.inputBrowse, SIGNAL(clicked()), this, SLOT(InputBrowseButtonClicked()));
@@ -42,15 +39,24 @@ namespace ui {
 	}
 
 	void MainWindow::InputBrowseButtonClicked() {
-		QFileDialog fileSelector(this, "Select input files", "", "MSMD Files (*.wismt)");
+		QFileDialog fileSelector(this, "Select input filename", "", "All files (*.*)");
 		QStringList files;
 		fileSelector.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
-		fileSelector.setFileMode(QFileDialog::FileMode::ExistingFiles);
+		fileSelector.setFileMode(QFileDialog::FileMode::ExistingFile);
 
 		if (fileSelector.exec())
 			files = fileSelector.selectedFiles();
 
-		ui.inputFiles->setText(files.join(','));
+		if(files.isEmpty())
+			return;
+
+		auto file = files[0].toStdString();
+
+		file = file.substr(0, file.find_last_of('.'));
+
+		ui.inputFiles->setText(QString::fromStdString(file));
+		file.clear();
+		files.clear();
 	}
 
 	void MainWindow::OutputBrowseButtonClicked() {
@@ -58,8 +64,12 @@ namespace ui {
 		fileSelector.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
 		fileSelector.setFileMode(QFileDialog::FileMode::DirectoryOnly);
 
-		if (fileSelector.exec())
+		if (fileSelector.exec()) {
+			if(fileSelector.selectedFiles().isEmpty())
+				return;
+
 			ui.outputDir->setText(fileSelector.selectedFiles()[0]);
+		}
 	}
 
 	// we use this to responsively disable or enable the extraction button
@@ -73,34 +83,99 @@ namespace ui {
 
 
 	void MainWindow::ExtractButtonClicked() {
+		ui.extractButton->setDisabled(true);
 		ui.allTabs->setCurrentWidget(ui.logTab);
 		
-		QStringList files = ui.inputFiles->text().split(',');
+		QString file = ui.inputFiles->text();
 
-		for(QString file : files) {
-				ExtractFile(file.toStdString());
+		
+		queue_empty_timer = new QTimer(this);
+		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
+		queue_empty_timer->start(10);
+
+		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString()));
+		extraction_thread.detach();
+	}
+
+	void MainWindow::OnQueueEmptyTimer() {
+		// Spin this function until *we* lock the mutex
+		std::lock_guard<std::mutex> lock(log_queue_lock);
+
+		while(log_queue.size() != 0) {
+			auto message = log_queue.front();
+
+			
+			if(message.data.empty()) {
+				if(message.finished)
+					ui.extractButton->setDisabled(false);
+				return;
+			}
+
+			if(message.type == core::base_reader::ProgressType::Info)
+				LogMessage(QString::fromStdString(message.data), LogType::Info);
+			else if(message.type == core::base_reader::ProgressType::Warning)
+				LogMessage(QString::fromStdString(message.data), LogType::Warning);
+			else if(message.type == core::base_reader::ProgressType::Error)
+				LogMessage(QString::fromStdString(message.data), LogType::Error);
+			else if(message.type == core::base_reader::ProgressType::Verbose)
+				LogMessage(QString::fromStdString(message.data), LogType::Verbose);
+
+
+			log_queue.pop();
 		}
+
+	}
+
+	void MainWindow::ProgressFunction(const std::string& progress, core::base_reader::ProgressType type, bool finish = false) {
+		std::lock_guard<std::mutex> lock(log_queue_lock);
+		log_queue.push({progress, type, finish});
 	}
 
 	void MainWindow::ExtractFile(std::string filename) {
-			std::ifstream stream(filename, std::ifstream::binary);
-			core::msrdReader reader(stream);
-			LogMessage(tr("Extracting file %1...").arg(QString::fromStdString(filename)), LogType::Info);
+			using namespace std::placeholders;
 
-			reader.set_progress([&](const std::string& progress, core::base_reader::ProgressType type) {
-				if(type == core::base_reader::ProgressType::Info)
-					LogMessage(tr("[Extraction] %1").arg(QString::fromStdString(progress)), LogType::Info);
-				else if(type == core::base_reader::ProgressType::Warning)
-					LogMessage(tr("[Extraction] %1").arg(QString::fromStdString(progress)), LogType::Warning);
-				else if(type == core::base_reader::ProgressType::Error)
-					LogMessage(tr("[Extraction] %1").arg(QString::fromStdString(progress)), LogType::Error);
-				else if(type == core::base_reader::ProgressType::Verbose)
-					LogMessage(tr("[Extraction] %1").arg(QString::fromStdString(progress)), LogType::Verbose);
-			});
+			auto fileExists = [](std::string& filename) -> bool {
+				std::ifstream stream(filename, std::ifstream::binary);
 
-			core::msrdReaderOptions opts = { ui.outputDir->text().toStdString(), ui.saveXbc1->isChecked() };
-			core::msrd::msrd msrd = reader.Read(opts);
-			stream.close();
+				if(!stream)
+					return false;
+
+				stream.close();
+				return true;
+			};
+
+			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), core::base_reader::ProgressType::Info);
+
+			if(fileExists(filename + ".wismt")) {
+				std::ifstream stream(filename + ".wismt", std::ifstream::binary);
+				core::msrdReader reader(stream);
+
+				reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
+				core::msrd::msrd msrd = reader.Read({ui.outputDir->text().toStdString(), ui.saveXbc1->isChecked()});
+
+				for(int i = 0; i < msrd.files.size(); ++i) {
+					if(msrd.dataItems[i].type == core::msrd::data_item_type::Model) {
+						ProgressFunction("File " + std::to_string(i) + " is a mesh", core::base_reader::ProgressType::Verbose);
+
+						core::meshReader reader;
+
+						reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
+
+						ProgressFunction("Reading mesh " + std::to_string(i), core::base_reader::ProgressType::Info);
+						core::mesh::mesh mesh = reader.Read({msrd.files[i].data});
+
+						if(mesh.dataSize != 0)
+							msrd.meshes.push_back(mesh);
+					}
+				}
+			}
+
+			// Stop the log timer since we've finished
+			if(queue_empty_timer)
+				queue_empty_timer->stop();
+
+			// Signal finish
+			ProgressFunction("", core::base_reader::ProgressType::Verbose, true);
 	}
 
 	void MainWindow::SaveLogButtonClicked() {

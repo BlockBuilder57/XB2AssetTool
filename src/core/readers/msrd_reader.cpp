@@ -2,27 +2,25 @@
 #include "streamhelper.h"
 #include "endian_swap.h"
 #include "xbc1_reader.h"
+#include "mesh_reader.h"
 
 namespace xb2at {
 namespace core {
 
-	msrd::msrd msrdReader::Read(msrdReaderOptions& opts) {
+	msrd::msrd msrdReader::Read(const msrdReaderOptions& opts) {
 		StreamHelper reader(stream);
 		msrd::msrd data;
 
 		// Read the initial header
 		if(!reader.ReadType<msrd::msrd_header>(data)) {
 			CheckedProgressUpdate("file could not be read", ProgressType::Error);
+			return data;
 		}
-		//(msrd::msrd_header)data = swap_endian<msrd::msrd_header>(data);
 
 		if(!strncmp(data.magic, "DRSM", sizeof("DRSM"))) {
 				CheckedProgressUpdate("file is not MSRD", ProgressType::Error);
 			return data;
 		}
-
-
-		int32 oldpos = stream.tellg();
 		
 		if(data.dataitemsOffset != 0) {
 			stream.seekg(data.offset + data.dataitemsOffset, std::istream::beg);
@@ -64,25 +62,27 @@ namespace core {
 			}
 		}
 
-
 		data.toc.resize(data.fileCount);
 		
 		for(int i = 0; i < data.fileCount; ++i) {
-			stream.seekg(data.offset + data.tocOffset + (i * 12), std::istream::beg);
+			stream.seekg(data.offset + data.tocOffset + (i * sizeof(msrd::toc_entry)), std::istream::beg);
 			reader.ReadType<msrd::toc_entry>(data.toc[i]);
 
 			CheckedProgressUpdate("MSRD file " + std::to_string(i), ProgressType::Verbose);
 			CheckedProgressUpdate(".. is " + std::to_string(data.toc[i].compressedSize) + " bytes compressed", ProgressType::Verbose);
 			CheckedProgressUpdate(".. is " + std::to_string(data.toc[i].fileSize) + " bytes decompressed", ProgressType::Verbose);
 			CheckedProgressUpdate(".. is at offset (decimal) " + std::to_string(data.toc[i].offset), ProgressType::Verbose);
-			
-			xbc1Reader reader(stream);
-			reader.set_progress([&](const std::string& message, ProgressType type) {
-				progressCallback("[XBC1Reader] " + message, type);
-			});
 
-			xbc1::xbc1 file = reader.Read(data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1);
-			data.files.push_back(file);
+			// Decompress the xbc1 file
+			xbc1Reader reader(stream);
+
+			reader.set_progress(std::bind(&msrdReader::CheckedProgressUpdate, this, std::placeholders::_1, std::placeholders::_2));
+
+			xbc1::xbc1 file = reader.Read({ data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1 });
+
+			if(!file.data.empty())
+				data.files.push_back(file);
+
 		}
 
 

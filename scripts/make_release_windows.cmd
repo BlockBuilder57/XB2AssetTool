@@ -9,6 +9,12 @@ pushd bin64
 	copy ..\out\build\x64-release\src\ui\xb2at.exe .
 	copy ..\out\build\x64-release\vendor\zlib\zlib.dll .
 	windeployqt --release .\xb2at.exe
+:: delete some files that aren't needed
+:: (slims down the build tree quite a bit)
+	del opengl32sw.dll
+	del D3Dcompiler_47.dll
+	del libEGL.dll
+	del libGLESv2.dll
 popd
 
 

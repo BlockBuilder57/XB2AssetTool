@@ -72,6 +72,12 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
       <property name="placeholderText">
        <string>Input files...</string>
       </property>
@@ -138,8 +144,17 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
       <property name="placeholderText">
        <string>Output directory...</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>false</bool>
       </property>
      </widget>
      <widget class="QPushButton" name="extractButton">
@@ -163,8 +178,8 @@
        <rect>
         <x>10</x>
         <y>100</y>
-        <width>121</width>
-        <height>17</height>
+        <width>151</width>
+        <height>16</height>
        </rect>
       </property>
       <property name="text">
@@ -182,7 +197,7 @@
         <x>0</x>
         <y>0</y>
         <width>531</width>
-        <height>141</height>
+        <height>131</height>
        </rect>
       </property>
       <property name="font">
@@ -214,9 +229,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>140</y>
+        <y>130</y>
         <width>311</width>
-        <height>21</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -227,9 +242,9 @@
       <property name="geometry">
        <rect>
         <x>450</x>
-        <y>140</y>
+        <y>130</y>
         <width>75</width>
-        <height>20</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">

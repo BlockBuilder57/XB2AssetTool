@@ -1,0 +1,53 @@
+#include <core.h>
+#include "structs/xbc1.h"
+#include "base_reader.h"
+
+namespace xb2at {
+namespace core {
+
+	/**
+	 * Options to pass to xbc1Reader::Read().
+	 */
+	struct xbc1ReaderOptions {
+		
+		/**
+		 * Offset where XBC1 file starts.
+		 */
+		int32 offset;
+
+		/**
+		 * Output directory.
+		 */
+		std::string output_dir; 
+
+		/**
+		 * Whether or not we should save files in the output directory.
+		 */
+		bool save;
+	};
+
+	/**
+	 * Reads and decompresses XBC1 files.
+	 */
+	struct xbc1Reader : public base_reader  {
+
+		xbc1Reader(std::istream& input_stream)
+			: stream(input_stream) {
+		
+		}
+
+		// TODO: Make this use a xbc1ReaderOptions struct like the rest of the readers
+		/**
+		 * Read and decompress a singular XBC1 file.
+		 *
+		 * \param[in] opts Options to pass to the reader.
+		 */
+		xbc1::xbc1 Read(const xbc1ReaderOptions& opts);
+		
+
+	private:
+		std::istream& stream;
+	};
+
+}
+}

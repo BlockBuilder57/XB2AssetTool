@@ -10,7 +10,8 @@
       "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017_64",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "variables": []
+      "variables": [],
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x64-Release",
@@ -22,7 +23,8 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "variables": [],
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x86-Release",
@@ -34,7 +36,8 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x86" ],
-      "variables": []
+      "variables": [],
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x86-Debug",
@@ -46,7 +49,8 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x86" ],
-      "variables": []
+      "variables": [],
+      "intelliSenseMode": "windows-msvc-x86"
     }
   ]
 }

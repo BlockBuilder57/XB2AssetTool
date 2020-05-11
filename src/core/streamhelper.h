@@ -28,6 +28,7 @@ namespace core {
 
 	/**
 	 * A helper object making reading POD (Plain Old Data) types from a C++ iostream object easier.
+	 * Essentially a BinaryReader on crack
 	 */
 	struct StreamHelper {
 	
@@ -57,6 +58,27 @@ namespace core {
 				return false;
 			
 			stream.read((char*)&data, sizeof(T));
+			return true;
+		}
+
+		/**
+		 * Read any POD type (returning it instead of returning into a reference).
+		 * You can use this to, for instance, read a header in one shot instead of reading in *each* and every member.
+		 * Validation and checking is still up to you, though.
+		 * There is also NO safety checking with this overload. 
+		 * You'll have to check the stream is still good before calling this.
+		 *
+		 * \tparam T Type to read. Must be POD.
+		 */
+		template<class T>
+		inline T ReadType() {
+			static detail::PodAssert<T> pod;
+			T temp;
+
+			if(!stream)
+				return temp;
+			
+			stream.read((char*)&temp, sizeof(T));
 			return true;
 		}
 			
@@ -96,7 +118,7 @@ namespace core {
 		 * Read an array of T.
 		 *
 		 * \tparam T Type to read array of.
-		 * \param[in] ExpectedLength Length of the array.
+		 * \param[in] length Length of the array.
 		 */
 		template<class T>
 		inline std::vector<T> ReadArray(std::size_t length) {
