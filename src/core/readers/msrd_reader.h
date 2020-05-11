@@ -14,7 +14,7 @@ namespace core {
 		/**
 		 * The output directory (where we should place files.)
 		 */
-		std::string outputDirectory;
+		fs::path outputDirectory;
 
 		/**
 		 * Save decompressed XBC1 files to the output directory.

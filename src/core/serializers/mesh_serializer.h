@@ -29,7 +29,7 @@ namespace core {
 		/**
 		 * Output directory.
 		 */
-		std::string outputDir;
+		fs::path outputDir;
 
 		/**
 		 * Output filename of the mesh.

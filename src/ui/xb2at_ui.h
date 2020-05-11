@@ -45,7 +45,7 @@ namespace ui {
 
 	private:
 
-		void ExtractFile(std::string filename);
+		void ExtractFile(std::string filename, core::fs::path outputPath, bool saveXbc);
 
 		/**
 		 * Extraction thread

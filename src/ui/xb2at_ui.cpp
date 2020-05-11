@@ -101,7 +101,7 @@ namespace ui {
 		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
 		queue_empty_timer->start(10);
 
-		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString()));
+		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString(), core::fs::path(ui.outputDir->text().toStdString()), ui.saveXbc1->isChecked()));
 		extraction_thread.detach();
 	}
 
@@ -144,12 +144,12 @@ namespace ui {
 		log_queue.push({progress, type, finish});
 	}
 
-	void MainWindow::ExtractFile(std::string filename) {
+	void MainWindow::ExtractFile(std::string filename, core::fs::path outputPath, bool saveXbc) {
 			using namespace std::placeholders;
 
 
 			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), core::ProgressType::Info);
-
+			
 			core::fs::path path(filename);
 			path.replace_extension(".wismt");
 
@@ -158,7 +158,7 @@ namespace ui {
 				core::msrdReader reader(stream);
 
 				reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-				core::msrd::msrd msrd = reader.Read({ui.outputDir->text().toStdString(), ui.saveXbc1->isChecked()});
+				core::msrd::msrd msrd = reader.Read({outputPath, saveXbc});
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
 					if(msrd.dataItems[i].type == core::msrd::data_item_type::Model) {

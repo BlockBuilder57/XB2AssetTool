@@ -50,7 +50,7 @@ namespace core {
 
 		// if the user wants to save raw files
 		if(opts.save) {
-			fs::path path = opts.output_dir;
+			fs::path path(opts.output_dir);
 			path = path / std::string("file_" + std::to_string(xbc.offset) + ".bin");
 
 			CheckedProgressUpdate("Writing raw XBC1 file to " + path.string() + "...", ProgressType::Verbose);

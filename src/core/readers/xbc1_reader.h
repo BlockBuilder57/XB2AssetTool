@@ -18,7 +18,7 @@ namespace core {
 		/**
 		 * Output directory.
 		 */
-		std::string output_dir; 
+		fs::path output_dir; 
 
 		/**
 		 * Whether or not we should save files in the output directory.

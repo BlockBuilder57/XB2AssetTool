@@ -6,7 +6,6 @@ namespace core {
 
 
 	void meshSerializer::Serialize(mesh::mesh& meshToDump, const meshSerializerOptions& options) {
-		
 	}
 
 }
