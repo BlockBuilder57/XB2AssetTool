@@ -49,7 +49,7 @@
        <rect>
         <x>10</x>
         <y>0</y>
-        <width>81</width>
+        <width>141</width>
         <height>16</height>
        </rect>
       </property>
@@ -60,7 +60,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Input File(s):</string>
+       <string>Input Filename:</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="inputFiles">
@@ -76,10 +76,10 @@
        <bool>false</bool>
       </property>
       <property name="readOnly">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="placeholderText">
-       <string>Input files...</string>
+       <string>Input filename</string>
       </property>
      </widget>
      <widget class="QPushButton" name="inputBrowse">
@@ -121,7 +121,7 @@
        <rect>
         <x>10</x>
         <y>50</y>
-        <width>101</width>
+        <width>161</width>
         <height>16</height>
        </rect>
       </property>
@@ -148,7 +148,7 @@
        <bool>false</bool>
       </property>
       <property name="readOnly">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="placeholderText">
        <string>Output directory...</string>
@@ -230,7 +230,7 @@
        <rect>
         <x>0</x>
         <y>130</y>
-        <width>311</width>
+        <width>441</width>
         <height>31</height>
        </rect>
       </property>
@@ -242,9 +242,9 @@
       <property name="geometry">
        <rect>
         <x>450</x>
-        <y>130</y>
+        <y>135</y>
         <width>75</width>
-        <height>31</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
@@ -259,18 +259,18 @@
      <widget class="QLabel" name="aboutxb2at">
       <property name="geometry">
        <rect>
-        <x>220</x>
+        <x>10</x>
         <y>10</y>
-        <width>281</width>
-        <height>51</height>
+        <width>421</width>
+        <height>141</height>
        </rect>
       </property>
       <property name="text">
-       <string>Todo add a semi-meaningful about section
-(also mention rewrite)</string>
+       <string>## About XB2AssetTool
+XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockBuilder57/XBC2ModelDecomp) written in C++17.</string>
       </property>
       <property name="textFormat">
-       <enum>Qt::PlainText</enum>
+       <enum>Qt::MarkdownText</enum>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

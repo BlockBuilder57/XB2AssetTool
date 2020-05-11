@@ -9,7 +9,7 @@ namespace core {
 		StreamHelper reader(stream);
 		xbc1::xbc1 xbc;
 
-		CheckedProgressUpdate("Attempting to read XBC1 at " + std::to_string(opts.offset), ProgressType::Info);
+		CheckedProgressUpdate("Reading XBC1 at " + std::to_string(opts.offset), ProgressType::Info);
 		stream.seekg(opts.offset, std::istream::beg);
 
 		if(!reader.ReadType<xbc1::xbc1_header>(xbc)) {
@@ -32,13 +32,11 @@ namespace core {
 		compressedData.resize(xbc.compressedSize);
 		stream.read(compressedData.data(), xbc.compressedSize);
 
-		
 		CheckedProgressUpdate("Decompressing XBC1 data", ProgressType::Verbose);
 
 		// I suspect monolith was just as lazy as I am
 		// and they just use compress() or compress2()
 		int result = uncompress((Bytef*)xbc.data.data(), (uLongf*)&xbc.decompressedSize, (Bytef*)compressedData.data(), xbc.compressedSize);
-
 		compressedData.clear();
 
 		if(result != Z_OK) {
@@ -51,7 +49,8 @@ namespace core {
 		// if the user wants to save raw files
 		if(opts.save) {
 			fs::path path(opts.output_dir);
-			path = path / std::string("file_" + std::to_string(xbc.offset) + ".bin");
+			path = path / std::string("file_" + std::to_string(xbc.offset));
+			path.replace_extension(".bin");
 
 			CheckedProgressUpdate("Writing raw XBC1 file to " + path.string() + "...", ProgressType::Verbose);
 			std::ofstream file(path.string(), std::ofstream::binary);

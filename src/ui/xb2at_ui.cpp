@@ -3,13 +3,7 @@
 #include <QFileDialog>
 #include <thread>
 
-#include <core.h>
-#include <readers/msrd_reader.h>
-#include <readers/mesh_reader.h>
-#include <serializers/mesh_serializer.h>
-
 #include "version.h"
-
 
 namespace xb2at {
 namespace ui {
@@ -113,17 +107,6 @@ namespace ui {
 		while(log_queue.size() != 0) {
 			auto message = log_queue.front();
 
-			if(message.finished) {
-				ui.extractButton->setDisabled(false);
-					
-				// Stop ourselves.
-				if(queue_empty_timer)
-					queue_empty_timer->stop();
-
-				log_queue.pop();
-				return;
-			}
-
 			if(message.type == ProgressType::Info)
 				LogMessage(QString::fromStdString(message.data), LogType::Info);
 			else if(message.type == ProgressType::Warning)
@@ -133,7 +116,14 @@ namespace ui {
 			else if(message.type == ProgressType::Verbose)
 				LogMessage(QString::fromStdString(message.data), LogType::Verbose);
 
+			
+			if(message.finished) {
+				ui.extractButton->setDisabled(false);
 
+				// Stop ourselves.
+				if(queue_empty_timer)
+					queue_empty_timer->stop();
+			}
 			log_queue.pop();
 		}
 
@@ -146,12 +136,15 @@ namespace ui {
 
 	void MainWindow::ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, meshSerializerOptions::Format meshFormat) {
 			using namespace std::placeholders;
-
-
 			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
 			
 			fs::path path(filename);
 			path.replace_extension(".wismt");
+
+			if(!fs::exists(outputPath)) {
+				ProgressFunction("Output path didn't exist; creating", ProgressType::Warning);
+				fs::create_directories(outputPath);
+			}
 
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
@@ -182,11 +175,14 @@ namespace ui {
 					// NOTE: replace with something that makes more sense later
 					ms.Serialize(msrd.meshes[i], {meshFormat, outputPath, "test_mesh_" + std::to_string(i)});
 				}
+			} else {
+				ProgressFunction("File doesn't exist.", ProgressType::Error, true);
+				return;
 			}
 
 
 			// Signal finish
-			ProgressFunction("", ProgressType::Verbose, true);
+			ProgressFunction("Extraction completed.", ProgressType::Info, true);
 	}
 
 	void MainWindow::SaveLogButtonClicked() {

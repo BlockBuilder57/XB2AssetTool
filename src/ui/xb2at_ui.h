@@ -12,7 +12,9 @@
 #include "ui_xb2at.h"
 
 #include <core.h>
-#include <readers/base_reader.h>
+#include <readers/msrd_reader.h>
+#include <readers/mesh_reader.h>
+#include <serializers/mesh_serializer.h>
 
 
 namespace xb2at {
