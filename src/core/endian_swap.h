@@ -45,7 +45,7 @@ namespace core {
 			return BYTESWAP64(value);
 		} else {
 			// swap sizeof(std::uint16_t) bytes at a time of any structure
-			T temp;
+			T temp{};
 			memcpy(&temp, &value, sizeof(T));
 
 			for(int32 i = 0; i < sizeof(T); i += sizeof(std::uint16_t))

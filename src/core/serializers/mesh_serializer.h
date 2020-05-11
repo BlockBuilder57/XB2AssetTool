@@ -1,12 +1,13 @@
 #pragma once
 #include <core.h>
 #include <structs.h>
+#include <serializers/base_serializer.h>
 
 namespace xb2at {
 namespace core {
 
 	/**
-	 * options to pass to mesh::
+	 * options to pass to meshSerializer::Serialize()
 	 */
 	struct meshSerializerOptions {
 
@@ -24,9 +25,15 @@ namespace core {
 			 */
 			Dump
 		} OutputFormat;
-
+		
+		/**
+		 * Output directory.
+		 */
 		std::string outputDir;
 
+		/**
+		 * Output filename of the mesh.
+		 */
 		std::string filename;
 	};
 
@@ -34,8 +41,14 @@ namespace core {
 	 * Mesh serializer.
 	 * Serializes mesh to a file.
 	 */
-	struct meshSerializer {
+	struct meshSerializer : public base_serializer {
 
+		/**
+		 * Serialize a mesh with the provided options,
+		 *
+		 * \param[in] meshToDump The mesh to dump.
+		 * \param[in] options Options.
+		 */
 		void Serialize(mesh::mesh& meshToDump, const meshSerializerOptions& options);
 
 	};

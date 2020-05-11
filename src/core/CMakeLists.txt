@@ -25,6 +25,11 @@ set(XB2CORE_SOURCES
 
 	readers/mesh_reader.h
 	readers/mesh_reader.cpp
+	
+	serializers/base_serializer.h
+
+	serializers/mesh_serializer.h
+	serializers/mesh_serializer.cpp
 )
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})

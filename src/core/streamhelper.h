@@ -73,7 +73,7 @@ namespace core {
 		template<class T>
 		inline T ReadType() {
 			static detail::PodAssert<T> pod;
-			T temp;
+			T temp{};
 
 			if(!stream)
 				return temp;
