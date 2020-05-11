@@ -54,4 +54,6 @@ elseif(XB2AT_STDLIB STREQUAL "libstdc++")
 	message(STATUS "Linking stdc++fs library")
 	target_link_libraries(xb2core stdc++fs)
 endif()
+
+target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
 	
