@@ -40,27 +40,25 @@ namespace ui {
 
 	void MainWindow::InputBrowseButtonClicked() {
 		QFileDialog fileSelector(this, "Select input filename", "", "All files (*.*)");
-		QStringList files;
 		fileSelector.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
 		fileSelector.setFileMode(QFileDialog::FileMode::ExistingFile);
 
-		if (fileSelector.exec())
-			files = fileSelector.selectedFiles();
+		if (fileSelector.exec()) {
 
-		if(files.isEmpty())
-			return;
+			if(fileSelector.selectedFiles().isEmpty())
+				return;
 
-		auto file = files[0].toStdString();
+			std::string file = fileSelector.selectedFiles()[0].toStdString();
 
 #ifdef _WIN32
-		QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', '\\');
+			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', '\\');
 #else
-		QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.')));
+			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.')));
 #endif
 
-		ui.inputFiles->setText(normalized);
-		file.clear();
-		files.clear();
+			ui.inputFiles->setText(normalized);
+			file.clear();
+		}
 	}
 
 	void MainWindow::OutputBrowseButtonClicked() {
@@ -72,10 +70,10 @@ namespace ui {
 			if(fileSelector.selectedFiles().isEmpty())
 				return;
 
-			auto file = fileSelector.selectedFiles()[0];
+			QString dir = fileSelector.selectedFiles()[0];
 
 #ifdef _WIN32
-			ui.outputDir->setText(file.replace('/', '\\'));
+			ui.outputDir->setText(dir.replace('/', '\\'));
 #else
 			ui.outputDir->setText(file);
 #endif

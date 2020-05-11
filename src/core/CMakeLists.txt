@@ -41,10 +41,12 @@ target_include_directories(xb2core PRIVATE ${PROJECT_SOURCE_DIR}/vendor/zlib)
 target_include_directories(xb2core PRIVATE ${PROJECT_SOURCE_DIR}/vendor/tinygltf)
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
 
-# make so projects that reference xb2core get everything to include
+# Allow projects that import xb2core to immediately get includes of core
 target_include_directories(xb2core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(xb2core zlib)
 
+# Link additional libraries required for using the 
+# filesystem library with libc++ and libstdc++.
 if(XB2AT_STDLIB STREQUAL "libc++")
 	message(STATUS "Linking c++fs library")
 	target_link_libraries(xb2core c++fs)

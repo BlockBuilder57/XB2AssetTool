@@ -12,7 +12,7 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
 endif()
 
-# 
+# Detect the particular C++ standard library.
 if(NOT DEFINED CACHE{XB2AT_STDLIB})
 	message(STATUS "Detecting C++ standard library")
 	set(CMAKE_REQUIRED_QUIET ON)
