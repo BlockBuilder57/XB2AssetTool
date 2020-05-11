@@ -52,9 +52,13 @@ namespace ui {
 
 		auto file = files[0].toStdString();
 
-		file = file.substr(0, file.find_last_of('.'));
+#ifdef _WIN32
+		QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', '\\');
+#else
+		QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.')));
+#endif
 
-		ui.inputFiles->setText(QString::fromStdString(file));
+		ui.inputFiles->setText(normalized);
 		file.clear();
 		files.clear();
 	}
@@ -68,7 +72,13 @@ namespace ui {
 			if(fileSelector.selectedFiles().isEmpty())
 				return;
 
-			ui.outputDir->setText(fileSelector.selectedFiles()[0]);
+			auto file = fileSelector.selectedFiles()[0];
+
+#ifdef _WIN32
+			ui.outputDir->setText(file.replace('/', '\\'));
+#else
+			ui.outputDir->setText(file);
+#endif
 		}
 	}
 

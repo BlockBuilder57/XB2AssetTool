@@ -44,3 +44,12 @@ target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
 # make so projects that reference xb2core get everything to include
 target_include_directories(xb2core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(xb2core zlib)
+
+if(XB2AT_STDLIB STREQUAL "libc++")
+	message(STATUS "Linking c++fs library")
+	target_link_libraries(xb2core c++fs)
+elseif(XB2AT_STDLIB STREQUAL "libstdc++")
+	message(STATUS "Linking stdc++fs library")
+	target_link_libraries(xb2core stdc++fs)
+endif()
+	

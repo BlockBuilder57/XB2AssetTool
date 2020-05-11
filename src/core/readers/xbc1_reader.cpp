@@ -50,15 +50,14 @@ namespace core {
 
 		// if the user wants to save raw files
 		if(opts.save) {
-			std::stringstream ss;
-			ss << opts.output_dir << "/file_" << opts.offset << ".bin";
+			fs::path path = opts.output_dir;
+			path = path / std::string("file_" + std::to_string(xbc.offset) + ".bin");
 
-			CheckedProgressUpdate("Writing raw XBC1 file to " + ss.str() + "...", ProgressType::Verbose);
-			std::ofstream file(ss.str(), std::ofstream::binary);
+			CheckedProgressUpdate("Writing raw XBC1 file to " + path.string() + "...", ProgressType::Verbose);
+			std::ofstream file(path.string(), std::ofstream::binary);
 
 			file.write((char*)xbc.data.data(), xbc.decompressedSize);
 			file.close();
-			ss.clear();
 		}
 
 		return xbc;

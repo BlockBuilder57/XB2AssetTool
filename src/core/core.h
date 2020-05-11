@@ -12,7 +12,7 @@
 #include <map>
 #include <memory>
 
-
+#include <filesystem>
 #include <functional> // std::function
 
 
@@ -49,5 +49,7 @@ namespace core {
 		Info,
 		Verbose
 	};
+
+	namespace fs = std::filesystem;
 }
 }
