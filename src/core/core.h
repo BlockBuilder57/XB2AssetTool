@@ -15,6 +15,7 @@
 
 #include <functional> // std::function
 
+
 namespace xb2at {
 namespace core {
 
@@ -38,7 +39,15 @@ namespace core {
 		for(std::vector<T>& v : vec)
 			v.resize(dim2);
 	}
-
-
+	
+	/**
+	 * Progress reporting severity.
+	 */
+	enum ProgressType : int16 {
+		Error,
+		Warning,
+		Info,
+		Verbose
+	};
 }
 }

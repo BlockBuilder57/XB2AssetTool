@@ -111,13 +111,13 @@ namespace ui {
 				return;
 			}
 
-			if(message.type == core::base_reader::ProgressType::Info)
+			if(message.type == core::ProgressType::Info)
 				LogMessage(QString::fromStdString(message.data), LogType::Info);
-			else if(message.type == core::base_reader::ProgressType::Warning)
+			else if(message.type == core::ProgressType::Warning)
 				LogMessage(QString::fromStdString(message.data), LogType::Warning);
-			else if(message.type == core::base_reader::ProgressType::Error)
+			else if(message.type == core::ProgressType::Error)
 				LogMessage(QString::fromStdString(message.data), LogType::Error);
-			else if(message.type == core::base_reader::ProgressType::Verbose)
+			else if(message.type == core::ProgressType::Verbose)
 				LogMessage(QString::fromStdString(message.data), LogType::Verbose);
 
 
@@ -126,7 +126,7 @@ namespace ui {
 
 	}
 
-	void MainWindow::ProgressFunction(const std::string& progress, core::base_reader::ProgressType type, bool finish = false) {
+	void MainWindow::ProgressFunction(const std::string& progress, core::ProgressType type, bool finish = false) {
 		std::lock_guard<std::mutex> lock(log_queue_lock);
 		log_queue.push({progress, type, finish});
 	}
@@ -144,7 +144,7 @@ namespace ui {
 				return true;
 			};
 
-			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), core::base_reader::ProgressType::Info);
+			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), core::ProgressType::Info);
 
 			if(fileExists(filename + ".wismt")) {
 				std::ifstream stream(filename + ".wismt", std::ifstream::binary);
@@ -155,13 +155,13 @@ namespace ui {
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
 					if(msrd.dataItems[i].type == core::msrd::data_item_type::Model) {
-						ProgressFunction("File " + std::to_string(i) + " is a mesh", core::base_reader::ProgressType::Verbose);
+						ProgressFunction("File " + std::to_string(i) + " is a mesh", core::ProgressType::Verbose);
 
 						core::meshReader reader;
 
 						reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
 
-						ProgressFunction("Reading mesh " + std::to_string(i), core::base_reader::ProgressType::Info);
+						ProgressFunction("Reading mesh " + std::to_string(i), core::ProgressType::Info);
 						core::mesh::mesh mesh = reader.Read({msrd.files[i].data});
 
 						if(mesh.dataSize != 0)
@@ -175,7 +175,7 @@ namespace ui {
 				queue_empty_timer->stop();
 
 			// Signal finish
-			ProgressFunction("", core::base_reader::ProgressType::Verbose, true);
+			ProgressFunction("", core::ProgressType::Verbose, true);
 	}
 
 	void MainWindow::SaveLogButtonClicked() {

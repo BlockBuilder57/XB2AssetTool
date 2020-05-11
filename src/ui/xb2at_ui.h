@@ -61,14 +61,14 @@ namespace ui {
 		 * \param[in] type Progress message type.
 		 * \param[in] finish if work is finished
 		 */
-		void ProgressFunction(const std::string& message, core::base_reader::ProgressType type, bool finish);
+		void ProgressFunction(const std::string& message, core::ProgressType type, bool finish);
 
 		/**
 		 * Progress data that we store in a struct.
 		 */
 		struct ProgressData {
 			std::string data;
-			core::base_reader::ProgressType type;
+			core::ProgressType type;
 			bool finished;
 		};
 
