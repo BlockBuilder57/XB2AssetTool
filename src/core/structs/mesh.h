@@ -70,7 +70,7 @@ namespace mesh {
 	};
 
 	struct vertex_descriptor {
-		int16 type;
+		vertex_descriptor_type type;
 		int16 size;
 	};
 

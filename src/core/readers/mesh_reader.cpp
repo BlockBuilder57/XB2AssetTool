@@ -54,7 +54,19 @@ namespace core {
 			return {x, y, z, w};
 		};
 
-		auto readu32Quat = [&]() -> mesh::quaternion { 
+		auto readu32u8Quat = [&]() -> mesh::quaternion {
+			uint32 total;
+			reader.ReadType<uint32>(total);
+
+			float x = (float)(((sbyte*)&total)[0]) / 128.f;
+			float y = (float)(((sbyte*)&total)[1]) / 128.f;
+			float z = (float)(((sbyte*)&total)[2]) / 128.f;
+			float w = (float)(((sbyte*)&total)[3]);
+
+			return { x, y, z, w };
+		};
+
+		auto readu32s8Quat = [&]() -> mesh::quaternion { 
 			uint32 total;
 			reader.ReadType<uint32>(total);
 
@@ -123,7 +135,7 @@ namespace core {
 					return mesh;
 				}
 
-				stream.seekg(mesh.faceTables[i].offset, std::istream::beg);
+				stream.seekg(mesh.dataOffset + mesh.faceTables[i].offset, std::istream::beg);
 
 				mesh.faceTables[i].vertices.resize(mesh.faceTables[i].vertCount);
 				for(int j = 0; j < mesh.faceTables[i].vertCount; ++j) {
@@ -165,6 +177,7 @@ namespace core {
 			reader.ReadType<int32>(mesh.morphData.morphTargetOffset);
 
 			mesh.morphData.morphDescriptors.resize(mesh.morphData.morphDescriptorCount);
+			stream.seekg(mesh.morphData.morphDescriptorOffset, std::istream::beg);
 
 			for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
 				if(!reader.ReadType<mesh::morph_descriptor_header>(mesh.morphData.morphDescriptors[i])) {
@@ -243,7 +256,7 @@ namespace core {
 						break;
 
 					case mesh::vertex_descriptor_type::Normal:
-						mesh.vertexTables[i].normals[j] = readu32Quat();
+						mesh.vertexTables[i].normals[j] = readu32s8Quat();
 						break;
 
 					case mesh::vertex_descriptor_type::Weight16:
@@ -271,28 +284,32 @@ namespace core {
 			stream.seekg(mesh.morphData.morphDescriptors[i].targetIdOffsets, std::istream::beg);
 
 			for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
-				mesh.morphData.morphDescriptors[i].targetIds[j] = reader.ReadType<int16>();
+				reader.ReadType<int16>(mesh.morphData.morphDescriptors[i].targetIds[j]);
 
+			mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
+
+			stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset, std::istream::beg);
 			
-			for(int j = 0; j < mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex].vertCount; ++j) {
-				mesh.vertexTables[mesh.morphData.morphDescriptors[i].bufferId].vertices.resize(mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex].vertCount);
-				mesh.vertexTables[mesh.morphData.morphDescriptors[i].bufferId].normals.resize(mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex].vertCount);
+			for(int j = 0; j < mesh.morphData.morphTargets[desc.targetIndex].vertCount; ++j) {
+				//mesh.vertexTables[desc.bufferId].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+				//mesh.vertexTables[desc.bufferId].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 
-				mesh.vertexTables[mesh.morphData.morphDescriptors[i].bufferId].vertices[j] = readVec3();
-				mesh.vertexTables[mesh.morphData.morphDescriptors[i].bufferId].normals[j] = readu32Quat();
-				stream.seekg(mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex].blockSize - (sizeof(mesh::morph_target_header)-1), std::istream::cur);
+				mesh.vertexTables[desc.bufferId].vertices[j] = readVec3();
+				mesh.vertexTables[desc.bufferId].normals[j] = readu32u8Quat();
+				stream.seekg(mesh.morphData.morphTargets[desc.targetIndex].blockSize - 15, std::istream::cur); //TODO investigate other stuff
 			}
-			for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j) {
-				mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex+j].vertices.resize(mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex].vertCount);
-				mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex+j].normals.resize(mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex].vertCount);
 
-				stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex+j].bufferOffset, std::istream::beg);
-				for(int k = 0; k < mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex+j].vertCount; ++k) {
+			for(int j = 1; j < desc.targetCounts; ++j) {
+				mesh.morphData.morphTargets[desc.targetIndex+j].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+				mesh.morphData.morphTargets[desc.targetIndex+j].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+
+				stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex+j].bufferOffset, std::istream::beg);
+				for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex+j].vertCount; ++k) {
 					int32 dummy;
 					
 					mesh::vector3 vert = readVec3();
 					reader.ReadType<int32>(dummy);
-					mesh::quaternion norm = readQuat();
+					mesh::quaternion norm = readu32u8Quat();
 
 					reader.ReadType<int32>(dummy);
 					reader.ReadType<int32>(dummy);
@@ -300,8 +317,8 @@ namespace core {
 					int32 index;
 					reader.ReadType<int32>(index);
 
-					mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex+j].vertices[index] = vert;
-					mesh.morphData.morphTargets[mesh.morphData.morphDescriptors[i].targetIndex+j].normals[index] = norm;
+					mesh.morphData.morphTargets[desc.targetIndex+j].vertices[index] = vert;
+					mesh.morphData.morphTargets[desc.targetIndex+j].normals[index] = norm;
 				}
 			}
 		}
