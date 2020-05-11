@@ -7,10 +7,13 @@ namespace core {
 
 	void meshSerializer::Serialize(mesh::mesh& meshToDump, const meshSerializerOptions& options) {
 		fs::path outPath(options.outputDir);
+		
+		outPath = outPath / options.filename;
 
 		if(options.OutputFormat == meshSerializerOptions::Format::GLTFBinary) {
-			outPath = outPath / options.filename;
 			outPath.replace_extension(".glb");
+		} else if (options.OutputFormat == meshSerializerOptions::Format::Dump) {
+			outPath.replace_extension(".txt");
 		}
 		
 		std::ofstream ofs(outPath.string(), (options.OutputFormat == meshSerializerOptions::Format::GLTFBinary) ? std::ofstream::binary : std::ostream::out);
