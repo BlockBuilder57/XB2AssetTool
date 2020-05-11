@@ -14,8 +14,11 @@
 #include <core.h>
 #include <readers/base_reader.h>
 
+
 namespace xb2at {
 namespace ui {
+
+	using namespace xb2at::core;
 
 	class MainWindow : public QMainWindow {
 
@@ -45,7 +48,7 @@ namespace ui {
 
 	private:
 
-		void ExtractFile(std::string filename, core::fs::path outputPath, bool saveXbc);
+		void ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, meshSerializerOptions::Format meshFormat);
 
 		/**
 		 * Extraction thread
@@ -61,7 +64,7 @@ namespace ui {
 		 * \param[in] type Progress message type.
 		 * \param[in] finish if work is finished
 		 */
-		void ProgressFunction(const std::string& message, core::ProgressType type, bool finish);
+		void ProgressFunction(const std::string& message, ProgressType type, bool finish);
 
 		/**
 		 * Progress data that we store in a struct.

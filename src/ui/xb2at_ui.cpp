@@ -6,10 +6,10 @@
 #include <core.h>
 #include <readers/msrd_reader.h>
 #include <readers/mesh_reader.h>
+#include <serializers/mesh_serializer.h>
 
 #include "version.h"
 
-using namespace xb2at;
 
 namespace xb2at {
 namespace ui {
@@ -101,7 +101,8 @@ namespace ui {
 		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
 		queue_empty_timer->start(10);
 
-		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString(), core::fs::path(ui.outputDir->text().toStdString()), ui.saveXbc1->isChecked()));
+		// TODO: make mesh format a dropdown thing
+		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString(), fs::path(ui.outputDir->text().toStdString()), ui.saveXbc1->isChecked(), meshSerializerOptions::Format::GLTFBinary));
 		extraction_thread.detach();
 	}
 
@@ -112,25 +113,24 @@ namespace ui {
 		while(log_queue.size() != 0) {
 			auto message = log_queue.front();
 
-			
-			if(message.data.empty()) {
-				if(message.finished) {
-					ui.extractButton->setDisabled(false);
+			if(message.finished) {
+				ui.extractButton->setDisabled(false);
+					
+				// Stop ourselves.
+				if(queue_empty_timer)
+					queue_empty_timer->stop();
 
-					// Stop ourselves.
-					if(queue_empty_timer)
-						queue_empty_timer->stop();
-				}
+				log_queue.pop();
 				return;
 			}
 
-			if(message.type == core::ProgressType::Info)
+			if(message.type == ProgressType::Info)
 				LogMessage(QString::fromStdString(message.data), LogType::Info);
-			else if(message.type == core::ProgressType::Warning)
+			else if(message.type == ProgressType::Warning)
 				LogMessage(QString::fromStdString(message.data), LogType::Warning);
-			else if(message.type == core::ProgressType::Error)
+			else if(message.type == ProgressType::Error)
 				LogMessage(QString::fromStdString(message.data), LogType::Error);
-			else if(message.type == core::ProgressType::Verbose)
+			else if(message.type == ProgressType::Verbose)
 				LogMessage(QString::fromStdString(message.data), LogType::Verbose);
 
 
@@ -139,46 +139,54 @@ namespace ui {
 
 	}
 
-	void MainWindow::ProgressFunction(const std::string& progress, core::ProgressType type, bool finish = false) {
+	void MainWindow::ProgressFunction(const std::string& progress, ProgressType type, bool finish = false) {
 		std::lock_guard<std::mutex> lock(log_queue_lock);
 		log_queue.push({progress, type, finish});
 	}
 
-	void MainWindow::ExtractFile(std::string filename, core::fs::path outputPath, bool saveXbc) {
+	void MainWindow::ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, meshSerializerOptions::Format meshFormat) {
 			using namespace std::placeholders;
 
 
-			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), core::ProgressType::Info);
+			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
 			
-			core::fs::path path(filename);
+			fs::path path(filename);
 			path.replace_extension(".wismt");
 
-			if(core::fs::exists(path)) {
+			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
-				core::msrdReader reader(stream);
+				msrdReader reader(stream);
 
 				reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-				core::msrd::msrd msrd = reader.Read({outputPath, saveXbc});
+				msrd::msrd msrd = reader.Read({outputPath, saveXbc});
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
-					if(msrd.dataItems[i].type == core::msrd::data_item_type::Model) {
-						ProgressFunction("File " + std::to_string(i) + " is a mesh", core::ProgressType::Verbose);
+					if(msrd.dataItems[i].type == msrd::data_item_type::Model) {
+						ProgressFunction("File " + std::to_string(i) + " is a mesh", ProgressType::Verbose);
 
-						core::meshReader reader;
+						meshReader reader;
 
 						reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
 
-						ProgressFunction("Reading mesh " + std::to_string(i), core::ProgressType::Info);
-						core::mesh::mesh mesh = reader.Read({msrd.files[i].data});
+						ProgressFunction("Reading mesh " + std::to_string(i), ProgressType::Info);
+						mesh::mesh mesh = reader.Read({msrd.files[i].data});
 
 						if(mesh.dataSize != 0)
 							msrd.meshes.push_back(mesh);
 					}
 				}
+
+				for(int i = 0; i < msrd.meshes.size(); ++i) {
+					meshSerializer ms;
+					ms.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
+					// NOTE: replace with something that makes more sense later
+					ms.Serialize(msrd.meshes[i], {meshFormat, outputPath, "test_mesh_" + std::to_string(i)});
+				}
 			}
 
+
 			// Signal finish
-			ProgressFunction("", core::ProgressType::Verbose, true);
+			ProgressFunction("", ProgressType::Verbose, true);
 	}
 
 	void MainWindow::SaveLogButtonClicked() {
