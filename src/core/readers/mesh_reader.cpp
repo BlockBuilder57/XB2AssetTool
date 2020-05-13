@@ -198,7 +198,7 @@ namespace core {
 				auto getMaxVertCount = [&]() -> int32 {
 					// obtain a iterator to the element with the largest vertex count
 					// (we do this by supplying a custom comparision function)
-					auto it = std::max_element(mesh.morphData.morphTargets.begin(), mesh.morphData.morphTargets.end(), [](mesh::morph_target& l, mesh::morph_target r) {
+					auto it = std::max_element(mesh.morphData.morphTargets.begin(), mesh.morphData.morphTargets.end(), [](mesh::morph_target& l, mesh::morph_target& r) {
 						// TODO fix
 						return std::max(l.vertCount, r.vertCount) == r.vertCount;
 					});
