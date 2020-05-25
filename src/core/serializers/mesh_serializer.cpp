@@ -1,5 +1,7 @@
 #include <serializers/mesh_serializer.h>
-#include <tiny_gltf.h>
+#include <fx/gltf.h>
+
+namespace gltf = fx::gltf;
 
 namespace xb2at {
 namespace core {

@@ -1,6 +1,9 @@
-[submodule "vendor/tinygltf"]
-	path = vendor/tinygltf
-	url = https://github.com/syoyo/tinygltf
 [submodule "vendor/zlib"]
 	path = vendor/zlib
 	url = https://github.com/madler/zlib
+[submodule "vendor/fx-gltf"]
+	path = vendor/fx-gltf
+	url = https://github.com/jessey-git/fx-gltf
+[submodule "vendor/json"]
+	path = vendor/json
+	url = https://github.com/nlohmann/json
