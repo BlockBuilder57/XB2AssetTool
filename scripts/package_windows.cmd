@@ -10,7 +10,7 @@ pushd bin64
 popd
 
 pushd bind64
-	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\XB2AssetTool_x64Debug.7z *
+	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\XB2AssetTool_x64_Debug.7z *
 popd
 
 pushd bin32
@@ -18,5 +18,5 @@ pushd bin32
 popd
 
 pushd bind32
-	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\XB2AssetTool_x86Debug.7z *
+	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\XB2AssetTool_x86_Debug.7z *
 popd
