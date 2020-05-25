@@ -21,6 +21,11 @@ namespace core {
 			GLTFBinary,
 
 			/**
+			 * text glTF format
+			 */
+			 GLTFText,
+
+			/**
 			 * Raw dump format.
 			 */
 			Dump

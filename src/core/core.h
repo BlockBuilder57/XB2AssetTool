@@ -39,6 +39,38 @@ namespace core {
 		for(std::vector<T>& v : vec)
 			v.resize(dim2);
 	}
+
+	// Default max function
+	template<typename T>
+	inline bool DefaultMax(const T& LValue, const T& RValue) {
+		return std::max(LValue, RValue) == RValue;
+	}
+
+	// Get max element of a vector
+	template<typename T>
+	inline T GetMaxElement(const std::vector<T>& vec) {
+		auto it = std::max_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
+			return std::max(L, R) == R;
+		});
+
+		return (*it);
+	}
+
+	// Default min function
+	template<typename T>
+	inline bool DefaultMin(const T& LValue, const T& RValue) {
+		return std::min(LValue, RValue) == RValue;
+	}
+
+	// Get min element of a vector
+	template<typename T>
+	inline T GetMinElement(const std::vector<T>& vec) {
+		auto it = std::min_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
+			return std::min(L, R) == R;
+		});
+
+		return (*it);
+	}
 	
 	/**
 	 * Progress reporting severity.
