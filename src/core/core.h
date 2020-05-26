@@ -31,6 +31,30 @@ namespace core {
 	typedef std::int64_t int64;
 	typedef std::uint64_t uint64;
 
+	struct vector2 {
+		float x;
+		float y;
+	};
+
+	struct vector3 {
+		float x;
+		float y;
+		float z;
+	};
+
+	struct quaternion {
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+
+	struct color {
+		byte r;
+		byte g;
+		byte b;
+		byte a;
+	};
 	
 	template<class T>
 	inline void ResizeMultiDimVec(std::vector<std::vector<T>>& vec, int dim1, int dim2) {
@@ -76,10 +100,10 @@ namespace core {
 	 * Progress reporting severity.
 	 */
 	enum ProgressType : int16 {
-		Error,
-		Warning,
+		Verbose,
 		Info,
-		Verbose
+		Warning,
+		Error
 	};
 
 	namespace fs = std::filesystem;

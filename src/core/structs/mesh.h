@@ -10,31 +10,6 @@ namespace core {
 
 namespace mesh {
 
-	struct vector2 {
-		float x;
-		float y;
-	};
-
-	struct vector3 {
-		float x;
-		float y;
-		float z;
-	};
-
-	struct quaternion {
-		float x;
-		float y;
-		float z;
-		float w;
-	};
-
-	struct color {
-		byte r;
-		byte g;
-		byte b;
-		byte a;
-	};
-
 	enum vertex_descriptor_type : int16 {
 		Position,
 		Weight32,

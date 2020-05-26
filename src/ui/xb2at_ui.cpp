@@ -96,56 +96,65 @@ namespace ui {
 		queue_empty_timer->start(10);
 
 		// TODO: make mesh format a dropdown thing
-		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString(), fs::path(ui.outputDir->text().toStdString()), ui.saveXbc1->isChecked(), meshSerializerOptions::Format::GLTFBinary));
+		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString(), fs::path(ui.outputDir->text().toStdString()), ui.saveXbc1->isChecked(), modelSerializerOptions::Format::GLTFText));
 		extraction_thread.detach();
 	}
 
 	void MainWindow::OnQueueEmptyTimer() {
-		// Spin this function until *we* lock the mutex
+		// Spin this function until we are able to 
+		// lock the mutex guarding the log message queue.
 		std::lock_guard<std::mutex> lock(log_queue_lock);
 
+		// Process the queue until it is empty.
 		while(log_queue.size() != 0) {
 			auto message = log_queue.front();
 
-			if(message.type == ProgressType::Info)
-				LogMessage(QString::fromStdString(message.data), LogType::Info);
-			else if(message.type == ProgressType::Warning)
-				LogMessage(QString::fromStdString(message.data), LogType::Warning);
-			else if(message.type == ProgressType::Error)
-				LogMessage(QString::fromStdString(message.data), LogType::Error);
-			else if(message.type == ProgressType::Verbose)
-				LogMessage(QString::fromStdString(message.data), LogType::Verbose);
+			// Cast the progress type to LogType.
+			// ProgressType and LogType have the same order so this we do not lose type safety
+			LogMessage(QString::fromStdString(message.data), (LogType)message.type);
 
-			
+
+			// If we recieved a finish message,
+			// do what we need to do to uninitalize the things we allocated in ExtractButtonClicked() 
 			if(message.finished) {
-				ui.extractButton->setDisabled(false);
-
 				// Stop ourselves.
-				if(queue_empty_timer)
+				if (queue_empty_timer)
 					queue_empty_timer->stop();
+
+				// Delete the timer object.
+				// ExtractButtonClicked() creates a new timer object each time it is invoked,
+				// so we need to delete the current instance.
+				if (queue_empty_timer)
+					delete queue_empty_timer;
+
+				// Enable the "Extract" button in the UI.
+				ui.extractButton->setDisabled(false);
 			}
+
 			log_queue.pop();
 		}
 
 	}
 
 	void MainWindow::ProgressFunction(const std::string& progress, ProgressType type, bool finish = false) {
+		// Spinlock until the calling thread can lock the mutex
 		std::lock_guard<std::mutex> lock(log_queue_lock);
+
 		log_queue.push({progress, type, finish});
 	}
 
-	void MainWindow::ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, meshSerializerOptions::Format meshFormat) {
+	void MainWindow::ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
 			using namespace std::placeholders;
 			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
 			
 			fs::path path(filename);
-			path.replace_extension(".wismt");
 
 			if(!fs::exists(outputPath)) {
 				ProgressFunction("Output path didn't exist; creating", ProgressType::Warning);
 				fs::create_directories(outputPath);
 			}
 
+			path.replace_extension(".wismt");
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
 				msrdReader reader(stream);
@@ -169,14 +178,25 @@ namespace ui {
 					}
 				}
 
-				for(int i = 0; i < msrd.meshes.size(); ++i) {
-					meshSerializer ms;
-					ms.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-					// NOTE: replace with something that makes more sense later
-					ms.Serialize(msrd.meshes[i], {meshFormat, outputPath, "test_mesh_" + std::to_string(i)});
+				path.replace_extension(".wimdo");
+				if (fs::exists(path)) {
+					std::ifstream stream(path.string(), std::ifstream::binary);
+					mxmdReader reader(stream);
+
+					reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
+					mxmd::mxmd mxmd = reader.Read({ });
 				}
+				else {
+					ProgressFunction(path.stem().string() + ".wimdo doesn't exist.", ProgressType::Error, true);
+					return;
+				}
+
+				modelSerializer ms;
+				ms.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
+				// NOTE: replace with something that makes more sense later
+				ms.Serialize(msrd.meshes, { meshFormat, outputPath, path.stem().string()});
 			} else {
-				ProgressFunction("File doesn't exist.", ProgressType::Error, true);
+				ProgressFunction(path.stem().string() + ".wismt doesn't exist.", ProgressType::Error, true);
 				return;
 			}
 

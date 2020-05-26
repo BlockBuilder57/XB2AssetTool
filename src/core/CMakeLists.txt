@@ -26,11 +26,14 @@ set(XB2CORE_SOURCES
 
 	readers/mesh_reader.h
 	readers/mesh_reader.cpp
+
+	readers/mxmd_reader.h
+	readers/mxmd_reader.cpp
 	
 	serializers/base_serializer.h
 
-	serializers/mesh_serializer.h
-	serializers/mesh_serializer.cpp
+	serializers/model_serializer.h
+	serializers/model_serializer.cpp
 )
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
@@ -55,4 +58,10 @@ elseif(XB2AT_STDLIB STREQUAL "libstdc++")
 endif()
 
 target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
-	
+
+add_custom_target(gittag_core COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/src/ui/gittag.cmake WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} SOURCES ${CMAKE_CURRENT_BINARY_DIR}/Version.hpp)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Version.hpp PROPERTIES GENERATED TRUE)
+
+add_dependencies(xb2core gittag_core)
+
+target_include_directories(xb2core PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

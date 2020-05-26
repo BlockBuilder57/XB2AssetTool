@@ -17,7 +17,7 @@ namespace core {
 		// these could be imported into streamhelper
 		// but i'd rather not import a soft dependency
 		// of glm into streamhelper
-		auto readVec3 = [&]() -> mesh::vector3 {
+		auto readVec3 = [&]() -> vector3 {
 			float x;
 			float y;
 			float z;
@@ -29,7 +29,7 @@ namespace core {
 			return {x, y, z};
 		};
 
-		auto readVec2 = [&]() -> mesh::vector2 {
+		auto readVec2 = [&]() -> vector2 {
 			float x;
 			float y;
 			
@@ -40,7 +40,7 @@ namespace core {
 			return {x, y};
 		};
 
-		auto readQuat = [&]() -> mesh::quaternion { 
+		auto readQuat = [&]() -> quaternion { 
 			float x;
 			float y;
 			float z;
@@ -54,7 +54,7 @@ namespace core {
 			return {x, y, z, w};
 		};
 
-		auto readu32u8Quat = [&]() -> mesh::quaternion {
+		auto readu32u8Quat = [&]() -> quaternion {
 			uint32 total;
 			reader.ReadType<uint32>(total);
 
@@ -66,7 +66,7 @@ namespace core {
 			return { x, y, z, w };
 		};
 
-		auto readu32s8Quat = [&]() -> mesh::quaternion { 
+		auto readu32s8Quat = [&]() -> quaternion { 
 			uint32 total;
 			reader.ReadType<uint32>(total);
 
@@ -78,7 +78,7 @@ namespace core {
 			return {x, y, z, w};
 		};
 
-		auto readu16Quat = [&]() -> mesh::quaternion { 
+		auto readu16Quat = [&]() -> quaternion { 
 			uint64 total;
 			reader.ReadType<uint64>(total);
 
@@ -307,9 +307,9 @@ namespace core {
 				for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex+j].vertCount; ++k) {
 					int32 dummy;
 					
-					mesh::vector3 vert = readVec3();
+					vector3 vert = readVec3();
 					reader.ReadType<int32>(dummy);
-					mesh::quaternion norm = readu32u8Quat();
+					quaternion norm = readu32u8Quat();
 
 					reader.ReadType<int32>(dummy);
 					reader.ReadType<int32>(dummy);

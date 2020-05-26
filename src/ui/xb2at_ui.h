@@ -14,7 +14,8 @@
 #include <core.h>
 #include <readers/msrd_reader.h>
 #include <readers/mesh_reader.h>
-#include <serializers/mesh_serializer.h>
+#include <readers/mxmd_reader.h>
+#include <serializers/model_serializer.h>
 
 
 namespace xb2at {
@@ -50,7 +51,7 @@ namespace ui {
 
 	private:
 
-		void ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, meshSerializerOptions::Format meshFormat);
+		void ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, modelSerializerOptions::Format modelFormat);
 
 		/**
 		 * Extraction thread
