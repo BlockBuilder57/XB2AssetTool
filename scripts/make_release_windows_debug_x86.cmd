@@ -5,7 +5,7 @@ setlocal
 if not exist "%CD%\bind32\" mkdir bind32
 set PATH=C:\Qt\5.14.2\msvc2017\bin\;%PATH%
 
-pushd bind64
+pushd bind32
 	copy ..\out\build\x86-debug\src\ui\debug\xb2at.exe .
 	windeployqt .\xb2at.exe
 :: delete some files that aren't needed

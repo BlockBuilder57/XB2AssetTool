@@ -32,6 +32,11 @@ namespace core {
 		} OutputFormat;
 		
 		/**
+		 * MXMD data to use.
+		 */
+		mxmd::mxmd mxmdData;
+
+		/**
 		 * Output directory.
 		 */
 		fs::path outputDir;

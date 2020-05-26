@@ -7,11 +7,11 @@ namespace xb2at {
 
 		mxmd::mxmd mxmdReader::Read(const mxmdReaderOptions& opts) {
 			StreamHelper reader(stream);
-			mxmd::mxmd data{};
+			mxmd::mxmd data;
 
 			// Read the initial header
 			if (!reader.ReadType<mxmd::mxmd_header>(data)) {
-				CheckedProgressUpdate("file could not be read", ProgressType::Error);
+				CheckedProgressUpdate("MXMD header could not be read", ProgressType::Error);
 				return data;
 			}
 
@@ -29,7 +29,21 @@ namespace xb2at {
 					reader.ReadType<mxmd::morph_controllers_info>(data.model.morphControllers);
 
 					data.model.morphControllers.controls.resize(data.model.morphControllers.count);
-					
+
+					for(int i = 0; i < data.model.morphControllers.count; ++i) {
+						auto& mp = data.model.morphControllers.controls[i];
+						reader.ReadType<mxmd::morph_control_info>(mp);
+						
+						if(mp.nameOffset1 != 0) {
+							auto oldpos = stream.tellg();
+
+							stream.seekg((data.modelStructOffset + data.model.morphControllersOffset + mp.nameOffset1), std::istream::beg);
+							mp.name = reader.ReadString();
+
+							stream.seekg(oldpos, std::istream::beg);
+						}
+					}
+
 				}
 			}
 

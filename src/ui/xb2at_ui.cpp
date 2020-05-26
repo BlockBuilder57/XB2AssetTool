@@ -44,11 +44,7 @@ namespace ui {
 
 			std::string file = fileSelector.selectedFiles()[0].toStdString();
 
-#ifdef _WIN32
-			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', '\\');
-#else
-			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.')));
-#endif
+			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', fs::path::preferred_separator);
 
 			ui.inputFiles->setText(normalized);
 			file.clear();
@@ -66,11 +62,7 @@ namespace ui {
 
 			QString dir = fileSelector.selectedFiles()[0];
 
-#ifdef _WIN32
-			ui.outputDir->setText(dir.replace('/', '\\'));
-#else
-			ui.outputDir->setText(dir);
-#endif
+			ui.outputDir->setText(dir.replace('/', fs::path::preferred_separator));
 		}
 	}
 
@@ -145,16 +137,17 @@ namespace ui {
 
 	void MainWindow::ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
 			using namespace std::placeholders;
-			ProgressFunction(tr("Extracting file %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
+			ProgressFunction(tr("Extracting %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
 			
 			fs::path path(filename);
 
 			if(!fs::exists(outputPath)) {
-				ProgressFunction("Output path didn't exist; creating", ProgressType::Warning);
+				ProgressFunction("Creating output path as it didn't exist", ProgressType::Warning);
 				fs::create_directories(outputPath);
 			}
 
 			path.replace_extension(".wismt");
+
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
 				msrdReader reader(stream);
@@ -164,9 +157,9 @@ namespace ui {
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
 					if(msrd.dataItems[i].type == msrd::data_item_type::Model) {
-						ProgressFunction("File " + std::to_string(i) + " is a mesh", ProgressType::Verbose);
-
 						meshReader reader;
+						
+						ProgressFunction("File " + std::to_string(i) + " is a mesh", ProgressType::Verbose);
 
 						reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
 
@@ -178,13 +171,17 @@ namespace ui {
 					}
 				}
 
+				stream.close();
 				path.replace_extension(".wimdo");
+
+				mxmd::mxmd mxmd;
+
 				if (fs::exists(path)) {
-					std::ifstream stream(path.string(), std::ifstream::binary);
+					stream = std::ifstream(path.string(), std::ifstream::binary);
 					mxmdReader reader(stream);
 
 					reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-					mxmd::mxmd mxmd = reader.Read({ });
+					mxmd = reader.Read({});
 				}
 				else {
 					ProgressFunction(path.stem().string() + ".wimdo doesn't exist.", ProgressType::Error, true);
@@ -194,12 +191,11 @@ namespace ui {
 				modelSerializer ms;
 				ms.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
 				// NOTE: replace with something that makes more sense later
-				ms.Serialize(msrd.meshes, { meshFormat, outputPath, path.stem().string()});
+				ms.Serialize(msrd.meshes, { meshFormat, mxmd, outputPath, path.stem().string()});
 			} else {
 				ProgressFunction(path.stem().string() + ".wismt doesn't exist.", ProgressType::Error, true);
 				return;
 			}
-
 
 			// Signal finish
 			ProgressFunction("Extraction completed.", ProgressType::Info, true);
@@ -210,19 +206,17 @@ namespace ui {
 		QString rawText = ui.debugConsole->toPlainText();
 		rawText.append('\n');
 
-		// even LITERAL notepad supports Unix line endings
-		// but i still wanna do this
-#ifdef _WIN32
-		rawText.replace('\n', "\r\n");
-#endif
-
 		savePicker.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
 		savePicker.setFileMode(QFileDialog::FileMode::AnyFile);
 
 		if(savePicker.exec()) {
+			QStringList& selectedFiles = savePicker.selectedFiles();
+
+			if(selectedFiles.isEmpty())
+				return;
 
 			// Only using Qt OS abstraction objects here cause this is UI code.
-			QString filename = savePicker.selectedFiles()[0];
+			QString filename = selectedFiles[0];
 
 			if(!filename.isEmpty()) {
 				QFile file(filename);
