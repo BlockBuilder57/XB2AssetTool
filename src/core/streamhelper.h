@@ -1,4 +1,5 @@
 #pragma once
+#include <core.h>
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -140,7 +141,7 @@ namespace core {
 		 * Read a Vector3 comprised of floats.
 		 * Returns said Vector3.
 		 */
-		vector3 ReadVec3() {
+		inline vector3 ReadVec3() {
 			float x;
 			float y;
 			float z;
@@ -150,14 +151,14 @@ namespace core {
 			ReadType<float>(z);
 
 			return {x, y, z};
-		};
+		}
 
 		
 		/**
 		 * Read a Vector2 comprised of floats.
 		 * Returns said Vector2.
 		 */
-		vector2 ReadVec2() {
+		inline vector2 ReadVec2() {
 			float x;
 			float y;
 			
@@ -165,13 +166,13 @@ namespace core {
 			ReadType<float>(y);
 
 			return {x, y};
-		};
+		}
 
 		/**
 		 * Read a quaternion comprised of floats.
 		 * Returns said quaternion.
 		 */
-		quaternion ReadQuaternion() { 
+		inline quaternion ReadQuaternion() { 
 			float x;
 			float y;
 			float z;
@@ -183,13 +184,13 @@ namespace core {
 			ReadType<float>(w);
 			
 			return {x, y, z, w};
-		};
+		}
 
 		/**
 		 * Read a quaternion comprised of 4 signed 8-bit values.
 		 * Returns said quaternion.
 		 */
-		quaternion ReadS8Quaternion() {
+		inline quaternion ReadS8Quaternion() {
 			uint32 total;
 			ReadType<uint32>(total);
 
@@ -199,13 +200,13 @@ namespace core {
 			float w = (float)(((sbyte*)&total)[3]);
 
 			return { x, y, z, w };
-		};
+		}
 
 		/**
 		 * Read a quaternion comprised of 4 unsigned 16-bit values.
 		 * Returns said quaternion.
 		 */
-		quaternion ReadU16Quaternion() { 
+		inline quaternion ReadU16Quaternion() { 
 			uint64 total;
 			ReadType<uint64>(total);
 
@@ -215,7 +216,7 @@ namespace core {
 			float w = (float) ( ((uint16*)&total)[3] ) / 65535.f;
 			
 			return {x, y, z, w};
-		};
+		}
 
 	private:
 		/** 

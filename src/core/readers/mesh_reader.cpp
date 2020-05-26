@@ -14,8 +14,6 @@ namespace core {
 		StreamHelper reader(stream);
 		mesh::mesh mesh;
 
-		
-
 		// Read the mesh header
 		if(!reader.ReadType<mesh::mesh_header>(mesh)) {
 			CheckedProgressUpdate("file could not be read", ProgressType::Error);
