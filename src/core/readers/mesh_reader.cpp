@@ -14,81 +14,7 @@ namespace core {
 		StreamHelper reader(stream);
 		mesh::mesh mesh;
 
-		// these could be imported into streamhelper
-		// but i'd rather not import a soft dependency
-		// of glm into streamhelper
-		auto readVec3 = [&]() -> vector3 {
-			float x;
-			float y;
-			float z;
-			
-			reader.ReadType<float>(x);
-			reader.ReadType<float>(y);
-			reader.ReadType<float>(z);
-
-			return {x, y, z};
-		};
-
-		auto readVec2 = [&]() -> vector2 {
-			float x;
-			float y;
-			
-			reader.ReadType<float>(x);
-			reader.ReadType<float>(y);
-
-			
-			return {x, y};
-		};
-
-		auto readQuat = [&]() -> quaternion { 
-			float x;
-			float y;
-			float z;
-			float w;
-			
-			reader.ReadType<float>(x);
-			reader.ReadType<float>(y);
-			reader.ReadType<float>(z);
-			reader.ReadType<float>(w);
-			
-			return {x, y, z, w};
-		};
-
-		auto readu32u8Quat = [&]() -> quaternion {
-			uint32 total;
-			reader.ReadType<uint32>(total);
-
-			float x = (float)(((sbyte*)&total)[0]) / 128.f;
-			float y = (float)(((sbyte*)&total)[1]) / 128.f;
-			float z = (float)(((sbyte*)&total)[2]) / 128.f;
-			float w = (float)(((sbyte*)&total)[3]);
-
-			return { x, y, z, w };
-		};
-
-		auto readu32s8Quat = [&]() -> quaternion { 
-			uint32 total;
-			reader.ReadType<uint32>(total);
-
-			float x = (float) ( ((sbyte*)&total)[0] ) / 128.f;
-			float y = (float) ( ((sbyte*)&total)[1] ) / 128.f;
-			float z = (float) ( ((sbyte*)&total)[2] ) / 128.f;
-			float w = (float) ( ((sbyte*)&total)[3] );
-
-			return {x, y, z, w};
-		};
-
-		auto readu16Quat = [&]() -> quaternion { 
-			uint64 total;
-			reader.ReadType<uint64>(total);
-
-			float x = (float) ( ((uint16*)&total)[0] ) / 65535.f;
-			float y = (float) ( ((uint16*)&total)[1] ) / 65535.f;
-			float z = (float) ( ((uint16*)&total)[2] ) / 65535.f;
-			float w = (float) ( ((uint16*)&total)[3] ) / 65535.f;
-			
-			return {x, y, z, w};
-		};
+		
 
 		// Read the mesh header
 		if(!reader.ReadType<mesh::mesh_header>(mesh)) {
@@ -233,7 +159,7 @@ namespace core {
 				for(mesh::vertex_descriptor& desc : mesh.vertexTables[i].vertexDescriptors) {
 					switch(desc.type) {
 					case mesh::vertex_descriptor_type::Position:
-						 mesh.vertexTables[i].vertices[j] = readVec3();
+						 mesh.vertexTables[i].vertices[j] = reader.ReadVec3();
 						break;
 
 					case mesh::vertex_descriptor_type::BoneID:
@@ -243,7 +169,7 @@ namespace core {
 					case mesh::vertex_descriptor_type::UV1:
 					case mesh::vertex_descriptor_type::UV2:
 					case mesh::vertex_descriptor_type::UV3:
-						mesh.vertexTables[i].uvPos[j][desc.type - 5] = readVec2();
+						mesh.vertexTables[i].uvPos[j][desc.type - 5] = reader.ReadVec2();
 						if(desc.type - 4 > mesh.vertexTables[i].uvLayerCount)
 							mesh.vertexTables[i].uvLayerCount = desc.type - 4;
 						break;
@@ -256,11 +182,11 @@ namespace core {
 						break;
 
 					case mesh::vertex_descriptor_type::Normal:
-						mesh.vertexTables[i].normals[j] = readu32s8Quat();
+						mesh.vertexTables[i].normals[j] = reader.ReadS8Quaternion();
 						break;
 
 					case mesh::vertex_descriptor_type::Weight16:
-						mesh.vertexTables[i].weightStrengths[j] = readu16Quat();
+						mesh.vertexTables[i].weightStrengths[j] = reader.ReadU16Quaternion();
 						break;
 
 					case mesh::vertex_descriptor_type::BoneID2:
@@ -294,8 +220,8 @@ namespace core {
 				//mesh.vertexTables[desc.bufferId].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 				//mesh.vertexTables[desc.bufferId].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 
-				mesh.vertexTables[desc.bufferId].vertices[j] = readVec3();
-				mesh.vertexTables[desc.bufferId].normals[j] = readu32u8Quat();
+				mesh.vertexTables[desc.bufferId].vertices[j] = reader.ReadVec3();
+				mesh.vertexTables[desc.bufferId].normals[j] =  reader.ReadS8Quaternion();
 				stream.seekg(mesh.morphData.morphTargets[desc.targetIndex].blockSize - 15, std::istream::cur); //TODO investigate other stuff
 			}
 
@@ -307,9 +233,9 @@ namespace core {
 				for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex+j].vertCount; ++k) {
 					int32 dummy;
 					
-					vector3 vert = readVec3();
+					vector3 vert = reader.ReadVec3();
 					reader.ReadType<int32>(dummy);
-					quaternion norm = readu32u8Quat();
+					quaternion norm = reader.ReadS8Quaternion();
 
 					reader.ReadType<int32>(dummy);
 					reader.ReadType<int32>(dummy);

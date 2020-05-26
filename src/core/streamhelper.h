@@ -135,6 +135,87 @@ namespace core {
 			
 			return array;
 		}
+		
+		/**
+		 * Read a Vector3 comprised of floats.
+		 * Returns said Vector3.
+		 */
+		vector3 ReadVec3() {
+			float x;
+			float y;
+			float z;
+			
+			ReadType<float>(x);
+			ReadType<float>(y);
+			ReadType<float>(z);
+
+			return {x, y, z};
+		};
+
+		
+		/**
+		 * Read a Vector2 comprised of floats.
+		 * Returns said Vector2.
+		 */
+		vector2 ReadVec2() {
+			float x;
+			float y;
+			
+			ReadType<float>(x);
+			ReadType<float>(y);
+
+			return {x, y};
+		};
+
+		/**
+		 * Read a quaternion comprised of floats.
+		 * Returns said quaternion.
+		 */
+		quaternion ReadQuaternion() { 
+			float x;
+			float y;
+			float z;
+			float w;
+			
+			ReadType<float>(x);
+			ReadType<float>(y);
+			ReadType<float>(z);
+			ReadType<float>(w);
+			
+			return {x, y, z, w};
+		};
+
+		/**
+		 * Read a quaternion comprised of 4 signed 8-bit values.
+		 * Returns said quaternion.
+		 */
+		quaternion ReadS8Quaternion() {
+			uint32 total;
+			ReadType<uint32>(total);
+
+			float x = (float)(((sbyte*)&total)[0]) / 128.f;
+			float y = (float)(((sbyte*)&total)[1]) / 128.f;
+			float z = (float)(((sbyte*)&total)[2]) / 128.f;
+			float w = (float)(((sbyte*)&total)[3]);
+
+			return { x, y, z, w };
+		};
+
+		/**
+		 * Read a quaternion comprised of 4 unsigned 16-bit values.
+		 * Returns said quaternion.
+		 */
+		quaternion ReadU16Quaternion() { 
+			uint64 total;
+			ReadType<uint64>(total);
+
+			float x = (float) ( ((uint16*)&total)[0] ) / 65535.f;
+			float y = (float) ( ((uint16*)&total)[1] ) / 65535.f;
+			float z = (float) ( ((uint16*)&total)[2] ) / 65535.f;
+			float w = (float) ( ((uint16*)&total)[3] ) / 65535.f;
+			
+			return {x, y, z, w};
+		};
 
 	private:
 		/** 
