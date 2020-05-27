@@ -134,7 +134,7 @@ namespace ui {
 		log_queue.push({progress, type, finish});
 	}
 
-	void MainWindow::ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
+	void MainWindow::ExtractFile(std::string filename, fs::path& outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
 			using namespace std::placeholders;
 			ProgressFunction(tr("Extracting %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
 			

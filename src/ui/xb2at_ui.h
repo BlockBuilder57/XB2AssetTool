@@ -51,7 +51,7 @@ namespace ui {
 
 	private:
 
-		void ExtractFile(std::string filename, fs::path outputPath, bool saveXbc, modelSerializerOptions::Format modelFormat);
+		void ExtractFile(std::string filename, fs::path& outputPath, bool saveXbc, modelSerializerOptions::Format modelFormat);
 
 		/**
 		 * Extraction thread
