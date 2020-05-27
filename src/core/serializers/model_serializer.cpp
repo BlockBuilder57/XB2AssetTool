@@ -8,6 +8,7 @@ using vec3 = xb2at::core::vector3;
 namespace xb2at {
 namespace core {
 
+	//TODO: make this take a direct ref to an int storing a running tally so we don't have to do addition nonsense
 	template <typename T>
 	uint32 serialize(std::vector<T> const& from, std::vector<uint8_t>& to, std::size_t offset)
 	{
@@ -19,7 +20,7 @@ namespace core {
 		return bytesToSerialize;
 	}
 
-	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, const modelSerializerOptions& options) {
+	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, const modelSerializerOptions& options) {
 		fs::path outPath(options.outputDir);
 		
 		outPath = outPath / options.filename;
@@ -37,30 +38,62 @@ namespace core {
 		if (options.OutputFormat == modelSerializerOptions::Format::GLTFBinary || options.OutputFormat == modelSerializerOptions::Format::GLTFText) {
 			// do gltf things
 
-			for (mesh::mesh meshToDump : meshesToDump) {
-				gltf::Document doc{};
-				doc.asset.generator = "XB2AssetTool " + std::string(version::tag);
-				doc.asset.version = "2.0"; // glTF version, not generator version!
+			gltf::Document doc{};
+			doc.asset.generator = "XB2AssetTool " + std::string(version::tag);
+			doc.asset.version = "2.0"; // glTF version, not generator version!
 
+			for (mxmd::material mxmdMat : mxmdData.Materials.Materials) {
+				gltf::Material material;
+				material.name = mxmdMat.name;
+				doc.materials.push_back(material);
+			}
+
+			for (int i = 0; i < mxmdData.Model.meshesCount; ++i) {
 				gltf::Scene scene{};
 
-				for (int i = 0; i < meshToDump.vertexTableCount; ++i) {
-					std::vector<uint16_t> indices(meshToDump.faceTables[i].vertCount);
-					for (int j = 0; j < meshToDump.faceTables[i].vertCount; ++j)
-						indices[j] = meshToDump.faceTables[i].vertices[j];
+				mesh::mesh& meshToDump = meshesToDump[i];
 
-					std::vector<vec3> positions = meshToDump.vertexTables[i].vertices;
+				mesh::vertex_table weightTbl = meshToDump.vertexTables.back();
 
-					std::vector<vec3> normals(meshToDump.vertexTables[i].dataCount);
-					for (int j = 0; j < meshToDump.vertexTables[i].dataCount; ++j)
-						memcpy(&normals[j], &meshToDump.vertexTables[i].normals[j], sizeof(vec3));
+				for (int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
+					mxmd::mesh_descriptor desc = mxmdData.Model.Meshes[i].descriptors[j];
+
+					mesh::vertex_table& vertTbl = meshToDump.vertexTables[desc.vertTableIndex];
+					mesh::face_table& faceTbl = meshToDump.faceTables[desc.faceTableIndex];
+
+					mesh::morph_descriptor& morphDesc = Where(meshToDump.morphData.morphDescriptors, [&](mesh::morph_descriptor& meshMorphDesc) {
+							return meshMorphDesc.bufferId == desc.vertTableIndex;
+					});
+
+
+					std::vector<uint16_t> indices(faceTbl.vertCount);
+					for (int k = 0; k < faceTbl.vertCount; ++k)
+						indices[k] = faceTbl.vertices[k];
+
+					std::vector<vec3> positions = vertTbl.vertices;
+
+					std::vector<vec3> normals(vertTbl.dataCount);
+					for (int k = 0; k < vertTbl.dataCount; ++k)
+						memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
+
+					std::vector<color> vertexColors = vertTbl.vertexColor;
+
+					std::vector<vector2> uv0 = vertTbl.uvPos[0];
+					std::vector<vector2> uv1 = vertTbl.uvPos[1];
+					std::vector<vector2> uv2 = vertTbl.uvPos[2];
+					std::vector<vector2> uv3 = vertTbl.uvPos[3];
 
 					// toss all vectors into a buffer
-					// buffer format: indices, positions, normals
+					// buffer format: indices, positions, normals, vertexColors, uv0, uv1, uv2, uv3
 					gltf::Buffer buffer{};
 					uint32 indexSize = serialize(indices, buffer.data, 0);
 					uint32 positionSize = serialize(positions, buffer.data, indexSize);
 					uint32 normalSize = serialize(normals, buffer.data, indexSize + positionSize);
+					uint32 vertexColorsSize = serialize(vertexColors, buffer.data, indexSize + positionSize + normalSize);
+					uint32 uv0Size = serialize(uv0, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize);
+					uint32 uv1Size = serialize(uv1, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize + uv0Size);
+					uint32 uv2Size = serialize(uv2, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize + uv0Size + uv1Size);
+					uint32 uv3Size = serialize(uv3, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize + uv0Size + uv1Size + uv2Size);
 
 					buffer.byteLength = (uint32)buffer.data.size();
 					buffer.SetEmbeddedResource();
@@ -73,6 +106,11 @@ namespace core {
 					gltf::BufferView indexBufferView{};
 					gltf::BufferView positionBufferView{};
 					gltf::BufferView normalBufferView{};
+					gltf::BufferView vertexColorsBufferView{};
+					gltf::BufferView uv0BufferView{};
+					gltf::BufferView uv1BufferView{};
+					gltf::BufferView uv2BufferView{};
+					gltf::BufferView uv3BufferView{};
 					indexBufferView.buffer = (int32)doc.buffers.size() - 1;
 					indexBufferView.byteLength = (int32)indexSize;
 					indexBufferView.byteOffset = 0;
@@ -82,16 +120,41 @@ namespace core {
 					normalBufferView.buffer = (int32)doc.buffers.size() - 1;
 					normalBufferView.byteLength = (int32)normalSize;
 					normalBufferView.byteOffset = (int32)indexSize + positionSize;
+					vertexColorsBufferView.buffer = (int32)doc.buffers.size() - 1;
+					vertexColorsBufferView.byteLength = (int32)vertexColorsSize;
+					vertexColorsBufferView.byteOffset = (int32)indexSize + positionSize + normalSize;
+					uv0BufferView.buffer = (int32)doc.buffers.size() - 1;
+					uv0BufferView.byteLength = (int32)uv0Size;
+					uv0BufferView.byteOffset = (int32)indexSize + positionSize + normalSize + vertexColorsSize;
+					uv1BufferView.buffer = (int32)doc.buffers.size() - 1;
+					uv1BufferView.byteLength = (int32)uv1Size;
+					uv1BufferView.byteOffset = (int32)indexSize + positionSize + normalSize + vertexColorsSize + uv0Size;
+					uv2BufferView.buffer = (int32)doc.buffers.size() - 1;
+					uv2BufferView.byteLength = (int32)uv2Size;
+					uv2BufferView.byteOffset = (int32)indexSize + positionSize + normalSize + vertexColorsSize + uv0Size + uv1Size;
+					uv3BufferView.buffer = (int32)doc.buffers.size() - 1;
+					uv3BufferView.byteLength = (int32)uv3Size;
+					uv3BufferView.byteOffset = (int32)indexSize + positionSize + normalSize + vertexColorsSize + uv0Size + uv1Size + uv2Size;
 
 					doc.bufferViews.push_back(indexBufferView);
 					doc.bufferViews.push_back(positionBufferView);
 					doc.bufferViews.push_back(normalBufferView);
+					doc.bufferViews.push_back(vertexColorsBufferView);
+					doc.bufferViews.push_back(uv0BufferView);
+					doc.bufferViews.push_back(uv1BufferView);
+					doc.bufferViews.push_back(uv2BufferView);
+					doc.bufferViews.push_back(uv3BufferView);
 
 
 					// make accessors
 					gltf::Accessor indexAccessor{};
 					gltf::Accessor positionAccessor{};
 					gltf::Accessor normalAccessor{};
+					gltf::Accessor vertexColorsAccessor{};
+					gltf::Accessor uv0Accessor{};
+					gltf::Accessor uv1Accessor{};
+					gltf::Accessor uv2Accessor{};
+					gltf::Accessor uv3Accessor{};
 					indexAccessor.bufferView = (int32)doc.accessors.size();
 					indexAccessor.componentType = gltf::Accessor::ComponentType::UnsignedShort;
 					indexAccessor.count = (uint32)indices.size();
@@ -104,6 +167,26 @@ namespace core {
 					normalAccessor.componentType = gltf::Accessor::ComponentType::Float;
 					normalAccessor.count = (uint32)normals.size();
 					normalAccessor.type = gltf::Accessor::Type::Vec3;
+					vertexColorsAccessor.bufferView = (int32)doc.accessors.size() + 3;
+					vertexColorsAccessor.componentType = gltf::Accessor::ComponentType::UnsignedByte;
+					vertexColorsAccessor.count = (uint32)vertexColors.size();
+					vertexColorsAccessor.type = gltf::Accessor::Type::Vec4;
+					uv0Accessor.bufferView = (int32)doc.accessors.size() + 4;
+					uv0Accessor.componentType = gltf::Accessor::ComponentType::Float;
+					uv0Accessor.count = (uint32)vertexColors.size();
+					uv0Accessor.type = gltf::Accessor::Type::Vec2;
+					uv1Accessor.bufferView = (int32)doc.accessors.size() + 5;
+					uv1Accessor.componentType = gltf::Accessor::ComponentType::Float;
+					uv1Accessor.count = (uint32)vertexColors.size();
+					uv1Accessor.type = gltf::Accessor::Type::Vec2;
+					uv2Accessor.bufferView = (int32)doc.accessors.size() + 6;
+					uv2Accessor.componentType = gltf::Accessor::ComponentType::Float;
+					uv2Accessor.count = (uint32)vertexColors.size();
+					uv2Accessor.type = gltf::Accessor::Type::Vec2;
+					uv3Accessor.bufferView = (int32)doc.accessors.size() + 7;
+					uv3Accessor.componentType = gltf::Accessor::ComponentType::Float;
+					uv3Accessor.count = (uint32)vertexColors.size();
+					uv3Accessor.type = gltf::Accessor::Type::Vec2;
 
 					// viewer requires this
 					indexAccessor.min = { (float)*std::min_element(indices.begin(), indices.end()) };
@@ -117,17 +200,32 @@ namespace core {
 					doc.accessors.push_back(indexAccessor);
 					doc.accessors.push_back(positionAccessor);
 					doc.accessors.push_back(normalAccessor);
+					doc.accessors.push_back(vertexColorsAccessor);
+					doc.accessors.push_back(uv0Accessor);
+					doc.accessors.push_back(uv1Accessor);
+					doc.accessors.push_back(uv2Accessor);
+					doc.accessors.push_back(uv3Accessor);
 
 
-					gltf::Mesh squareMesh{};
-					gltf::Primitive squarePrimitive{};
-					squareMesh.name = "mesh" + std::to_string(i);
-					squarePrimitive.indices = (int32)doc.accessors.size() - 3;  // accessor 0
-					squarePrimitive.attributes["POSITION"] = (int32)doc.accessors.size() - 2;  // accessor 1
-					squarePrimitive.attributes["NORMAL"] = (int32)doc.accessors.size() - 1;  // accessor 2
-					squareMesh.primitives.push_back(squarePrimitive);
+					gltf::Mesh gltfMesh{};
+					gltf::Primitive gltfPrimitive{};
+					gltfMesh.name = "mesh" + std::to_string(j);
+					gltfPrimitive.material = desc.materialID;
+					gltfPrimitive.indices = (int32)doc.accessors.size() - 8;  // accessor 0
+					gltfPrimitive.attributes["POSITION"] = (int32)doc.accessors.size() - 7;  // accessor 1
+					gltfPrimitive.attributes["NORMAL"] = (int32)doc.accessors.size() - 6;  // accessor 2
+					gltfPrimitive.attributes["COLOR_0"] = (int32)doc.accessors.size() - 5;  // accessor 3
+					if (vertTbl.uvLayerCount > 0) // there's probably a better way to do this
+						gltfPrimitive.attributes["TEXCOORD_0"] = (int32)doc.accessors.size() - 4;  // accessor 4
+					if (vertTbl.uvLayerCount > 1)
+						gltfPrimitive.attributes["TEXCOORD_1"] = (int32)doc.accessors.size() - 3;  // accessor 5
+					if (vertTbl.uvLayerCount > 2)
+						gltfPrimitive.attributes["TEXCOORD_2"] = (int32)doc.accessors.size() - 2;  // accessor 6
+					if (vertTbl.uvLayerCount > 3)
+						gltfPrimitive.attributes["TEXCOORD_3"] = (int32)doc.accessors.size() - 1;  // accessor 7
+					gltfMesh.primitives.push_back(gltfPrimitive);
 
-					doc.meshes.push_back(squareMesh);
+					doc.meshes.push_back(gltfMesh);
 
 
 					gltf::Node node{};
@@ -138,7 +236,7 @@ namespace core {
 				}
 
 				doc.scenes.push_back(scene);
-				doc.scene = 0;
+				doc.scene = i;
 
 				gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
 			}

@@ -95,6 +95,20 @@ namespace core {
 
 		return (*it);
 	}
+
+	/**
+	 * Replacement for LINQ's .Where function.
+	 */
+	template<typename T, class WhereFun>
+	inline T& Where(std::vector<T>& vec, WhereFun evalulator) {
+		for (int i = 0; i < vec.size(); ++i) {
+			T& v = vec[i];
+			if (evalulator(v)) {
+				return v;
+				break;
+			}
+		}
+	}
 	
 	/**
 	 * Progress reporting severity.

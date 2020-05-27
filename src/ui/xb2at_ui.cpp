@@ -195,7 +195,7 @@ namespace ui {
 				}
 
 				ms.forward(msrdreader);
-				ms.Serialize(msrd.meshes, { meshFormat, mxmd, outputPath, path.stem().string()});
+				ms.Serialize(msrd.meshes, mxmd, { meshFormat, outputPath, path.stem().string()});
 			} else {
 				ProgressFunction(path.stem().string() + ".wismt doesn't exist.", ProgressType::Error, true);
 				return;

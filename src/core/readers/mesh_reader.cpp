@@ -147,11 +147,11 @@ namespace core {
 			mesh.vertexTables[i].vertices.resize(mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].weights.resize(mesh.vertexTables[i].dataCount);
 
-			ResizeMultiDimVec(mesh.vertexTables[i].uvPos, mesh.vertexTables[i].dataCount, 4);
+			ResizeMultiDimVec(mesh.vertexTables[i].uvPos, 4, mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].vertexColor.resize(mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].normals.resize(mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].weightStrengths.resize(mesh.vertexTables[i].dataCount);
-			ResizeMultiDimVec(mesh.vertexTables[i].weightIds, mesh.vertexTables[i].dataCount, 4);
+			ResizeMultiDimVec(mesh.vertexTables[i].weightIds, 4, mesh.vertexTables[i].dataCount);
 
 			for(int j = 0; j < mesh.vertexTables[i].dataCount; j++) {
 				for(mesh::vertex_descriptor& desc : mesh.vertexTables[i].vertexDescriptors) {
@@ -167,7 +167,7 @@ namespace core {
 					case mesh::vertex_descriptor_type::UV1:
 					case mesh::vertex_descriptor_type::UV2:
 					case mesh::vertex_descriptor_type::UV3:
-						mesh.vertexTables[i].uvPos[j][desc.type - 5] = reader.ReadVec2();
+						mesh.vertexTables[i].uvPos[desc.type - 5][j] = reader.ReadVec2();
 						if(desc.type - 4 > mesh.vertexTables[i].uvLayerCount)
 							mesh.vertexTables[i].uvLayerCount = desc.type - 4;
 						break;
@@ -188,10 +188,10 @@ namespace core {
 						break;
 
 					case mesh::vertex_descriptor_type::BoneID2:
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][0]);
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][1]);
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][2]);
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][3]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[0][j]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[1][j]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[2][j]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[3][j]);
 						break;
 
 					default:

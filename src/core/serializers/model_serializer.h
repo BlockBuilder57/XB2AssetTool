@@ -30,11 +30,6 @@ namespace core {
 			 */
 			Dump
 		} OutputFormat;
-		
-		/**
-		 * MXMD data to use.
-		 */
-		const mxmd::mxmd& mxmdData;
 
 		/**
 		 * Output directory.
@@ -59,7 +54,7 @@ namespace core {
 		 * \param[in] meshesToDump The meshes to dump.
 		 * \param[in] options Options.
 		 */
-		void Serialize(std::vector<mesh::mesh>& meshToDump, const modelSerializerOptions& options);
+		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, const modelSerializerOptions& options);
 
 	};
 }
