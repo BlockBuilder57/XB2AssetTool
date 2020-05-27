@@ -71,8 +71,9 @@ namespace core {
 	}
 
 	// Get max element of a vector
-	template<typename T>
-	inline T GetMaxElement(const std::vector<T>& vec) {
+	template<class RevIterContainer, class WhereFun>
+	inline typename RevIterContainer::value_type GetMaxElement(const RevIterContainer& vec) {
+		typedef typename RevIterContainer::value_type T;
 		auto it = std::max_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
 			return std::max(L, R) == R;
 		});
@@ -87,8 +88,10 @@ namespace core {
 	}
 
 	// Get min element of a vector
-	template<typename T>
-	inline T GetMinElement(const std::vector<T>& vec) {
+	template<class RevIterContainer, class WhereFun>
+	inline typename RevIterContainer::value_type GetMinElement(const RevIterContainer& vec) {
+		typedef typename RevIterContainer::value_type T;
+
 		auto it = std::min_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
 			return std::min(L, R) == R;
 		});
@@ -99,15 +102,17 @@ namespace core {
 	/**
 	 * Replacement for LINQ's .Where function.
 	 */
-	template<typename T, class WhereFun>
-	inline T& Where(std::vector<T>& vec, WhereFun evalulator) {
-		for (int i = 0; i < vec.size(); ++i) {
-			T& v = vec[i];
-			if (evalulator(v)) {
-				return v;
-				break;
-			}
+	template<class RevIterContainer, class WhereFun>
+	inline typename RevIterContainer::iterator Where(RevIterContainer& vec, WhereFun evalulator) {
+		auto it = vec.begin();
+
+		for(int i = 0; i < vec.size(); ++i) {
+			if(evalulator(*it))
+				return it;
+			it++;
 		}
+
+		return vec.end();
 	}
 	
 	/**

@@ -8,15 +8,14 @@ using vec3 = xb2at::core::vector3;
 namespace xb2at {
 namespace core {
 
-	//TODO: make this take a direct ref to an int storing a running tally so we don't have to do addition nonsense
 	template <typename T>
-	uint32 serialize(std::vector<T> const& from, std::vector<uint8_t>& to, std::size_t offset)
-	{
+	uint32 FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, uint64& offset) {
 		uint32 bytesToSerialize = sizeof(T) * (uint32)from.size();
 
 		to.resize(to.size() + bytesToSerialize);
 		std::memcpy(&to[offset], &from[0], bytesToSerialize);
 
+		offset += bytesToSerialize;
 		return bytesToSerialize;
 	}
 
@@ -61,9 +60,17 @@ namespace core {
 					mesh::vertex_table& vertTbl = meshToDump.vertexTables[desc.vertTableIndex];
 					mesh::face_table& faceTbl = meshToDump.faceTables[desc.faceTableIndex];
 
-					mesh::morph_descriptor& morphDesc = Where(meshToDump.morphData.morphDescriptors, [&](mesh::morph_descriptor& meshMorphDesc) {
+					auto it = Where(meshToDump.morphData.morphDescriptors, [&](mesh::morph_descriptor& meshMorphDesc) {
 							return meshMorphDesc.bufferId == desc.vertTableIndex;
 					});
+
+					if(it == meshToDump.morphData.morphDescriptors.end()) {
+						// I'll care to write a better error message when it's not 5 AM.
+						CheckedProgressUpdate("Error on mesh " + std::to_string(i), ProgressType::Error);
+						continue;
+					}
+
+					mesh::morph_descriptor& morphDesc = *it;
 
 
 					std::vector<uint16_t> indices(faceTbl.vertCount);
@@ -86,14 +93,16 @@ namespace core {
 					// toss all vectors into a buffer
 					// buffer format: indices, positions, normals, vertexColors, uv0, uv1, uv2, uv3
 					gltf::Buffer buffer{};
-					uint32 indexSize = serialize(indices, buffer.data, 0);
-					uint32 positionSize = serialize(positions, buffer.data, indexSize);
-					uint32 normalSize = serialize(normals, buffer.data, indexSize + positionSize);
-					uint32 vertexColorsSize = serialize(vertexColors, buffer.data, indexSize + positionSize + normalSize);
-					uint32 uv0Size = serialize(uv0, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize);
-					uint32 uv1Size = serialize(uv1, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize + uv0Size);
-					uint32 uv2Size = serialize(uv2, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize + uv0Size + uv1Size);
-					uint32 uv3Size = serialize(uv3, buffer.data, indexSize + positionSize + normalSize + vertexColorsSize + uv0Size + uv1Size + uv2Size);
+					uint64 bufferTally = 0;
+
+					uint32 indexSize = FlattenSerialize(indices, buffer.data, bufferTally);
+					uint32 positionSize = FlattenSerialize(positions, buffer.data, bufferTally);
+					uint32 normalSize = FlattenSerialize(normals, buffer.data, bufferTally);
+					uint32 vertexColorsSize = FlattenSerialize(vertexColors, buffer.data, bufferTally);
+					uint32 uv0Size = FlattenSerialize(uv0, buffer.data, bufferTally);
+					uint32 uv1Size = FlattenSerialize(uv1, buffer.data, bufferTally);
+					uint32 uv2Size = FlattenSerialize(uv2, buffer.data, bufferTally);
+					uint32 uv3Size = FlattenSerialize(uv3, buffer.data, bufferTally);
 
 					buffer.byteLength = (uint32)buffer.data.size();
 					buffer.SetEmbeddedResource();
