@@ -214,7 +214,7 @@ namespace ui {
 		savePicker.setFileMode(QFileDialog::FileMode::AnyFile);
 
 		if(savePicker.exec()) {
-			QStringList& selectedFiles = savePicker.selectedFiles();
+			QStringList selectedFiles = savePicker.selectedFiles();
 
 			if(selectedFiles.isEmpty())
 				return;
