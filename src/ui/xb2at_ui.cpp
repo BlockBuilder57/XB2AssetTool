@@ -102,9 +102,8 @@ namespace ui {
 			auto message = log_queue.front();
 
 			// Cast the progress type to LogType.
-			// ProgressType and LogType have the same order so this we do not lose type safety
+			// ProgressType and LogType have the same order so we do not lose type safety
 			LogMessage(QString::fromStdString(message.data), (LogType)message.type);
-
 
 			// If we recieved a finish message,
 			// do what we need to do to uninitalize the things we allocated in ExtractButtonClicked() 
@@ -150,47 +149,52 @@ namespace ui {
 
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
-				msrdReader reader(stream);
+				auto func = std::bind(&MainWindow::ProgressFunction, this, _1, _2, false);
+				msrdReader msrdreader(stream);
+				modelSerializer ms;
 
-				reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-				msrd::msrd msrd = reader.Read({outputPath, saveXbc});
+				msrd::msrd msrd;
+				mesh::mesh mesh;
+				mxmd::mxmd mxmd;
+				
+				msrdreader.set_progress(func);
+				msrd = msrdreader.Read({outputPath, saveXbc});
+
+				// Close the wismt file and set the extension
+				// in preparation of reading the wimdo/MXMD
+				stream.close();
+				path.replace_extension(".wimdo");
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
 					if(msrd.dataItems[i].type == msrd::data_item_type::Model) {
-						meshReader reader;
+						meshReader meshreader;
 						
 						ProgressFunction("File " + std::to_string(i) + " is a mesh", ProgressType::Verbose);
 
-						reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
+						meshreader.forward(msrdreader);
 
 						ProgressFunction("Reading mesh " + std::to_string(i), ProgressType::Info);
-						mesh::mesh mesh = reader.Read({msrd.files[i].data});
+						mesh = meshreader.Read({msrd.files[i].data});
 
 						if(mesh.dataSize != 0)
 							msrd.meshes.push_back(mesh);
 					}
 				}
 
-				stream.close();
-				path.replace_extension(".wimdo");
-
-				mxmd::mxmd mxmd;
-
 				if (fs::exists(path)) {
-					stream = std::ifstream(path.string(), std::ifstream::binary);
-					mxmdReader reader(stream);
+					stream.open(path.string(), std::ifstream::binary);
+					mxmdReader mxmdreader(stream);
 
-					reader.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-					mxmd = reader.Read({});
-				}
-				else {
+					mxmdreader.forward(msrdreader);
+					mxmd = mxmdreader.Read({});
+
+					stream.close();
+				} else {
 					ProgressFunction(path.stem().string() + ".wimdo doesn't exist.", ProgressType::Error, true);
 					return;
 				}
 
-				modelSerializer ms;
-				ms.set_progress(std::bind(&MainWindow::ProgressFunction, this, _1, _2, false));
-				// NOTE: replace with something that makes more sense later
+				ms.forward(msrdreader);
 				ms.Serialize(msrd.meshes, { meshFormat, mxmd, outputPath, path.stem().string()});
 			} else {
 				ProgressFunction(path.stem().string() + ".wismt doesn't exist.", ProgressType::Error, true);

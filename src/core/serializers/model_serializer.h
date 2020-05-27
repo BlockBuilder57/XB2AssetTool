@@ -34,17 +34,17 @@ namespace core {
 		/**
 		 * MXMD data to use.
 		 */
-		mxmd::mxmd mxmdData;
+		const mxmd::mxmd& mxmdData;
 
 		/**
 		 * Output directory.
 		 */
-		fs::path outputDir;
+		const fs::path& outputDir;
 
 		/**
-		 * Output filename of the mesh.
+		 * Output filename of the model.
 		 */
-		std::string filename;
+		const std::string& filename;
 	};
 
 	/**

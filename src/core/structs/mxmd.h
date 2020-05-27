@@ -40,14 +40,14 @@ namespace mxmd {
 		int32 id;
 		int32 unknown3;
 		int32 unknown4;
+	};
 
+	struct node : public node_info {
 		quaternion scale;
 		quaternion rotation;
 		quaternion position;
 		quaternion parentTransform;
-	};
 
-	struct node : public node_info {
 		std::string name;
 	};
 
@@ -85,13 +85,13 @@ namespace mxmd {
 		int32 tableOffset;
 		int32 tableCount;
 		int32 unknown1;
-
-		vector3 bbStart;
-		vector3 bbEnd;
-		float radius;
 	};
 
 	struct meshes : public meshes_info {
+		vector3 bbStart;
+		vector3 bbEnd;
+		float radius;
+
 		std::vector<mesh_descriptor> descriptors;
 	};
 
@@ -161,6 +161,8 @@ namespace mxmd {
 	struct model : public model_info {
 		morph_controllers morphControllers;
 		morph_names morphNames;
+		std::vector<meshes> meshes;
+		skeleton skeleton;
 	};
 
 	/**

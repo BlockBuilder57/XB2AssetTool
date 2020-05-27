@@ -4,6 +4,8 @@ project(xb2at CXX)
 include(CheckCXXSourceCompiles)
 find_package(Threads)
 
+option(XB2AT_XB2CORE_ONLY "Only build/include xb2core" OFF)
+
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
@@ -60,4 +62,7 @@ endif()
 
 add_subdirectory(vendor)
 add_subdirectory(src/core)
-add_subdirectory(src/ui)
+
+if(NOT XB2AT_XB2CORE_ONLY)
+	add_subdirectory(src/ui)
+endif()

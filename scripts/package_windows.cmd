@@ -2,20 +2,13 @@
 
 @echo off
 
-:: Build all configurations
-call scripts\build_all
-if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
-
 :: Make all of the release roots
-:: (Release roots are self contained)
-call scripts\make_release_windows
-call scripts\make_release_windows_debug
-call scripts\make_release_windows_x86
-call scripts\make_release_windows_debug_x86
+:: (Release roots are self contained versions of the application that can run independently)
+call scripts\release_all
 
 :: Package binaries.
 ::	For debug configurations, we also additionally publish a SymsIncluded archive
-::	that contains the pdb.
+::	that contains the pdb (for debugging purposes).
 
 pushd bin64
 	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\XB2AssetTool_x64.7z * ..\README.md

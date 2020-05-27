@@ -9,9 +9,9 @@ namespace xb2at {
 namespace core {
 
 	template <typename T>
-	uint32_t serialize(std::vector<T> const& from, std::vector<uint8_t>& to, std::size_t offset)
+	uint32 serialize(std::vector<T> const& from, std::vector<uint8_t>& to, std::size_t offset)
 	{
-		uint32_t bytesToSerialize = sizeof(T) * static_cast<uint32_t>(from.size());
+		uint32 bytesToSerialize = sizeof(T) * (uint32)from.size();
 
 		to.resize(to.size() + bytesToSerialize);
 		std::memcpy(&to[offset], &from[0], bytesToSerialize);
@@ -38,11 +38,11 @@ namespace core {
 			// do gltf things
 
 			for (mesh::mesh meshToDump : meshesToDump) {
-				fx::gltf::Document doc{};
-				doc.asset.generator = "XB2AT";
+				gltf::Document doc{};
+				doc.asset.generator = "XB2AssetTool " + std::string(version::tag);
 				doc.asset.version = "2.0"; // glTF version, not generator version!
 
-				fx::gltf::Scene scene{};
+				gltf::Scene scene{};
 
 				for (int i = 0; i < meshToDump.vertexTableCount; ++i) {
 					std::vector<uint16_t> indices(meshToDump.faceTables[i].vertCount);
@@ -57,12 +57,12 @@ namespace core {
 
 					// toss all vectors into a buffer
 					// buffer format: indices, positions, normals
-					fx::gltf::Buffer buffer{};
-					uint32_t indexSize = serialize(indices, buffer.data, 0);
-					uint32_t positionSize = serialize(positions, buffer.data, indexSize);
-					uint32_t normalSize = serialize(normals, buffer.data, indexSize + positionSize);
+					gltf::Buffer buffer{};
+					uint32 indexSize = serialize(indices, buffer.data, 0);
+					uint32 positionSize = serialize(positions, buffer.data, indexSize);
+					uint32 normalSize = serialize(normals, buffer.data, indexSize + positionSize);
 
-					buffer.byteLength = static_cast<uint32_t>(buffer.data.size());
+					buffer.byteLength = (uint32)buffer.data.size();
 					buffer.SetEmbeddedResource();
 
 					// insert into document
@@ -70,18 +70,18 @@ namespace core {
 
 
 					// create bufferviews off of the buffers
-					fx::gltf::BufferView indexBufferView{};
-					fx::gltf::BufferView positionBufferView{};
-					fx::gltf::BufferView normalBufferView{};
-					indexBufferView.buffer = doc.buffers.size() - 1;
-					indexBufferView.byteLength = indexSize;
+					gltf::BufferView indexBufferView{};
+					gltf::BufferView positionBufferView{};
+					gltf::BufferView normalBufferView{};
+					indexBufferView.buffer = (int32)doc.buffers.size() - 1;
+					indexBufferView.byteLength = (int32)indexSize;
 					indexBufferView.byteOffset = 0;
-					positionBufferView.buffer = doc.buffers.size() - 1;
-					positionBufferView.byteLength = positionSize;
-					positionBufferView.byteOffset = indexSize;
-					normalBufferView.buffer = doc.buffers.size() - 1;
-					normalBufferView.byteLength = normalSize;
-					normalBufferView.byteOffset = indexSize + positionSize;
+					positionBufferView.buffer = (int32)doc.buffers.size() - 1;
+					positionBufferView.byteLength = (int32)positionSize;
+					positionBufferView.byteOffset = (int32)indexSize;
+					normalBufferView.buffer = (int32)doc.buffers.size() - 1;
+					normalBufferView.byteLength = (int32)normalSize;
+					normalBufferView.byteOffset = (int32)indexSize + positionSize;
 
 					doc.bufferViews.push_back(indexBufferView);
 					doc.bufferViews.push_back(positionBufferView);
@@ -89,21 +89,21 @@ namespace core {
 
 
 					// make accessors
-					fx::gltf::Accessor indexAccessor{};
-					fx::gltf::Accessor positionAccessor{};
-					fx::gltf::Accessor normalAccessor{};
-					indexAccessor.bufferView = doc.accessors.size();
-					indexAccessor.componentType = fx::gltf::Accessor::ComponentType::UnsignedShort;
-					indexAccessor.count = static_cast<uint32_t>(indices.size());
-					indexAccessor.type = fx::gltf::Accessor::Type::Scalar;
-					positionAccessor.bufferView = doc.accessors.size() + 1;
-					positionAccessor.componentType = fx::gltf::Accessor::ComponentType::Float;
-					positionAccessor.count = static_cast<uint32_t>(positions.size());
-					positionAccessor.type = fx::gltf::Accessor::Type::Vec3;
-					normalAccessor.bufferView = doc.accessors.size() + 2;
-					normalAccessor.componentType = fx::gltf::Accessor::ComponentType::Float;
-					normalAccessor.count = static_cast<uint32_t>(normals.size());
-					normalAccessor.type = fx::gltf::Accessor::Type::Vec3;
+					gltf::Accessor indexAccessor{};
+					gltf::Accessor positionAccessor{};
+					gltf::Accessor normalAccessor{};
+					indexAccessor.bufferView = (int32)doc.accessors.size();
+					indexAccessor.componentType = gltf::Accessor::ComponentType::UnsignedShort;
+					indexAccessor.count = (uint32)indices.size();
+					indexAccessor.type = gltf::Accessor::Type::Scalar;
+					positionAccessor.bufferView = (int32)doc.accessors.size() + 1;
+					positionAccessor.componentType = gltf::Accessor::ComponentType::Float;
+					positionAccessor.count = (uint32)positions.size();
+					positionAccessor.type = gltf::Accessor::Type::Vec3;
+					normalAccessor.bufferView = (int32)doc.accessors.size() + 2;
+					normalAccessor.componentType = gltf::Accessor::ComponentType::Float;
+					normalAccessor.count = (uint32)normals.size();
+					normalAccessor.type = gltf::Accessor::Type::Vec3;
 
 					// viewer requires this
 					indexAccessor.min = { (float)*std::min_element(indices.begin(), indices.end()) };
@@ -119,28 +119,28 @@ namespace core {
 					doc.accessors.push_back(normalAccessor);
 
 
-					fx::gltf::Mesh squareMesh{};
-					fx::gltf::Primitive squarePrimitive{};
-					squareMesh.name = "SampleSquare";
-					squarePrimitive.indices = doc.accessors.size() - 3;  // accessor 0
-					squarePrimitive.attributes["POSITION"] = doc.accessors.size() - 2;  // accessor 1
-					squarePrimitive.attributes["NORMAL"] = doc.accessors.size() - 1;  // accessor 2
+					gltf::Mesh squareMesh{};
+					gltf::Primitive squarePrimitive{};
+					squareMesh.name = "mesh" + std::to_string(i);
+					squarePrimitive.indices = (int32)doc.accessors.size() - 3;  // accessor 0
+					squarePrimitive.attributes["POSITION"] = (int32)doc.accessors.size() - 2;  // accessor 1
+					squarePrimitive.attributes["NORMAL"] = (int32)doc.accessors.size() - 1;  // accessor 2
 					squareMesh.primitives.push_back(squarePrimitive);
 
 					doc.meshes.push_back(squareMesh);
 
 
-					fx::gltf::Node node{};
-					node.mesh = doc.meshes.size() - 1;
+					gltf::Node node{};
+					node.mesh = (int32)doc.meshes.size() - 1;
 
 					doc.nodes.push_back(node);
-					scene.nodes.push_back(doc.nodes.size() - 1);
+					scene.nodes.push_back((int32)doc.nodes.size() - 1);
 				}
 
 				doc.scenes.push_back(scene);
 				doc.scene = 0;
 
-				fx::gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
+				gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
 			}
 
 		} else if (options.OutputFormat == modelSerializerOptions::Format::Dump) {

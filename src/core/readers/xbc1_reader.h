@@ -18,7 +18,7 @@ namespace core {
 		/**
 		 * Output directory.
 		 */
-		fs::path output_dir; 
+		const fs::path& output_dir; 
 
 		/**
 		 * Whether or not we should save files in the output directory.
