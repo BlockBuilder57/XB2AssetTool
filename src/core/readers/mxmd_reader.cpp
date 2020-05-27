@@ -63,21 +63,21 @@ namespace xb2at {
 				}
 
 				if(data.Model.meshesOffset != 0) {
-					data.Model.meshes.resize(data.Model.meshesCount);
+					data.Model.Meshes.resize(data.Model.meshesCount);
 					stream.seekg(data.modelStructOffset + data.Model.meshesOffset, std::istream::beg);
 
 					for(int i = 0; i < data.Model.meshesCount; ++i) {
-						reader.ReadType<mxmd::meshes_info>(data.Model.meshes[i]);
+						reader.ReadType<mxmd::meshes_info>(data.Model.Meshes[i]);
 
-						data.Model.meshes[i].bbStart = reader.ReadVec3();
-						data.Model.meshes[i].bbEnd = reader.ReadVec3();
-						reader.ReadType(data.Model.meshes[i].radius);
+						data.Model.Meshes[i].bbStart = reader.ReadVec3();
+						data.Model.Meshes[i].bbEnd = reader.ReadVec3();
+						reader.ReadType(data.Model.Meshes[i].radius);
 
-						stream.seekg(data.modelStructOffset + data.Model.meshes[i].tableOffset, std::istream::beg);
-						data.Model.meshes[i].descriptors.resize(data.Model.meshes[i].tableCount);
+						stream.seekg(data.modelStructOffset + data.Model.Meshes[i].tableOffset, std::istream::beg);
+						data.Model.Meshes[i].descriptors.resize(data.Model.Meshes[i].tableCount);
 
-						for(int j = 0; j < data.Model.meshes[i].tableCount; ++j)
-							reader.ReadType(data.Model.meshes[i].descriptors[j]);
+						for(int j = 0; j < data.Model.Meshes[i].tableCount; ++j)
+							reader.ReadType(data.Model.Meshes[i].descriptors[j]);
 					}
 				}
 

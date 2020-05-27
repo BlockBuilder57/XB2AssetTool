@@ -161,7 +161,7 @@ namespace mxmd {
 	struct model : public model_info {
 		morph_controllers morphControllers;
 		morph_names morphNames;
-		std::vector<meshes> meshes;
+		std::vector<meshes> Meshes;
 		skeleton Skeleton;
 	};
 
