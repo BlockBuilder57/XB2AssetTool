@@ -29,7 +29,7 @@ namespace mxmd {
 	};
 
 	struct materials : public materials_info {
-		std::vector<material> mats;
+		std::vector<material> Materials;
 	};
 
 	struct node_info {
@@ -162,7 +162,7 @@ namespace mxmd {
 		morph_controllers morphControllers;
 		morph_names morphNames;
 		std::vector<meshes> meshes;
-		skeleton skeleton;
+		skeleton Skeleton;
 	};
 
 	/**
@@ -195,8 +195,8 @@ namespace mxmd {
 	 * MXMD data
 	 */
 	struct mxmd : public mxmd_header {
-		model model;
-		materials materials;
+		model Model;
+		materials Materials;
 	};
 }
 
