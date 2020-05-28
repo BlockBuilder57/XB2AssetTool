@@ -55,6 +55,14 @@ namespace core {
 		byte b;
 		byte a;
 	};
+
+	inline void NormalizeVector3(vector3& vector)
+	{
+		double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
+		vector.x = vector.x / mag;
+		vector.y = vector.y / mag;
+		vector.z = vector.z / mag;
+	}
 	
 	template<class T>
 	inline void ResizeMultiDimVec(std::vector<std::vector<T>>& vec, int dim1, int dim2) {
@@ -105,6 +113,9 @@ namespace core {
 	template<class RevIterContainer, class WhereFun>
 	inline typename RevIterContainer::iterator Where(RevIterContainer& vec, WhereFun evalulator) {
 		auto it = vec.begin();
+
+		if(vec.size() == 0)
+			return vec.end();
 
 		for(int i = 0; i < vec.size(); ++i) {
 			if(evalulator(*it))

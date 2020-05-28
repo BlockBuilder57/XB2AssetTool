@@ -194,10 +194,26 @@ namespace core {
 			uint32 total;
 			ReadType<uint32>(total);
 
-			float x = (float)(((sbyte*)&total)[0]) / 128.f;
-			float y = (float)(((sbyte*)&total)[1]) / 128.f;
-			float z = (float)(((sbyte*)&total)[2]) / 128.f;
-			float w = (float)(((sbyte*)&total)[3]);
+			float x = (float) ( ((sbyte*)&total)[0] ) / 128.f;
+			float y = (float) ( ((sbyte*)&total)[1] ) / 128.f;
+			float z = (float) ( ((sbyte*)&total)[2] ) / 128.f;
+			float w = (float) ( ((sbyte*)&total)[3] );
+
+			return { x, y, z, w };
+		}
+
+		/**
+		 * Read a quaternion comprised of 4 unsigned 8-bit values.
+		 * Returns said quaternion.
+		 */
+		inline quaternion ReadU8Quaternion() {
+			uint32 total;
+			ReadType<uint32>(total);
+
+			float x = (float) ( ((byte*)&total)[0] ) / 128.f;
+			float y = (float) ( ((byte*)&total)[1] ) / 128.f;
+			float z = (float) ( ((byte*)&total)[2] ) / 128.f;
+			float w = (float) ( ((byte*)&total)[3] );
 
 			return { x, y, z, w };
 		}

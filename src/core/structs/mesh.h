@@ -76,6 +76,8 @@ namespace mesh {
 	struct morph_data_header {
 		int32 morphDescriptorCount;		
 		int32 morphDescriptorOffset;
+		int32 morphTargetCount;
+		int32 morphTargetOffset;
 	};
 
 	struct morph_descriptor_header {
@@ -108,10 +110,6 @@ namespace mesh {
 
 	struct morph_data : public morph_data_header {
 		std::vector<morph_descriptor> morphDescriptors;
-
-		int32 morphTargetCount;
-		int32 morphTargetOffset;
-
 		std::vector<morph_target> morphTargets;
 	};
 

@@ -60,28 +60,26 @@ namespace core {
 					mesh::vertex_table& vertTbl = meshToDump.vertexTables[desc.vertTableIndex];
 					mesh::face_table& faceTbl = meshToDump.faceTables[desc.faceTableIndex];
 
+					mesh::morph_descriptor* morphDesc = nullptr;
+					
 					auto it = Where(meshToDump.morphData.morphDescriptors, [&](mesh::morph_descriptor& meshMorphDesc) {
-							return meshMorphDesc.bufferId == desc.vertTableIndex;
+						return meshMorphDesc.bufferId == desc.vertTableIndex;
 					});
 
-					if(it == meshToDump.morphData.morphDescriptors.end()) {
-						// I'll care to write a better error message when it's not 5 AM.
-						CheckedProgressUpdate("Error on mesh " + std::to_string(i), ProgressType::Error);
-						continue;
+					if (it != meshToDump.morphData.morphDescriptors.end()) {
+						morphDesc = &(*it);
 					}
 
-					mesh::morph_descriptor& morphDesc = *it;
+					std::vector<uint16_t> indices = faceTbl.vertices;
 
-
-					std::vector<uint16_t> indices(faceTbl.vertCount);
-					for (int k = 0; k < faceTbl.vertCount; ++k)
-						indices[k] = faceTbl.vertices[k];
-
-					std::vector<vec3> positions = vertTbl.vertices;
+					std::vector<vec3> positions(vertTbl.vertices.size());
+					memcpy(&positions[0], &vertTbl.vertices[0], vertTbl.vertices.size() * sizeof(vec3));
 
 					std::vector<vec3> normals(vertTbl.dataCount);
-					for (int k = 0; k < vertTbl.dataCount; ++k)
+					for (int k = 0; k < vertTbl.dataCount; k++) {
 						memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
+						NormalizeVector3(normals[k]);
+					}
 
 					std::vector<color> vertexColors = vertTbl.vertexColor;
 
@@ -178,6 +176,7 @@ namespace core {
 					normalAccessor.type = gltf::Accessor::Type::Vec3;
 					vertexColorsAccessor.bufferView = (int32)doc.accessors.size() + 3;
 					vertexColorsAccessor.componentType = gltf::Accessor::ComponentType::UnsignedByte;
+					vertexColorsAccessor.normalized = true;
 					vertexColorsAccessor.count = (uint32)vertexColors.size();
 					vertexColorsAccessor.type = gltf::Accessor::Type::Vec4;
 					uv0Accessor.bufferView = (int32)doc.accessors.size() + 4;
@@ -206,6 +205,7 @@ namespace core {
 					//normalAccessor.min = { 0, 1, 0 };
 					//normalAccessor.max = { 0, 1, 0 };
 
+
 					doc.accessors.push_back(indexAccessor);
 					doc.accessors.push_back(positionAccessor);
 					doc.accessors.push_back(normalAccessor);
@@ -215,10 +215,12 @@ namespace core {
 					doc.accessors.push_back(uv2Accessor);
 					doc.accessors.push_back(uv3Accessor);
 
+					std::string meshName = "mesh" + std::to_string(i);
+					meshName += "_desc" + std::to_string(j) + "_LOD" + std::to_string(desc.lod);
 
 					gltf::Mesh gltfMesh{};
 					gltf::Primitive gltfPrimitive{};
-					gltfMesh.name = "mesh" + std::to_string(j);
+					gltfMesh.name = meshName;
 					gltfPrimitive.material = desc.materialID;
 					gltfPrimitive.indices = (int32)doc.accessors.size() - 8;  // accessor 0
 					gltfPrimitive.attributes["POSITION"] = (int32)doc.accessors.size() - 7;  // accessor 1

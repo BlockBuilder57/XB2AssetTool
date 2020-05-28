@@ -95,10 +95,10 @@ namespace core {
 		if(mesh.morphDataOffset > 0) {
 			stream.seekg(mesh.morphDataOffset, std::istream::beg);
 
-			reader.ReadType<int32>(mesh.morphData.morphDescriptorCount);
-			reader.ReadType<int32>(mesh.morphData.morphDescriptorOffset);
-			reader.ReadType<int32>(mesh.morphData.morphTargetCount);
-			reader.ReadType<int32>(mesh.morphData.morphTargetOffset);
+			if (!reader.ReadType<mesh::morph_data_header>(mesh.morphData)) {
+				CheckedProgressUpdate("Error reading morph data header", ProgressType::Error);
+				return mesh;
+			}
 
 			mesh.morphData.morphDescriptors.resize(mesh.morphData.morphDescriptorCount);
 			stream.seekg(mesh.morphData.morphDescriptorOffset, std::istream::beg);
@@ -180,6 +180,7 @@ namespace core {
 						break;
 
 					case mesh::vertex_descriptor_type::Normal:
+					case mesh::vertex_descriptor_type::Normal2:
 						mesh.vertexTables[i].normals[j] = reader.ReadS8Quaternion();
 						break;
 
@@ -212,15 +213,14 @@ namespace core {
 
 			mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
 
-			stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset, std::istream::beg);
+			int morphTargetOffset = mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset;
+			stream.seekg(morphTargetOffset, std::istream::beg);
 			
 			for(int j = 0; j < mesh.morphData.morphTargets[desc.targetIndex].vertCount; ++j) {
-				//mesh.vertexTables[desc.bufferId].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
-				//mesh.vertexTables[desc.bufferId].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+				stream.seekg(morphTargetOffset + (0x20 * j), std::istream::beg);
 
 				mesh.vertexTables[desc.bufferId].vertices[j] = reader.ReadVec3();
-				mesh.vertexTables[desc.bufferId].normals[j] =  reader.ReadS8Quaternion();
-				stream.seekg(mesh.morphData.morphTargets[desc.targetIndex].blockSize - 15, std::istream::cur); //TODO investigate other stuff
+				mesh.vertexTables[desc.bufferId].normals[j] = reader.ReadU8Quaternion();
 			}
 
 			for(int j = 1; j < desc.targetCounts; ++j) {
