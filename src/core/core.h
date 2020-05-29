@@ -136,6 +136,8 @@ namespace core {
 		Error
 	};
 
+#define PROGRESS_UPDATE(type, ...) { std::stringstream ss; ss << __VA_ARGS__; CheckedProgressUpdate(ss.str(), type); ss.clear(); }
+
 	namespace fs = std::filesystem;
 }
 }

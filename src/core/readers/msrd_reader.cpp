@@ -21,6 +21,8 @@ namespace core {
 				CheckedProgressUpdate("file is not MSRD", ProgressType::Error);
 			return data;
 		}
+
+		PROGRESS_UPDATE(ProgressType::Verbose, "MSRD version: " << data.version << " (0x" << std::hex << data.version << ")")
 		
 		if(data.dataitemsOffset != 0) {
 			stream.seekg(data.offset + data.dataitemsOffset, std::istream::beg);
