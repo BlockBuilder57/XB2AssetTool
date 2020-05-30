@@ -9,7 +9,7 @@ namespace xb2at {
 namespace core {
 
 	template <typename T>
-	uint32 FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, uint64& offset) {
+	inline uint32 FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, uint64& offset) {
 		uint32 bytesToSerialize = sizeof(T) * (uint32)from.size();
 
 		to.resize(to.size() + bytesToSerialize);
@@ -34,7 +34,7 @@ namespace core {
 		gltf::BufferView bufferView{};
 		bufferView.buffer = bufferIndex;
 		bufferView.byteLength = def.sizeInBuffer;
-		bufferView.byteOffset = bufferTally - def.sizeInBuffer; // TRACK ME
+		bufferView.byteOffset = bufferTally - def.sizeInBuffer;
 
 		doc.bufferViews.push_back(bufferView);
 		def.bufferViewIndex = doc.bufferViews.size() - 1;
@@ -84,6 +84,8 @@ namespace core {
 
 			for (int i = 0; i < mxmdData.Model.meshesCount; ++i) {
 				gltf::Scene scene{};
+
+				PROGRESS_UPDATE(ProgressType::Info, "Converting mesh " << i << " (" << i << '/' << mxmdData.Model.meshesCount << ')')
 
 				mesh::mesh& meshToDump = meshesToDump[i];
 
@@ -157,7 +159,7 @@ namespace core {
 					//normalAccessor.max = { 0, 1, 0 };
 
 
-					// toss all vectors into a buffer
+					// toss all morphs into a buffer
 					// morph buffer format: morph0pos, morph0norm, morph1pos, morph1norm, etc.
 					gltf::Buffer morphBuffer{};
 					uint64 morphBufferTally = 0;
@@ -166,6 +168,16 @@ namespace core {
 					std::vector<gltfDef> morphPositionDefs;
 					std::vector<gltfDef> morphNormalDefs;
 
+					// cleanup the buffers we've already commited and don't need at this point
+					indices.clear();
+					positions.clear();
+					normals.clear();
+					vertexColors.clear();
+					uv0.clear();
+					uv1.clear();
+					uv2.clear();
+					uv3.clear();
+
 					if (morphDesc && morphDesc->targetCounts > 0)
 					{
 						for (int k = 0; k < morphDesc->targetCounts; ++k)
@@ -173,23 +185,25 @@ namespace core {
 							int morphId = morphDesc->targetIds[k];
 							mesh::morph_target& morphTarget = meshToDump.morphData.morphTargets[morphDesc->targetIndex + morphId];
 
-							std::vector<vec3> morphPositions(positions.begin(), positions.end());
+							std::vector<vec3> morphPositions(vertTbl.vertices.size());
 							for (int l = 0; l < vertTbl.vertices.size(); ++l) {
-								morphPositions[l].x += morphTarget.vertices[l].x;
-								morphPositions[l].y += morphTarget.vertices[l].y;
-								morphPositions[l].z += morphTarget.vertices[l].z;
-							}
-
-							std::vector<vec3> morphNormals(normals.begin(), normals.end());
-							for (int l = 0; l < vertTbl.vertices.size(); ++l) {
-								morphNormals[l].x += morphTarget.normals[l].x;
-								morphNormals[l].y += morphTarget.normals[l].y;
-								morphNormals[l].z += morphTarget.normals[l].z;
-								NormalizeVector3(morphNormals[l]);
+								morphPositions[l].x = morphTarget.vertices[l].x;
+								morphPositions[l].y = morphTarget.vertices[l].y;
+								morphPositions[l].z = morphTarget.vertices[l].z;
 							}
 
 							gltfDef defMorphPositions = CommitGLTFDefinition(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[k].name);
+							morphPositions.clear();
+
+							std::vector<vec3> morphNormals(vertTbl.vertices.size());
+							for (int l = 0; l < vertTbl.vertices.size(); ++l) {
+								morphNormals[l].x = morphTarget.normals[l].x;
+								morphNormals[l].y = morphTarget.normals[l].y;
+								morphNormals[l].z = morphTarget.normals[l].z;
+							}
+
 							gltfDef defMorphNormals =   CommitGLTFDefinition(doc, morphNormals,   morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[k].name);
+							morphNormals.clear();
 
 							morphPositionDefs.push_back(defMorphPositions);
 							morphNormalDefs.push_back(defMorphNormals);
@@ -201,6 +215,7 @@ namespace core {
 						// insert into document
 						doc.buffers.push_back(morphBuffer);
 					}
+					
 
 					std::string meshName = "mesh" + std::to_string(i);
 					meshName += "_desc" + std::to_string(j) + "_LOD" + std::to_string(desc.lod);
@@ -235,12 +250,15 @@ namespace core {
 							morphAttributes["POSITION"] = morphPositionDefs[k].accessorIndex;
 							morphAttributes["NORMAL"] = morphNormalDefs[k].accessorIndex;
 						}
+						
+						// clear defs
+						morphPositionDefs.clear();
+						morphNormalDefs.clear();
 					}
 
 					gltfMesh.primitives.push_back(gltfPrimitive);
 
 					doc.meshes.push_back(gltfMesh);
-
 
 					gltf::Node node{};
 					node.mesh = (int32)doc.meshes.size() - 1;
@@ -252,7 +270,14 @@ namespace core {
 				doc.scenes.push_back(scene);
 				doc.scene = i;
 
+				PROGRESS_UPDATE(ProgressType::Info, "Writing GLTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
+
 				gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
+
+				// clear document explicitly
+				doc.scenes.clear();
+				doc.meshes.clear();
+				doc.buffers.clear();
 			}
 
 		} else if (options.OutputFormat == modelSerializerOptions::Format::Dump) {

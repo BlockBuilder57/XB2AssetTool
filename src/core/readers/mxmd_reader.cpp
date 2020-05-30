@@ -59,7 +59,7 @@ namespace xb2at {
 
 						reader.ReadType<mxmd::morph_name_info>(data.Model.morphNames.morphNames[i]);
 
-						stream.seekg(data.modelStructOffset + data.Model.morphNamesOffset + data.Model.morphNames.morphNames[i].NameOffset);
+						stream.seekg(data.modelStructOffset + data.Model.morphNamesOffset + data.Model.morphNames.morphNames[i].NameOffset, std::istream::beg);
 						data.Model.morphNames.morphNames[i].name = reader.ReadString();
 					}
 				}
