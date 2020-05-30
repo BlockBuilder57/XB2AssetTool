@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
-    <height>224</height>
+    <width>719</width>
+    <height>361</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,8 +30,8 @@
      <rect>
       <x>0</x>
       <y>40</y>
-      <width>541</width>
-      <height>191</height>
+      <width>721</width>
+      <height>331</height>
      </rect>
     </property>
     <property name="tabShape">
@@ -48,7 +48,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>0</y>
+        <y>10</y>
         <width>141</width>
         <height>16</height>
        </rect>
@@ -67,8 +67,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
-        <width>451</width>
+        <y>30</y>
+        <width>631</width>
         <height>20</height>
        </rect>
       </property>
@@ -85,8 +85,8 @@
      <widget class="QPushButton" name="inputBrowse">
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>20</y>
+        <x>650</x>
+        <y>30</y>
         <width>51</width>
         <height>21</height>
        </rect>
@@ -102,8 +102,8 @@
      <widget class="QPushButton" name="outputBrowse">
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>70</y>
+        <x>650</x>
+        <y>80</y>
         <width>51</width>
         <height>21</height>
        </rect>
@@ -120,7 +120,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>50</y>
+        <y>60</y>
         <width>161</width>
         <height>16</height>
        </rect>
@@ -139,8 +139,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>70</y>
-        <width>451</width>
+        <y>80</y>
+        <width>631</width>
         <height>20</height>
        </rect>
       </property>
@@ -163,8 +163,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>100</y>
+        <x>650</x>
+        <y>260</y>
         <width>51</width>
         <height>21</height>
        </rect>
@@ -176,14 +176,73 @@
      <widget class="QCheckBox" name="saveXbc1">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>100</y>
+        <x>30</x>
+        <y>130</y>
         <width>151</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
        <string>Save raw XBC1 files</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="enableVerbose">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>150</y>
+        <width>421</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Enable verbose messages (For debugging purposes)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="optionsLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Options:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="formatComboBox">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>260</y>
+        <width>111</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>glTF Binary</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>glTF Text</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="meshFormatLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>230</y>
+        <width>141</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Mesh output format:</string>
       </property>
      </widget>
     </widget>
@@ -196,8 +255,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>531</width>
-        <height>131</height>
+        <width>711</width>
+        <height>261</height>
        </rect>
       </property>
       <property name="font">
@@ -225,24 +284,11 @@
        <string/>
       </property>
      </widget>
-     <widget class="QCheckBox" name="enableVerbose">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>130</y>
-        <width>441</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Enable verbose messages (For debugging purposes)</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="saveLog">
       <property name="geometry">
        <rect>
-        <x>450</x>
-        <y>135</y>
+        <x>640</x>
+        <y>270</y>
         <width>75</width>
         <height>21</height>
        </rect>
@@ -261,8 +307,8 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>421</width>
-        <height>141</height>
+        <width>611</width>
+        <height>261</height>
        </rect>
       </property>
       <property name="text">
@@ -279,8 +325,8 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
      <widget class="QPushButton" name="aboutQtButton">
       <property name="geometry">
        <rect>
-        <x>440</x>
-        <y>120</y>
+        <x>630</x>
+        <y>260</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -317,7 +363,7 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>471</width>
+      <width>701</width>
       <height>21</height>
      </rect>
     </property>
@@ -328,7 +374,7 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
      </font>
     </property>
     <property name="text">
-     <string>TODO: Add a description here</string>
+     <string>Lightweight tool to extract assets from Xenoblade Chronicles 2 and games based on the XBC2 engine.</string>
     </property>
    </widget>
   </widget>

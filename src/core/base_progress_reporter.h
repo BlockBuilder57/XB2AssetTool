@@ -30,5 +30,10 @@ namespace core {
 		progressFunc progressCallback;
 	};
 
+
+#define PROGRESS_UPDATE(type, ...) { std::stringstream ss; ss << __VA_ARGS__; CheckedProgressUpdate(ss.str(), type); ss.clear(); }
+
+#define PROGRESS_UPDATE_MAIN(type, finish, ...) { std::stringstream ss; ss << __VA_ARGS__; ProgressFunction(ss.str(), type, finish); ss.clear(); }
+
 }
 }

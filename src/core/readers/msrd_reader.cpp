@@ -70,10 +70,10 @@ namespace core {
 			stream.seekg(data.offset + data.tocOffset + (i * sizeof(msrd::toc_entry)), std::istream::beg);
 			reader.ReadType<msrd::toc_entry>(data.toc[i]);
 
-			CheckedProgressUpdate("MSRD file " + std::to_string(i), ProgressType::Verbose);
-			CheckedProgressUpdate(".. is " + std::to_string(data.toc[i].compressedSize) + " bytes compressed", ProgressType::Verbose);
-			CheckedProgressUpdate(".. is " + std::to_string(data.toc[i].fileSize) + " bytes decompressed", ProgressType::Verbose);
-			CheckedProgressUpdate(".. is at offset (decimal) " + std::to_string(data.toc[i].offset), ProgressType::Verbose);
+			PROGRESS_UPDATE(ProgressType::Verbose, "MSRD file " << i << ':')
+			PROGRESS_UPDATE(ProgressType::Verbose, ".. is at decimal offset " << data.toc[i].offset)
+			PROGRESS_UPDATE(ProgressType::Verbose, ".. is " << data.toc[i].compressedSize << " bytes compressed")
+			PROGRESS_UPDATE(ProgressType::Verbose, ".. is " << data.toc[i].fileSize << " bytes uncompressed")
 
 			// Decompress the xbc1 file
 			xbc1Reader reader(stream);

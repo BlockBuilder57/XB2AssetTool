@@ -1,4 +1,5 @@
 #include "xb2at_ui.h"
+#include <QScrollBar>
 #include <QTextStream>
 #include <QFileDialog>
 #include <thread>
@@ -82,13 +83,30 @@ namespace ui {
 		
 		QString file = ui.inputFiles->text();
 
-		
+		// Make the timer for the UI to check for log messages.
 		queue_empty_timer = new QTimer(this);
 		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
 		queue_empty_timer->start(10);
 
-		// TODO: make mesh format a dropdown thing
-		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, file.toStdString(), fs::path(ui.outputDir->text().toStdString()), ui.saveXbc1->isChecked(), modelSerializerOptions::Format::GLTFText));
+		bool saveXBC1 = ui.saveXbc1->isChecked();
+		modelSerializerOptions::Format format;
+		
+		switch (ui.formatComboBox->currentIndex()) {
+		case 0:
+			format = modelSerializerOptions::Format::GLTFBinary;
+			break;
+
+		case 1:
+			format = modelSerializerOptions::Format::GLTFText;
+			break;
+
+		default:
+			break;
+		}
+
+		auto& filename = file.toStdString();
+
+		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, filename, fs::path(ui.outputDir->text().toStdString()), saveXBC1, format));
 		extraction_thread.detach();
 	}
 
@@ -134,16 +152,25 @@ namespace ui {
 		log_queue.push({progress, type, finish});
 	}
 
-	void MainWindow::ExtractFile(std::string filename, fs::path& outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
+	void MainWindow::ExtractFile(std::string& filename, fs::path& outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
 			using namespace std::placeholders;
-			ProgressFunction(tr("Extracting %1...").arg(QString::fromStdString(filename)).toStdString(), ProgressType::Info);
+
+			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Input: " << filename)
+			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Output path: " << outputPath.string())
 			
 			fs::path path(filename);
 
 			if(!fs::exists(outputPath)) {
-				ProgressFunction("Creating output path as it didn't exist", ProgressType::Warning);
+				ProgressFunction("Creating output directory tree", ProgressType::Info);
 				fs::create_directories(outputPath);
 			}
+
+			if(!fs::exists(outputPath / "Textures"))
+				fs::create_directories(outputPath / "Textures");
+
+			if(saveXbc)
+				if (!fs::exists(outputPath / "Dump"))
+					fs::create_directories(outputPath / "Dump");
 
 			path.replace_extension(".wismt");
 
@@ -158,7 +185,7 @@ namespace ui {
 				mxmd::mxmd mxmd;
 				
 				msrdreader.set_progress(func);
-				msrd = msrdreader.Read({outputPath, saveXbc});
+				msrd = msrdreader.Read({outputPath / "Dump", saveXbc});
 
 				// Close the wismt file and set the extension
 				// in preparation of reading the wimdo/MXMD
@@ -169,11 +196,12 @@ namespace ui {
 					if(msrd.dataItems[i].type == msrd::data_item_type::Model) {
 						meshReader meshreader;
 						
-						ProgressFunction("File " + std::to_string(i) + " is a mesh", ProgressType::Verbose);
+						PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << "is a mesh")
 
 						meshreader.forward(msrdreader);
 
-						ProgressFunction("Reading mesh " + std::to_string(i), ProgressType::Info);
+
+						PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading mesh " << i)
 						mesh = meshreader.Read({msrd.files[i].data});
 
 						if(mesh.dataSize != 0)
@@ -190,19 +218,19 @@ namespace ui {
 
 					stream.close();
 				} else {
-					ProgressFunction(path.stem().string() + ".wimdo doesn't exist.", ProgressType::Error, true);
+					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, path.stem().string() << ".wimdo doesn't exist.");
 					return;
 				}
 
 				ms.forward(msrdreader);
 				ms.Serialize(msrd.meshes, mxmd, { meshFormat, outputPath, path.stem().string()});
 			} else {
-				ProgressFunction(path.stem().string() + ".wismt doesn't exist.", ProgressType::Error, true);
+				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, path.stem().string() << ".wismt doesn't exist.");
 				return;
 			}
 
 			// Signal finish
-			ProgressFunction("Extraction completed.", ProgressType::Info, true);
+			PROGRESS_UPDATE_MAIN(ProgressType::Info, true, "Extraction successful")
 	}
 
 	void MainWindow::SaveLogButtonClicked() {
@@ -225,15 +253,15 @@ namespace ui {
 			if(!filename.isEmpty()) {
 				QFile file(filename);
 
-			if(!file.open(QFile::ReadWrite)) {
-				rawText.clear();
-				return;
-			}
+				if(!file.open(QFile::ReadWrite)) {
+					rawText.clear();
+					return;
+				}
 
-			QTextStream stream(&file);
+				QTextStream stream(&file);
 
-			stream << rawText;
-			file.close();
+				stream << rawText;
+				file.close();
 				rawText.clear();
 			}
 		}
@@ -275,6 +303,7 @@ namespace ui {
 		logBuffer.append(message);
 		logBuffer.append("</font><br>");
 		ui.debugConsole->setHtml(logBuffer);
+		ui.debugConsole->verticalScrollBar()->setValue(ui.debugConsole->verticalScrollBar()->maximum());
 	}
 
 }
