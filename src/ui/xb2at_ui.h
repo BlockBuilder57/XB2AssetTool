@@ -42,6 +42,8 @@ namespace ui {
 
 		void ExtractButtonClicked();
 
+		void ClearLogButtonClicked();
+
 		void SaveLogButtonClicked();
 		
 		/**
@@ -51,7 +53,21 @@ namespace ui {
 
 	private:
 
-		void ExtractFile(std::string& filename, fs::path& outputPath, bool saveXbc, modelSerializerOptions::Format modelFormat);
+		struct uiOptions {
+			bool saveTextures;
+			bool saveMorphs;
+			bool saveAnimations;
+			modelSerializerOptions::Format modelFormat;
+			int32 lod;
+
+			bool saveMapMesh;
+			bool saveMapProps;
+			int32 propSplitSize;
+
+			bool saveXBC1;
+		};
+
+		void ExtractFile(std::string& filename, fs::path& outputPath, uiOptions& options);
 
 		/**
 		 * Extraction thread
@@ -108,6 +124,8 @@ namespace ui {
 			Warning,
 			Error
 		};
+
+		void ClearLog();
 
 		/**
 		 * Log a message to the "Log" tab in the User Interface, and the logging buffer.

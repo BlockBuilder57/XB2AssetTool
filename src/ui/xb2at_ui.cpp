@@ -1,4 +1,5 @@
 #include "xb2at_ui.h"
+#include <QToolTip>
 #include <QScrollBar>
 #include <QTextStream>
 #include <QFileDialog>
@@ -20,6 +21,7 @@ namespace ui {
 		connect(ui.outputBrowse, SIGNAL(clicked()), this, SLOT(OutputBrowseButtonClicked()));
 		connect(ui.extractButton, SIGNAL(clicked()), this, SLOT(ExtractButtonClicked()));
 		connect(ui.saveLog, SIGNAL(clicked()), this, SLOT(SaveLogButtonClicked()));
+		connect(ui.clearLog, SIGNAL(clicked()), this, SLOT(ClearLogButtonClicked()));
 
 		connect(ui.aboutQtButton, SIGNAL(clicked()), this, SLOT(AboutButtonClicked()));
 
@@ -27,10 +29,8 @@ namespace ui {
 		connect(ui.outputDir, SIGNAL(textChanged(const QString&)), this, SLOT(TextChanged()));
 	}
 
-
 	MainWindow::~MainWindow() {
-		if(!logBuffer.isEmpty())
-			logBuffer.clear();
+		ClearLog();
 	}
 
 	void MainWindow::InputBrowseButtonClicked() {
@@ -48,6 +48,7 @@ namespace ui {
 			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', fs::path::preferred_separator);
 
 			ui.inputFiles->setText(normalized);
+			ui.outputDir->setText(normalized);
 			file.clear();
 		}
 	}
@@ -78,6 +79,7 @@ namespace ui {
 
 
 	void MainWindow::ExtractButtonClicked() {
+		ClearLog();
 		ui.extractButton->setDisabled(true);
 		ui.allTabs->setCurrentWidget(ui.logTab);
 		
@@ -88,25 +90,35 @@ namespace ui {
 		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
 		queue_empty_timer->start(10);
 
-		bool saveXBC1 = ui.saveXbc1->isChecked();
-		modelSerializerOptions::Format format;
+		uiOptions options;
+
+		options.saveTextures = ui.saveTextures->isChecked();
+		options.saveMorphs = ui.saveMorphs->isChecked();
+		options.saveAnimations = ui.saveAnimations->isChecked();
 		
 		switch (ui.formatComboBox->currentIndex()) {
 		case 0:
-			format = modelSerializerOptions::Format::GLTFBinary;
+			options.modelFormat = modelSerializerOptions::Format::GLTFBinary;
 			break;
 
 		case 1:
-			format = modelSerializerOptions::Format::GLTFText;
+			options.modelFormat = modelSerializerOptions::Format::GLTFText;
 			break;
 
 		default:
 			break;
 		}
 
+		options.lod = ui.levelOfDetail->value();
+
+		options.saveMapMesh = ui.saveMapMesh->isChecked();
+		options.saveMapProps = ui.saveMapProps->isChecked();
+
+		options.saveXBC1 = ui.saveXbc1->isChecked();
+
 		auto& filename = file.toStdString();
 
-		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, filename, fs::path(ui.outputDir->text().toStdString()), saveXBC1, format));
+		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, filename, fs::path(ui.outputDir->text().toStdString()), options));
 		extraction_thread.detach();
 	}
 
@@ -152,23 +164,25 @@ namespace ui {
 		log_queue.push({progress, type, finish});
 	}
 
-	void MainWindow::ExtractFile(std::string& filename, fs::path& outputPath, bool saveXbc, modelSerializerOptions::Format meshFormat) {
+	void MainWindow::ExtractFile(std::string& filename, fs::path& outputPath, uiOptions& options) {
 			using namespace std::placeholders;
 
 			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Input: " << filename)
 			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Output path: " << outputPath.string())
 			
 			fs::path path(filename);
+			std::string filenameOnly = path.stem().string();
 
 			if(!fs::exists(outputPath)) {
 				ProgressFunction("Creating output directory tree", ProgressType::Info);
 				fs::create_directories(outputPath);
 			}
 
-			if(!fs::exists(outputPath / "Textures"))
-				fs::create_directories(outputPath / "Textures");
+			if (options.saveTextures)
+				if(!fs::exists(outputPath / "Textures"))
+					fs::create_directories(outputPath / "Textures");
 
-			if(saveXbc)
+			if(options.saveXBC1)
 				if (!fs::exists(outputPath / "Dump"))
 					fs::create_directories(outputPath / "Dump");
 
@@ -185,7 +199,7 @@ namespace ui {
 				mxmd::mxmd mxmd;
 				
 				msrdreader.set_progress(func);
-				msrd = msrdreader.Read({outputPath / "Dump", saveXbc});
+				msrd = msrdreader.Read({outputPath / "Dump", options.saveXBC1});
 
 				// Close the wismt file and set the extension
 				// in preparation of reading the wimdo/MXMD
@@ -218,19 +232,24 @@ namespace ui {
 
 					stream.close();
 				} else {
-					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, path.stem().string() << ".wimdo doesn't exist.");
+					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wimdo doesn't exist.");
 					return;
 				}
 
 				ms.forward(msrdreader);
-				ms.Serialize(msrd.meshes, mxmd, { meshFormat, outputPath, path.stem().string()});
+				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs };
+				ms.Serialize(msrd.meshes, mxmd, msoptions);
 			} else {
-				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, path.stem().string() << ".wismt doesn't exist.");
+				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wismt doesn't exist.");
 				return;
 			}
 
 			// Signal finish
 			PROGRESS_UPDATE_MAIN(ProgressType::Info, true, "Extraction successful")
+	}
+
+	void MainWindow::ClearLogButtonClicked() {
+		ClearLog();
 	}
 
 	void MainWindow::SaveLogButtonClicked() {
@@ -270,6 +289,14 @@ namespace ui {
 
 	void MainWindow::AboutButtonClicked() {
 		QApplication::aboutQt();
+	}
+
+
+
+	void MainWindow::ClearLog() {
+		// Clear both the log buffer and the debug console buffer.
+		logBuffer.clear();
+		ui.debugConsole->clear();
 	}
 
 	void MainWindow::LogMessage(QString message, LogType type) {

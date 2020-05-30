@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>719</width>
-    <height>361</height>
+    <width>720</width>
+    <height>350</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,8 +30,8 @@
      <rect>
       <x>0</x>
       <y>40</y>
-      <width>721</width>
-      <height>331</height>
+      <width>722</width>
+      <height>310</height>
      </rect>
     </property>
     <property name="tabShape">
@@ -48,9 +48,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
-        <width>141</width>
-        <height>16</height>
+        <y>0</y>
+        <width>100</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="font">
@@ -67,8 +67,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
-        <width>631</width>
+        <y>20</y>
+        <width>630</width>
         <height>20</height>
        </rect>
       </property>
@@ -79,16 +79,16 @@
        <bool>false</bool>
       </property>
       <property name="placeholderText">
-       <string>Input filename</string>
+       <string>Input filename...</string>
       </property>
      </widget>
      <widget class="QPushButton" name="inputBrowse">
       <property name="geometry">
        <rect>
         <x>650</x>
-        <y>30</y>
-        <width>51</width>
-        <height>21</height>
+        <y>20</y>
+        <width>50</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -103,9 +103,9 @@
       <property name="geometry">
        <rect>
         <x>650</x>
-        <y>80</y>
-        <width>51</width>
-        <height>21</height>
+        <y>60</y>
+        <width>50</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -120,9 +120,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
-        <width>161</width>
-        <height>16</height>
+        <y>40</y>
+        <width>100</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="font">
@@ -139,8 +139,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>80</y>
-        <width>631</width>
+        <y>60</y>
+        <width>630</width>
         <height>20</height>
        </rect>
       </property>
@@ -165,8 +165,8 @@
        <rect>
         <x>650</x>
         <y>260</y>
-        <width>51</width>
-        <height>21</height>
+        <width>50</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -176,10 +176,10 @@
      <widget class="QCheckBox" name="saveXbc1">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>130</y>
-        <width>151</width>
-        <height>16</height>
+        <x>20</x>
+        <y>240</y>
+        <width>150</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -189,10 +189,10 @@
      <widget class="QCheckBox" name="enableVerbose">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>150</y>
-        <width>421</width>
-        <height>21</height>
+        <x>20</x>
+        <y>260</y>
+        <width>300</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -203,9 +203,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
-        <width>101</width>
-        <height>21</height>
+        <y>80</y>
+        <width>100</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -215,10 +215,10 @@
      <widget class="QComboBox" name="formatComboBox">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>260</y>
+        <x>350</x>
+        <y>100</y>
         <width>111</width>
-        <height>21</height>
+        <height>20</height>
        </rect>
       </property>
       <item>
@@ -235,14 +235,235 @@
      <widget class="QLabel" name="meshFormatLabel">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>230</y>
-        <width>141</width>
-        <height>21</height>
+        <x>230</x>
+        <y>100</y>
+        <width>120</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
        <string>Mesh output format:</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveTextures">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>150</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save textures to folder</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveAnimations">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>140</y>
+        <width>200</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save animations (not implemented)</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveMorphs">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>120</y>
+        <width>110</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save facial flexes</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="debugOptionsLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>220</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Debug Options:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="mapOptionsLabel">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>170</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Map Options: (not implemented)</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveMapMesh">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>180</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save map mesh</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveMapProps">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>200</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save map props</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="propSplitLabel">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>180</y>
+        <width>120</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Prop split size:</string>
+      </property>
+     </widget>
+     <widget class="xb2at::ui::ShowValueSlider" name="propSplitSize">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>319</x>
+        <y>180</y>
+        <width>320</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>500</number>
+      </property>
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="singleStep">
+       <number>500</number>
+      </property>
+      <property name="pageStep">
+       <number>500</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
+      <property name="invertedControls">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="levelOfDetailLabel">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>100</y>
+        <width>80</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Level of Detail:</string>
+      </property>
+     </widget>
+     <widget class="xb2at::ui::ShowValueSlider" name="levelOfDetail">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>100</y>
+        <width>80</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-1</number>
+      </property>
+      <property name="maximum">
+       <number>3</number>
+      </property>
+      <property name="singleStep">
+       <number>1</number>
+      </property>
+      <property name="pageStep">
+       <number>1</number>
+      </property>
+      <property name="value">
+       <number>0</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
+      <property name="invertedControls">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -255,8 +476,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>711</width>
-        <height>261</height>
+        <width>715</width>
+        <height>250</height>
        </rect>
       </property>
       <property name="font">
@@ -287,14 +508,27 @@
      <widget class="QPushButton" name="saveLog">
       <property name="geometry">
        <rect>
-        <x>640</x>
-        <y>270</y>
-        <width>75</width>
-        <height>21</height>
+        <x>620</x>
+        <y>260</y>
+        <width>80</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
        <string>Save Log...</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="clearLog">
+      <property name="geometry">
+       <rect>
+        <x>529</x>
+        <y>260</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear Log</string>
       </property>
      </widget>
     </widget>
@@ -306,7 +540,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
+        <y>0</y>
         <width>611</width>
         <height>261</height>
        </rect>
@@ -325,10 +559,10 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
      <widget class="QPushButton" name="aboutQtButton">
       <property name="geometry">
        <rect>
-        <x>630</x>
+        <x>620</x>
         <y>260</y>
-        <width>75</width>
-        <height>23</height>
+        <width>80</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -380,6 +614,13 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>xb2at::ui::ShowValueSlider</class>
+   <extends>QSlider</extends>
+   <header>ShowValueSlider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="xb2at.qrc"/>
  </resources>

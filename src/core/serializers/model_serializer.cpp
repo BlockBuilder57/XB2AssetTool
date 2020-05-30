@@ -54,7 +54,7 @@ namespace core {
 		return def;
 	}
 
-	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, const modelSerializerOptions& options) {
+	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, modelSerializerOptions& options) {
 		fs::path outPath(options.outputDir);
 		
 		outPath = outPath / options.filename;
@@ -91,8 +91,26 @@ namespace core {
 
 				mesh::vertex_table weightTbl = meshToDump.vertexTables.back();
 
+				if (options.lod != -1) {
+					int lowestLOD = 3;
+					int highestLOD = 0;
+					for (int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
+						if (mxmdData.Model.Meshes[i].descriptors[j].lod <= lowestLOD)
+							lowestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
+						else if (mxmdData.Model.Meshes[i].descriptors[j].lod >= highestLOD)
+							highestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
+					}
+					if (lowestLOD != options.lod && highestLOD != options.lod) {
+						options.lod = Clamp(options.lod, lowestLOD, highestLOD);
+						PROGRESS_UPDATE(ProgressType::Info, "I think we updated the LOD to " << options.lod)
+					}
+				}
+
 				for (int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
 					mxmd::mesh_descriptor desc = mxmdData.Model.Meshes[i].descriptors[j];
+
+					if (options.lod != -1 && desc.lod != options.lod)
+						continue;
 
 					mesh::vertex_table& vertTbl = meshToDump.vertexTables[desc.vertTableIndex];
 					mesh::face_table& faceTbl = meshToDump.faceTables[desc.faceTableIndex];
@@ -142,7 +160,8 @@ namespace core {
 					gltfDef defUV3 =          CommitGLTFDefinition(doc, uv3,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
 
 					modelBuffer.byteLength = (uint32)modelBuffer.data.size();
-					modelBuffer.SetEmbeddedResource();
+					if (j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
+						modelBuffer.SetEmbeddedResource();
 
 					// insert into document
 					doc.buffers.push_back(modelBuffer);
@@ -178,7 +197,7 @@ namespace core {
 					uv2.clear();
 					uv3.clear();
 
-					if (morphDesc && morphDesc->targetCounts > 0)
+					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
 					{
 						for (int k = 0; k < morphDesc->targetCounts; ++k)
 						{
@@ -192,7 +211,7 @@ namespace core {
 								morphPositions[l].z = morphTarget.vertices[l].z;
 							}
 
-							gltfDef defMorphPositions = CommitGLTFDefinition(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[k].name);
+							gltfDef defMorphPositions = CommitGLTFDefinition(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
 							morphPositions.clear();
 
 							std::vector<vec3> morphNormals(vertTbl.vertices.size());
@@ -202,7 +221,7 @@ namespace core {
 								morphNormals[l].z = morphTarget.normals[l].z;
 							}
 
-							gltfDef defMorphNormals =   CommitGLTFDefinition(doc, morphNormals,   morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[k].name);
+							gltfDef defMorphNormals =   CommitGLTFDefinition(doc, morphNormals,   morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
 							morphNormals.clear();
 
 							morphPositionDefs.push_back(defMorphPositions);
@@ -217,8 +236,9 @@ namespace core {
 					}
 					
 
-					std::string meshName = "mesh" + std::to_string(i);
-					meshName += "_desc" + std::to_string(j) + "_LOD" + std::to_string(desc.lod);
+					std::string meshName = "mesh" + std::to_string(i) + "_desc" + std::to_string(j);
+					if (desc.lod != options.lod)
+						meshName += "_LOD" + std::to_string(desc.lod);
 
 					gltf::Mesh gltfMesh{};
 					gltf::Primitive gltfPrimitive{};
@@ -240,7 +260,7 @@ namespace core {
 					if (vertTbl.uvLayerCount > 3)
 						gltfPrimitive.attributes["TEXCOORD_3"] = defUV3.accessorIndex;
 
-					if (morphDesc && morphDesc->targetCounts > 0)
+					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
 					{
 						gltfPrimitive.targets.resize(morphDesc->targetCounts);
 
@@ -272,7 +292,11 @@ namespace core {
 
 				PROGRESS_UPDATE(ProgressType::Info, "Writing GLTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
 
-				gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
+				try {
+					gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
+				} catch (gltf::invalid_gltf_document ex) {
+					PROGRESS_UPDATE(ProgressType::Error, "fx-glTF exception: " << ex.what());
+				} 
 
 				// clear document explicitly
 				doc.scenes.clear();

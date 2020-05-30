@@ -107,6 +107,12 @@ namespace core {
 		return (*it);
 	}
 
+	template<typename T>
+	inline T Clamp(T Expression, const T Min, const T Max) {
+		return (Expression > Max) ? Max :
+			(Expression < Min) ? Min : Expression;
+	}
+
 	/**
 	 * Replacement for LINQ's .Where function.
 	 */

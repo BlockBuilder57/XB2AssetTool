@@ -40,6 +40,16 @@ namespace core {
 		 * Output filename of the model.
 		 */
 		const std::string& filename;
+
+		/**
+		 * The level of detail at which we should export meshes.
+		 */
+		int32 lod;
+
+		/**
+		 * Save morphs to the model?
+		 */
+		bool saveMorphs;
 	};
 
 	/**
@@ -54,7 +64,7 @@ namespace core {
 		 * \param[in] meshesToDump The meshes to dump.
 		 * \param[in] options Options.
 		 */
-		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, const modelSerializerOptions& options);
+		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, modelSerializerOptions& options);
 
 	};
 }

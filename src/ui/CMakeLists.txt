@@ -8,6 +8,9 @@ set(XB2AT_SOURCES
 	main.cpp
 	xb2at_ui.cpp
 	
+	ShowValueSlider.h
+	ShowValueSlider.cpp
+
 	# QT/win32 things
 	xb2at.qrc
 	xb2at.ui
