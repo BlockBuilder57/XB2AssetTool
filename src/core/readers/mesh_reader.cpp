@@ -212,13 +212,13 @@ namespace core {
 
 		for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
 
-			mesh.morphData.morphDescriptors[i].targetIds.resize(mesh.morphData.morphDescriptors[i].targetCounts);
-			stream.seekg(mesh.morphData.morphDescriptors[i].targetIdOffsets, std::istream::beg);
+			mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
+
+			desc.targetIds.resize(desc.targetCounts);
+			stream.seekg(desc.targetIdOffsets, std::istream::beg);
 
 			for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
-				reader.ReadType<int16>(mesh.morphData.morphDescriptors[i].targetIds[j]);
-
-			mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
+				reader.ReadType<int16>(desc.targetIds[j]);
 
 			int morphTargetOffset = mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset;
 			stream.seekg(morphTargetOffset, std::istream::beg);

@@ -102,7 +102,7 @@ namespace core {
 					}
 					if (lowestLOD != options.lod && highestLOD != options.lod) {
 						options.lod = Clamp(options.lod, lowestLOD, highestLOD);
-						PROGRESS_UPDATE(ProgressType::Info, "I think we updated the LOD to " << options.lod)
+						PROGRESS_UPDATE(ProgressType::Info, "No meshes at chosen LOD level, setting LOD to " << options.lod)
 					}
 				}
 

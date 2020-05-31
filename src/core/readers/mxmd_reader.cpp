@@ -48,10 +48,10 @@ namespace xb2at {
 				}
 
 				if(data.Model.morphNamesOffset != 0) {
-					stream.seekg((data.modelStructOffset + data.Model.morphNamesOffset), std::istream::beg);
+					stream.seekg(data.modelStructOffset + data.Model.morphNamesOffset, std::istream::beg);
 					reader.ReadType<mxmd::morph_names_info>(data.Model.morphNames);
 					data.Model.morphNames.morphNames.resize(data.Model.morphNames.count);
-					auto nextPos = stream.tellg();
+					auto nextPos = data.modelStructOffset + data.Model.morphNamesOffset + data.Model.morphNames.tableOffset;
 
 					for(int i = 0; i < data.Model.morphNames.count; ++i) {
 						stream.seekg(nextPos, std::istream::beg);
