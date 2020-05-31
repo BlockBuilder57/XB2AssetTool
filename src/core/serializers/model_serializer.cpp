@@ -109,6 +109,9 @@ namespace core {
 				for (int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
 					mxmd::mesh_descriptor desc = mxmdData.Model.Meshes[i].descriptors[j];
 
+					if (!options.saveOutlines && mxmdData.Materials.Materials[desc.materialID].name.find("outline") != std::string::npos) 
+						continue;
+
 					if (options.lod != -1 && desc.lod != options.lod)
 						continue;
 

@@ -50,6 +50,11 @@ namespace core {
 		 * Save morphs to the model?
 		 */
 		bool saveMorphs;
+
+		/**
+		 * Save outlines to the model?
+		 */
+		bool saveOutlines;
 	};
 
 	/**

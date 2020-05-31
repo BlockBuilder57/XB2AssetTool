@@ -182,6 +182,9 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Saves uncompressed versions of compressed files to disk.</string>
+      </property>
       <property name="text">
        <string>Save raw XBC1 files</string>
       </property>
@@ -194,6 +197,9 @@
         <width>300</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Sends a lot more debug messages into the log, can and will cause slowdown!</string>
       </property>
       <property name="text">
        <string>Enable verbose messages (For debugging purposes)</string>
@@ -216,7 +222,7 @@
       <property name="geometry">
        <rect>
         <x>350</x>
-        <y>100</y>
+        <y>140</y>
         <width>111</width>
         <height>20</height>
        </rect>
@@ -236,7 +242,7 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>100</y>
+        <y>140</y>
         <width>120</width>
         <height>20</height>
        </rect>
@@ -253,6 +259,9 @@
         <width>150</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Saves textures of the model to a &quot;Textures&quot; folder.</string>
       </property>
       <property name="text">
        <string>Save textures to folder</string>
@@ -273,6 +282,9 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Save animations to the model file.</string>
+      </property>
       <property name="text">
        <string>Save animations (not implemented)</string>
       </property>
@@ -291,6 +303,9 @@
         <width>110</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Exports the morphs of the mesh to the model file.</string>
       </property>
       <property name="text">
        <string>Save facial flexes</string>
@@ -343,6 +358,9 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Saves the mesh of the map to a file.</string>
+      </property>
       <property name="text">
        <string>Save map mesh</string>
       </property>
@@ -361,6 +379,9 @@
         <width>100</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Saves the props of the map to a file.</string>
       </property>
       <property name="text">
        <string>Save map props</string>
@@ -397,6 +418,9 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>How many props are allowed per prop file.</string>
+      </property>
       <property name="minimum">
        <number>500</number>
       </property>
@@ -423,7 +447,7 @@
       <property name="geometry">
        <rect>
         <x>470</x>
-        <y>100</y>
+        <y>140</y>
         <width>80</width>
         <height>20</height>
        </rect>
@@ -436,10 +460,13 @@
       <property name="geometry">
        <rect>
         <x>560</x>
-        <y>100</y>
+        <y>140</y>
         <width>80</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The level of detail controls how detailed the model will be.&lt;/p&gt;&lt;p&gt;The higher this number, the less detailed the model becomes.&lt;/p&gt;&lt;p&gt;Setting the number to -1 will export every level of detail into the model file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="minimum">
        <number>-1</number>
@@ -463,6 +490,25 @@
        <bool>false</bool>
       </property>
       <property name="invertedControls">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveOutlines">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>100</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the saving of duplicate meshes for outline materials.&lt;/p&gt;&lt;p&gt;These are found in the model by default but are disabled by default to reduce file size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Save outline duplicates</string>
+      </property>
+      <property name="checked">
        <bool>false</bool>
       </property>
      </widget>

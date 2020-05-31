@@ -57,6 +57,7 @@ namespace ui {
 			bool saveTextures;
 			bool saveMorphs;
 			bool saveAnimations;
+			bool saveOutlines;
 			modelSerializerOptions::Format modelFormat;
 			int32 lod;
 

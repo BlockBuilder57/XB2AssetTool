@@ -95,6 +95,7 @@ namespace ui {
 		options.saveTextures = ui.saveTextures->isChecked();
 		options.saveMorphs = ui.saveMorphs->isChecked();
 		options.saveAnimations = ui.saveAnimations->isChecked();
+		options.saveOutlines = ui.saveOutlines->isChecked();
 		
 		switch (ui.formatComboBox->currentIndex()) {
 		case 0:
@@ -237,7 +238,7 @@ namespace ui {
 				}
 
 				ms.forward(msrdreader);
-				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs };
+				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs, options.saveOutlines };
 				ms.Serialize(msrd.meshes, mxmd, msoptions);
 			} else {
 				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wismt doesn't exist.");
