@@ -230,7 +230,8 @@ namespace core {
 				mesh.vertexTables[desc.bufferId].normals[j] = reader.ReadU8Quaternion();
 			}
 
-			for(int j = 1; j < desc.targetCounts; ++j) {
+			// j = 2 as we skip the basis, then skip something else I don't know what it is god help me
+			for(int j = 2; j < mesh.morphData.morphTargetCount; ++j) {
 				mesh.morphData.morphTargets[desc.targetIndex+j].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 				mesh.morphData.morphTargets[desc.targetIndex+j].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 

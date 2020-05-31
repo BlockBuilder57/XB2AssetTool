@@ -199,10 +199,10 @@ namespace core {
 
 					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
 					{
-						for (int k = 0; k < morphDesc->targetCounts; ++k)
+						for (int k = 2; k < meshToDump.morphData.morphTargetCount; ++k)
 						{
-							int morphId = morphDesc->targetIds[k];
-							mesh::morph_target& morphTarget = meshToDump.morphData.morphTargets[morphDesc->targetIndex + morphId];
+							int morphId = morphDesc->targetIds[k-2];
+							mesh::morph_target& morphTarget = meshToDump.morphData.morphTargets[morphDesc->targetIndex + k];
 
 							std::vector<vec3> morphPositions(vertTbl.vertices.size());
 							for (int l = 0; l < vertTbl.vertices.size(); ++l) {
@@ -262,9 +262,9 @@ namespace core {
 
 					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
 					{
-						gltfPrimitive.targets.resize(morphDesc->targetCounts);
+						gltfPrimitive.targets.resize(morphPositionDefs.size());
 
-						for (int k = 0; k < morphDesc->targetCounts; ++k)
+						for (int k = 0; k < morphPositionDefs.size(); ++k)
 						{
 							gltf::Attributes& morphAttributes = gltfPrimitive.targets[k];
 							morphAttributes["POSITION"] = morphPositionDefs[k].accessorIndex;
