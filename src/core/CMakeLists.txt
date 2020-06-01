@@ -69,9 +69,7 @@ endif()
 
 target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
 
-add_custom_target(gittag_core COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/src/ui/gittag.cmake WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} SOURCES ${CMAKE_CURRENT_BINARY_DIR}/Version.hpp)
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Version.hpp PROPERTIES GENERATED TRUE)
 
-add_dependencies(xb2core gittag_core)
+add_dependencies(xb2core __xb2at_gittag)
 
-target_include_directories(xb2core PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR})

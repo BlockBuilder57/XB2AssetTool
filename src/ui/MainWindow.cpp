@@ -1,4 +1,4 @@
-#include "xb2at_ui.h"
+#include "MainWindow.h"
 #include <QToolTip>
 #include <QScrollBar>
 #include <QTextStream>

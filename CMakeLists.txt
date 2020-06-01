@@ -4,6 +4,7 @@ project(xb2at CXX)
 include(CheckCXXSourceCompiles)
 find_package(Threads)
 
+# For people who want to import xb2core
 option(XB2AT_XB2CORE_ONLY "Only build/include xb2core" OFF)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
@@ -59,8 +60,11 @@ if(NOT DEFINED CACHE{XB2AT_STDLIB})
 	message(STATUS "Detected ${XB2AT_STDLIB}")
 endif()
 
-
 add_subdirectory(vendor)
+
+add_custom_target(__xb2at_gittag COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/src/gittag.cmake WORKING_DIRECTORY ${PROJECT_BINARY_DIR} SOURCES ${PROJECT_BINARY_DIR}/Version.hpp)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Version.hpp PROPERTIES GENERATED TRUE)
+
 add_subdirectory(src/core)
 
 if(NOT XB2AT_XB2CORE_ONLY)
