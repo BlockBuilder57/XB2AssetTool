@@ -56,9 +56,10 @@ namespace ui {
 	void MainWindow::OutputBrowseButtonClicked() {
 		QFileDialog fileSelector(this, "Select output directory");
 		fileSelector.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
-		fileSelector.setFileMode(QFileDialog::FileMode::DirectoryOnly);
+		fileSelector.setFileMode(QFileDialog::FileMode::Directory);
+		fileSelector.setOption(QFileDialog::ShowDirsOnly);
 
-		if (fileSelector.exec()) {
+		if(fileSelector.exec()) {
 			if(fileSelector.selectedFiles().isEmpty())
 				return;
 
@@ -68,7 +69,6 @@ namespace ui {
 		}
 	}
 
-	// we use this to responsively disable or enable the extraction button
 	void MainWindow::TextChanged() {
 		if(!ui.inputFiles->text().isEmpty() && !ui.outputDir->text().isEmpty()) {
 			ui.extractButton->setDisabled(false);
@@ -85,10 +85,9 @@ namespace ui {
 		
 		QString file = ui.inputFiles->text();
 
-		// Make the timer for the UI to check for log messages.
+		// Make the timer for the UI to check for log messages
 		queue_empty_timer = new QTimer(this);
 		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
-		queue_empty_timer->start(10);
 
 		uiOptions options;
 
@@ -119,6 +118,8 @@ namespace ui {
 
 		std::string filename = file.toStdString();
 
+		// Start the timer and the thread.
+		queue_empty_timer->start(10);
 		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, filename, fs::path(ui.outputDir->text().toStdString()), options));
 		extraction_thread.detach();
 	}
@@ -242,9 +243,10 @@ namespace ui {
 							lbimReader lbimreader;
 							lbimReaderOptions lbimoptions(msrd.files[i].data);
 
-							lbimreader.forward(msrdreader);
+							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MSRD file " << i << "is a texture")
 
-							lbim::texture list = lbimreader.Read(lbimoptions);
+							lbimreader.forward(msrdreader);
+							lbim::texture texture = lbimreader.Read(lbimoptions);
 
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
 								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))

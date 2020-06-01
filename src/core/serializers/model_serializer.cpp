@@ -34,10 +34,10 @@ namespace core {
 		gltf::BufferView bufferView{};
 		bufferView.buffer = bufferIndex;
 		bufferView.byteLength = def.sizeInBuffer;
-		bufferView.byteOffset = bufferTally - def.sizeInBuffer;
+		bufferView.byteOffset = (uint32)bufferTally - def.sizeInBuffer;
 
 		doc.bufferViews.push_back(bufferView);
-		def.bufferViewIndex = doc.bufferViews.size() - 1;
+		def.bufferViewIndex = (uint32)doc.bufferViews.size() - 1;
 
 		gltf::Accessor accessor{};
 		accessor.bufferView = def.bufferViewIndex;
@@ -49,7 +49,7 @@ namespace core {
 			accessor.name = accessorName;
 
 		doc.accessors.push_back(accessor);
-		def.accessorIndex = doc.accessors.size() - 1;
+		def.accessorIndex = (uint32)doc.accessors.size() - 1;
 
 		return def;
 	}
@@ -152,7 +152,7 @@ namespace core {
 					gltf::Buffer modelBuffer{};
 					uint64 modelBufferTally = 0;
 
-					int32 buffersCount = doc.buffers.size();
+					uint32 buffersCount = (uint32)doc.buffers.size();
 					gltfDef defIndices =      CommitGLTFDefinition(doc, indices,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Scalar, false);
 					gltfDef defPositions =    CommitGLTFDefinition(doc, positions,    modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
 					gltfDef defNormals =      CommitGLTFDefinition(doc, normals,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
@@ -185,7 +185,7 @@ namespace core {
 					// morph buffer format: morph0pos, morph0norm, morph1pos, morph1norm, etc.
 					gltf::Buffer morphBuffer{};
 					uint64 morphBufferTally = 0;
-					buffersCount = doc.buffers.size();
+					buffersCount = (uint32)doc.buffers.size();
 
 					std::vector<gltfDef> morphPositionDefs;
 					std::vector<gltfDef> morphNormalDefs;
