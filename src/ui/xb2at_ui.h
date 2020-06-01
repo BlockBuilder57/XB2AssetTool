@@ -12,9 +12,11 @@
 #include "ui_xb2at.h"
 
 #include <core.h>
+
 #include <readers/msrd_reader.h>
 #include <readers/mesh_reader.h>
 #include <readers/mxmd_reader.h>
+#include <readers/lbim_reader.h>
 #include <serializers/model_serializer.h>
 
 

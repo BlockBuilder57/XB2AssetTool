@@ -13,7 +13,7 @@ namespace core {
 
 		stream.seekg(opts.offset, std::istream::beg);
 
-		if(!reader.ReadType<xbc1::xbc1_header>(xbc)) {
+		if(!reader.ReadType<xbc1::header>(xbc)) {
 			opts.Result = xbc1ReaderStatus::ErrorReadingHeader;
 			return xbc;
 		}

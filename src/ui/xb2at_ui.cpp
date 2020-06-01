@@ -218,23 +218,40 @@ namespace ui {
 				path.replace_extension(".wimdo");
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
-					if(msrd.dataItems[i].type == msrd::data_item_type::Model) {
-						meshReader meshreader;
-						meshReaderOptions meshoptions(msrd.files[i].data);
+					switch(msrd.dataItems[i].type) {
+						case msrd::data_item_type::Model: {
+							meshReader meshreader;
+							meshReaderOptions meshoptions(msrd.files[i].data);
 						
-						PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << "is a mesh")
+							PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << "is a mesh")
 
-						meshreader.forward(msrdreader);
+							meshreader.forward(msrdreader);
 
-						PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading mesh " << i)
-						mesh = meshreader.Read(meshoptions);
+							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading mesh " << i)
+							mesh = meshreader.Read(meshoptions);
 
-						if(meshoptions.Result == meshReaderStatus::Success) {
-							msrd.meshes.push_back(mesh);
-						} else {
-							PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))
-							return;
-						}
+							if(meshoptions.Result == meshReaderStatus::Success) {
+								msrd.meshes.push_back(mesh);
+							} else {
+								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))
+								return;
+							}
+						} break;
+
+						case msrd::data_item_type::Texture: {
+							lbimReader lbimreader;
+							lbimReaderOptions lbimoptions(msrd.files[i].data);
+
+							lbimreader.forward(msrdreader);
+
+							lbim::texture list = lbimreader.Read(lbimoptions);
+
+							if(lbimoptions.Result != lbimReaderStatus::Success) {
+								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+								return;
+							}
+						} break;
+
 					}
 				}
 

@@ -4,17 +4,22 @@
 # they trigger a rebuild of xb2core source files
 set(XB2CORE_SOURCES
 
-	# core library stuff
+	# Core library things
 	core.h
 	endian_swap.h
 	streamhelper.h
 	ivstream.h
 	base_progress_reporter.h
 	
+	# Data structs
 	structs.h
 	structs/xbc1.h
 	structs/msrd.h
 	structs/mesh.h
+	structs/mxmd.h
+	structs/lbim.h
+
+	# Readers
 
 	readers/base_reader.h
 
@@ -29,7 +34,12 @@ set(XB2CORE_SOURCES
 
 	readers/mxmd_reader.h
 	readers/mxmd_reader.cpp
+
+	readers/lbim_reader.h
+	readers/lbim_reader.cpp
 	
+	# Serializers
+
 	serializers/base_serializer.h
 
 	serializers/model_serializer.h

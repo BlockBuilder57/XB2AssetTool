@@ -59,9 +59,9 @@ namespace core {
 	inline void NormalizeVector3(vector3& vector)
 	{
 		double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
-		vector.x = vector.x / mag;
-		vector.y = vector.y / mag;
-		vector.z = vector.z / mag;
+		vector.x = vector.x / (float)mag;
+		vector.y = vector.y / (float)mag;
+		vector.z = vector.z / (float)mag;
 	}
 	
 	template<class T>
