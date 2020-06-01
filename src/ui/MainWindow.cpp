@@ -224,7 +224,7 @@ namespace ui {
 							meshReader meshreader;
 							meshReaderOptions meshoptions(msrd.files[i].data);
 						
-							PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << "is a mesh")
+							PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << " is a mesh")
 
 							meshreader.forward(msrdreader);
 
@@ -243,7 +243,7 @@ namespace ui {
 							lbimReader lbimreader;
 							lbimReaderOptions lbimoptions(msrd.files[i].data);
 
-							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MSRD file " << i << "is a texture")
+							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MSRD file " << i << " is a texture")
 
 							lbimreader.forward(msrdreader);
 							lbim::texture texture = lbimreader.Read(lbimoptions);
