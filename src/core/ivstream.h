@@ -22,6 +22,7 @@ namespace core {
 			vector_streambuf(std::vector<char>& buffer_) 
 				: read_pos(0),
 				buffer(buffer_) {
+				setg(&buffer_[0], &buffer_[1], &buffer_[0] + buffer_.size());
 			}
 
 			pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which = std::ios_base::in) override {

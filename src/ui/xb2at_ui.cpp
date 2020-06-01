@@ -117,7 +117,7 @@ namespace ui {
 
 		options.saveXBC1 = ui.saveXbc1->isChecked();
 
-		auto& filename = file.toStdString();
+		std::string filename = file.toStdString();
 
 		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, filename, fs::path(ui.outputDir->text().toStdString()), options));
 		extraction_thread.detach();
@@ -192,6 +192,8 @@ namespace ui {
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
 				auto func = std::bind(&MainWindow::ProgressFunction, this, _1, _2, false);
+
+				msrdReaderOptions msrdoptions = { outputPath / "Dump", options.saveXBC1 };
 				msrdReader msrdreader(stream);
 				modelSerializer ms;
 
@@ -200,7 +202,15 @@ namespace ui {
 				mxmd::mxmd mxmd;
 				
 				msrdreader.set_progress(func);
-				msrd = msrdreader.Read({outputPath / "Dump", options.saveXBC1});
+
+				PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading MSRD file...")
+
+				msrd = msrdreader.Read(msrdoptions);
+
+				if(msrdoptions.Result != msrdReaderStatus::Success) {
+					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading MSRD file: " << msrdReaderStatusToString(msrdoptions.Result))
+					return;
+				}
 
 				// Close the wismt file and set the extension
 				// in preparation of reading the wimdo/MXMD
@@ -210,28 +220,40 @@ namespace ui {
 				for(int i = 0; i < msrd.files.size(); ++i) {
 					if(msrd.dataItems[i].type == msrd::data_item_type::Model) {
 						meshReader meshreader;
+						meshReaderOptions meshoptions(msrd.files[i].data);
 						
 						PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << "is a mesh")
 
 						meshreader.forward(msrdreader);
 
-
 						PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading mesh " << i)
-						mesh = meshreader.Read({msrd.files[i].data});
+						mesh = meshreader.Read(meshoptions);
 
-						if(mesh.dataSize != 0)
+						if(meshoptions.Result == meshReaderStatus::Success) {
 							msrd.meshes.push_back(mesh);
+						} else {
+							PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))
+							return;
+						}
 					}
 				}
 
 				if (fs::exists(path)) {
 					stream.open(path.string(), std::ifstream::binary);
 					mxmdReader mxmdreader(stream);
+					mxmdReaderOptions mxmdoptions = {};
 
 					mxmdreader.forward(msrdreader);
-					mxmd = mxmdreader.Read({});
+					mxmd = mxmdreader.Read(mxmdoptions);
 
 					stream.close();
+
+					if (mxmdoptions.Result != mxmdReaderStatus::Success) {
+						PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading MXMD file: " << mxmdReaderStatusToString(mxmdoptions.Result))
+						return;
+					}
+
+					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MXMD file successfully read")
 				} else {
 					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wimdo doesn't exist.");
 					return;
@@ -245,7 +267,7 @@ namespace ui {
 				return;
 			}
 
-			// Signal finish
+			// Signal successful finish
 			PROGRESS_UPDATE_MAIN(ProgressType::Info, true, "Extraction successful")
 	}
 

@@ -9,14 +9,14 @@
 namespace xb2at {
 namespace core {
 
-	mesh::mesh meshReader::Read(const meshReaderOptions& opts) {
+	mesh::mesh meshReader::Read(meshReaderOptions& opts) {
 		ivstream stream(opts.file);
 		StreamHelper reader(stream);
 		mesh::mesh mesh;
 
 		// Read the mesh header
 		if(!reader.ReadType<mesh::mesh_header>(mesh)) {
-			CheckedProgressUpdate("file could not be read", ProgressType::Error);
+			opts.Result = meshReaderStatus::ErrorReadingHeader;
 			return mesh;
 		}
 		
@@ -29,7 +29,7 @@ namespace core {
 
 				stream.seekg(mesh.vertexTableOffset + (i * sizeof(mesh::vertex_table_header)), std::istream::beg);
 				if(!reader.ReadType<mesh::vertex_table_header>(mesh.vertexTables[i])) {
-					CheckedProgressUpdate("could not read vertex table header", ProgressType::Error);
+					opts.Result = meshReaderStatus::ErrorReadingVertexData;
 					return mesh;
 				}
 
@@ -40,7 +40,7 @@ namespace core {
 				for(int j = 0; j < mesh.vertexTables[i].descriptorCount; ++j) {
 					PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex descriptor " << j)
 					if(!reader.ReadType<mesh::vertex_descriptor>(mesh.vertexTables[i].vertexDescriptors[j])) {
-						CheckedProgressUpdate("could not read vertex descriptor", ProgressType::Error);
+						opts.Result = meshReaderStatus::ErrorReadingVertexData;
 						return mesh;
 					}
 				}
@@ -57,7 +57,7 @@ namespace core {
 				stream.seekg(mesh.faceTableOffset + (i * sizeof(mesh::face_table_header)), std::istream::beg);
 
 				if(!reader.ReadType<mesh::face_table_header>(mesh.faceTables[i])) {
-					CheckedProgressUpdate("Error reading face table header", ProgressType::Error);
+					opts.Result = meshReaderStatus::ErrorReadingFaceData;
 					return mesh;
 				}
 
@@ -65,8 +65,9 @@ namespace core {
 
 				mesh.faceTables[i].vertices.resize(mesh.faceTables[i].vertCount);
 				for(int j = 0; j < mesh.faceTables[i].vertCount; ++j) {
-					if(!reader.ReadType<uint16>(mesh.faceTables[i].vertices[j])){
-						PROGRESS_UPDATE(ProgressType::Error, "Error reading face table " << i)
+					if(!reader.ReadType<uint16>(mesh.faceTables[i].vertices[j])) {
+						opts.Result = meshReaderStatus::ErrorReadingFaceData;
+						//PROGRESS_UPDATE(ProgressType::Error, "Error reading face table " << i)
 						return mesh;
 					}
 				}
@@ -79,8 +80,8 @@ namespace core {
 
 			stream.seekg(mesh.weightDataOffset, std::istream::beg);
 			
-			if(!reader.ReadType<mesh::weight_data_header>(mesh.weightData)){
-				CheckedProgressUpdate("Error reading weight data header", ProgressType::Error);
+			if(!reader.ReadType<mesh::weight_data_header>(mesh.weightData)) {
+				opts.Result = meshReaderStatus::ErrorReadingWeightData;
 				return mesh;
 			}
 
@@ -89,6 +90,7 @@ namespace core {
 
 			for(int i = 0; i < mesh.weightData.managerCount; ++i) {
 				if(!reader.ReadType<mesh::weight_manager>(mesh.weightData.weightManagers[i])) {
+					opts.Result = meshReaderStatus::ErrorReadingWeightData;
 					CheckedProgressUpdate("Error reading weight manager", ProgressType::Error);
 					return mesh;
 				}
@@ -102,7 +104,7 @@ namespace core {
 			stream.seekg(mesh.morphDataOffset, std::istream::beg);
 
 			if (!reader.ReadType<mesh::morph_data_header>(mesh.morphData)) {
-				CheckedProgressUpdate("Error reading morph data header", ProgressType::Error);
+				opts.Result = meshReaderStatus::ErrorReadingMorphData;
 				return mesh;
 			}
 
@@ -111,6 +113,7 @@ namespace core {
 
 			for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
 				if(!reader.ReadType<mesh::morph_descriptor_header>(mesh.morphData.morphDescriptors[i])) {
+					opts.Result = meshReaderStatus::ErrorReadingMorphData;
 					CheckedProgressUpdate("Error reading morph descriptor header", ProgressType::Error);
 					return mesh;
 				}
@@ -121,6 +124,7 @@ namespace core {
 
 			for(int i = 0; i < mesh.morphData.morphTargetCount; ++i) {
 				if(!reader.ReadType<mesh::morph_target_header>(mesh.morphData.morphTargets[i])) {
+					opts.Result = meshReaderStatus::ErrorReadingMorphData;
 					CheckedProgressUpdate("Error reading morph target header", ProgressType::Error);
 					return mesh;
 				}
@@ -146,7 +150,6 @@ namespace core {
 
 		
 		for(int i = 0; i < mesh.vertexTableCount; ++i) {
-
 			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex data table for vertex table " << i)
 
 			stream.seekg(mesh.dataOffset +  mesh.vertexTables[i].dataOffset, std::istream::beg);
@@ -255,6 +258,7 @@ namespace core {
 			}
 		}
 
+		opts.Result = meshReaderStatus::Success;
 		CheckedProgressUpdate("Mesh reading successful", ProgressType::Info);
 		return mesh;
 	}

@@ -7,18 +7,18 @@
 namespace xb2at {
 namespace core {
 
-	msrd::msrd msrdReader::Read(const msrdReaderOptions& opts) {
+	msrd::msrd msrdReader::Read(msrdReaderOptions& opts) {
 		StreamHelper reader(stream);
 		msrd::msrd data;
 
 		// Read the initial header
 		if(!reader.ReadType<msrd::msrd_header>(data)) {
-			CheckedProgressUpdate("file could not be read", ProgressType::Error);
+			opts.Result = msrdReaderStatus::ErrorReadingHeader;
 			return data;
 		}
 
 		if(!strncmp(data.magic, "DRSM", sizeof("DRSM"))) {
-				CheckedProgressUpdate("file is not MSRD", ProgressType::Error);
+			opts.Result = msrdReaderStatus::NotMSRD;
 			return data;
 		}
 
@@ -80,14 +80,19 @@ namespace core {
 
 			reader.set_progress(std::bind(&msrdReader::CheckedProgressUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
-			xbc1::xbc1 file = reader.Read({ data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1 });
+			xbc1ReaderOptions options = { data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1 };
 
-			if(!file.data.empty())
+			xbc1::xbc1 file = reader.Read(options);
+
+			if(options.Result == xbc1ReaderStatus::Success) {
 				data.files.push_back(file);
+			} else {
+				PROGRESS_UPDATE(ProgressType::Error, "Error reading XBC1: " << xbc1ReaderStatusToString(options.Result))
+			}
 
 		}
 
-
+		opts.Result = msrdReaderStatus::Success;
 		return data;
 	}
 

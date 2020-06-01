@@ -4,12 +4,31 @@
 #include "base_reader.h"
 
 namespace xb2at {
-	namespace core {
+namespace core {
+
+		enum class mxmdReaderStatus {
+			Success,
+			ErrorReadingHeader,
+			NotMXMD
+		};
+
+		inline std::string mxmdReaderStatusToString(mxmdReaderStatus status) {
+			const char* status_str[] = {
+				"Success",
+				"Error reading MXMD header",
+				"File is not a MXMD file"
+			};
+
+			return status_str[(int)status];
+		}
 
 		/**
 		 * Options for mxmdReader::Read()
 		 */
 		struct mxmdReaderOptions {
+
+			mxmdReaderStatus Result;
+
 		};
 
 		/**
@@ -27,7 +46,7 @@ namespace xb2at {
 			 *
 			 * \param[in] opts Options to pass to the reader
 			 */
-			mxmd::mxmd Read(const mxmdReaderOptions& opts);
+			mxmd::mxmd Read(mxmdReaderOptions& opts);
 
 
 		private:
@@ -35,5 +54,5 @@ namespace xb2at {
 		};
 
 
-	}
+}
 }

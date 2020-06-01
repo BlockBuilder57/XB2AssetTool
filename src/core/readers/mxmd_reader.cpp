@@ -5,18 +5,18 @@
 namespace xb2at {
 	namespace core {
 
-		mxmd::mxmd mxmdReader::Read(const mxmdReaderOptions& opts) {
+		mxmd::mxmd mxmdReader::Read(mxmdReaderOptions& opts) {
 			StreamHelper reader(stream);
 			mxmd::mxmd data{};
 
 			// Read the initial header
 			if(!reader.ReadType<mxmd::mxmd_header>(data)) {
-				CheckedProgressUpdate("MXMD header could not be read", ProgressType::Error);
+				opts.Result = mxmdReaderStatus::ErrorReadingHeader;
 				return data;
 			}
 
 			if(!strncmp(data.magic, "DMXM", sizeof("DMXM"))) {
-				CheckedProgressUpdate("file is not MXMD", ProgressType::Error);
+				opts.Result = mxmdReaderStatus::NotMXMD;
 				return data;
 			}
 
@@ -130,7 +130,7 @@ namespace xb2at {
 				}
 			}
 
-			CheckedProgressUpdate("MXMD reading successful", ProgressType::Info);
+			opts.Result = mxmdReaderStatus::Success;
 			return data;
 		}
 

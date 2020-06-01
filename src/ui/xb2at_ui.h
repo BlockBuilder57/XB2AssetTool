@@ -68,6 +68,11 @@ namespace ui {
 			bool saveXBC1;
 		};
 
+		/**
+		 * Extract data from files.
+		 * Can be used as an example of how to use xb2core to convert files from the file repressentation
+		 * to xb2core repressentation with proper error handling.
+		 */
 		void ExtractFile(std::string& filename, fs::path& outputPath, uiOptions& options);
 
 		/**
@@ -101,7 +106,7 @@ namespace ui {
 		std::mutex log_queue_lock;
 
 		/**
-		 * Queue of log messages from reader thread
+		 * Queue of log messages from extraction thread
 		 */
 		std::queue<ProgressData> log_queue;
 
@@ -112,12 +117,12 @@ namespace ui {
 		QTimer* queue_empty_timer;
 
 		/**
-		 * Function that runs on the interval.
+		 * Function that runs on the interval, posting every message to the log.
 		 */
 		void OnQueueEmptyTimer();
 
 		/**
-		 * Log type.
+		 * Log type. Should be synced and in order of ProgressType.
 		 */
 		enum class LogType : std::uint8_t {
 			Verbose,
@@ -126,6 +131,9 @@ namespace ui {
 			Error
 		};
 
+		/**
+		 * Clear both the log buffer and the information in the "Log" tab in the User Interface.
+		 */
 		void ClearLog();
 
 		/**

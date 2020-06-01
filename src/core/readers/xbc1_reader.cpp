@@ -5,7 +5,7 @@
 namespace xb2at {
 namespace core {
 
-	xbc1::xbc1 xbc1Reader::Read(const xbc1ReaderOptions& opts) {
+	xbc1::xbc1 xbc1Reader::Read(xbc1ReaderOptions& opts) {
 		StreamHelper reader(stream);
 		xbc1::xbc1 xbc;
 
@@ -14,12 +14,12 @@ namespace core {
 		stream.seekg(opts.offset, std::istream::beg);
 
 		if(!reader.ReadType<xbc1::xbc1_header>(xbc)) {
-			CheckedProgressUpdate("could not read XBC1 header", ProgressType::Error);
+			opts.Result = xbc1ReaderStatus::ErrorReadingHeader;
 			return xbc;
 		}
 
 		if(!strncmp(xbc.magic, "xbc1", sizeof("xbc1"))) {
-			CheckedProgressUpdate("not XBC1 data", ProgressType::Error);
+			opts.Result = xbc1ReaderStatus::NotXBC1;
 			return xbc;
 		}
 
