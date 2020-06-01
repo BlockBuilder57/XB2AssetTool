@@ -1,5 +1,6 @@
 #include <serializers/model_serializer.h>
 #include <fx/gltf.h>
+
 #include "version.h"
 
 namespace gltf = fx::gltf;
@@ -63,8 +64,6 @@ namespace core {
 			outPath.replace_extension(".glb");
 		} else if (options.OutputFormat == modelSerializerOptions::Format::GLTFText) {
 			outPath.replace_extension(".gltf");
-		} else if (options.OutputFormat == modelSerializerOptions::Format::Dump) {
-			outPath.replace_extension(".txt");
 		}
 		
 		std::ofstream ofs(outPath.string(), (options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? std::ofstream::binary : std::ostream::out);
@@ -307,10 +306,7 @@ namespace core {
 				doc.buffers.clear();
 			}
 
-		} else if (options.OutputFormat == modelSerializerOptions::Format::Dump) {
-			// do other things
 		}
-
 		ofs.close();
 	}
 

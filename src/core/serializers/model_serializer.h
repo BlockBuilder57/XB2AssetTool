@@ -23,12 +23,7 @@ namespace core {
 			/**
 			 * text glTF format
 			 */
-			 GLTFText,
-
-			/**
-			 * Raw dump format.
-			 */
-			Dump
+			 GLTFText
 		} OutputFormat;
 
 		/**

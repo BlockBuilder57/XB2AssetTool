@@ -62,7 +62,7 @@ endif()
 
 add_subdirectory(vendor)
 
-add_custom_target(__xb2at_gittag COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/src/gittag.cmake WORKING_DIRECTORY ${PROJECT_BINARY_DIR} SOURCES ${PROJECT_BINARY_DIR}/Version.hpp)
+add_custom_target(__xb2at_gittag COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/scripts/gittag.cmake WORKING_DIRECTORY ${PROJECT_BINARY_DIR} SOURCES ${PROJECT_BINARY_DIR}/Version.hpp)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Version.hpp PROPERTIES GENERATED TRUE)
 
 add_subdirectory(src/core)
