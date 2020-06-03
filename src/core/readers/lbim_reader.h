@@ -27,18 +27,24 @@ namespace core {
 		 */
 		struct lbimReaderOptions {
 
-			lbimReaderOptions(std::vector<char>& fileData)
-				: file(fileData) {
-
+			lbimReaderOptions(std::vector<char>& lbimFileData, std::vector<char>* fileData)
+				: lbimFile(lbimFileData) {
+				file = fileData;
 			}
 
 			/**
-			 * Decompressed file data from XBC1.
+			 * Decompressed file data from XBC1 containing every LBIM for the MSRD textures.
+			 * Is always index 1 of the MSRD files.
 			 */
-			std::vector<char>& file;
+			std::vector<char>& lbimFile;
 
 			/**
-			 * Start offset of the LBIM.
+			 * Decompressed texture data from XBC1.
+			 */
+			std::vector<char>* file;
+
+			/**
+			 * Start offset of the texture.
 			 */
 			int32 offset;
 

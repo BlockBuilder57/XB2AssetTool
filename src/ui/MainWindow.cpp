@@ -241,15 +241,16 @@ namespace ui {
 
 						case msrd::data_item_type::Texture: {
 							lbimReader lbimreader;
-							lbimReaderOptions lbimoptions(msrd.files[1].data);
+							lbimReaderOptions lbimoptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex - 1].data);
 
-							lbimoptions.offset = msrd.textureInfo[i].offset;
+							lbimoptions.offset = msrd.dataItems[i].offset;
 							lbimoptions.size = msrd.dataItems[i].size;
 
-							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MSRD file " << i << " is a texture")
+							PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << " is a texture")
 
 							lbimreader.forward(msrdreader);
 							lbim::texture texture = lbimreader.Read(lbimoptions);
+							texture.filename = msrd.textureNames[i];
 
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
 								PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
@@ -259,10 +260,34 @@ namespace ui {
 							}
 						} break;
 
+						case msrd::data_item_type::CachedTextures: {
+							lbimReader lbimreader;
+							lbimReaderOptions lbimoptions(msrd.files[0].data, nullptr);
+
+							for (int j = 0; j < msrd.textureCount; ++j) {
+								lbimoptions.offset = msrd.dataItems[i].offset + msrd.textureInfo[j].offset;
+								lbimoptions.size = msrd.textureInfo[j].size;
+
+								PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD texture " << j << " has a CachedTexture")
+
+								lbimreader.forward(msrdreader);
+								lbim::texture texture = lbimreader.Read(lbimoptions);
+								texture.filename = msrd.textureNames[j];
+
+								if(lbimoptions.Result != lbimReaderStatus::Success) {
+									PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+								} else {
+									msrd.textures.push_back(texture);
+									PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Cached LBIM " << j << " successfully read.")
+								}
+							}
+						} break;
+
 					}
 				}
 
 				msrd.files.clear();
+				msrd.textureNames.clear();
 
 				if (fs::exists(path)) {
 					stream.open(path.string(), std::ifstream::binary);

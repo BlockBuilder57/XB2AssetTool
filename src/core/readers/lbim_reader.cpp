@@ -9,12 +9,12 @@ namespace xb2at {
 namespace core {
 
 	lbim::texture lbimReader::Read(lbimReaderOptions& opts) {
-		ivstream stream(opts.file);
-		StreamHelper reader(stream);
+		ivstream lbimstream(opts.lbimFile);
+		StreamHelper lbimreader(lbimstream);
 		lbim::texture texture;
 
-		stream.seekg(opts.size - sizeof(lbim::header), std::istream::beg);
-		if(!reader.ReadType<lbim::header>(texture)) {
+		lbimstream.seekg(opts.offset + opts.size - sizeof(lbim::header), std::istream::beg);
+		if(!lbimreader.ReadType<lbim::header>(texture)) {
 			opts.Result = lbimReaderStatus::ErrorReadingHeader;
 			return texture;
 		}
@@ -25,11 +25,18 @@ namespace core {
 		}
 
 		texture.offset = opts.offset;
-
 		texture.data.resize(opts.size);
 
-		stream.seekg(opts.offset, std::istream::beg);
-		stream.read(texture.data.data(), opts.size);
+		if(opts.file != nullptr) {
+			// Use file for texture data
+			ivstream filestream(*opts.file);
+			filestream.seekg(opts.offset, std::istream::beg);
+			filestream.read(texture.data.data(), opts.size);
+		} else {
+			// CachedTexture, use the LBIM stream itself
+			lbimstream.seekg(opts.offset, std::istream::beg);
+			lbimstream.read(texture.data.data(), opts.size);
+		}
 
 		opts.Result = lbimReaderStatus::Success;
 		return texture;
