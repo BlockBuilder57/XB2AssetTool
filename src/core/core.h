@@ -104,7 +104,7 @@ namespace core {
 	 *
 	 * \tparam T Element type
 	 * 
-	 * \param[in] vec Vector to resize
+	 * \param[in] vec Multi-dimensional vector to resize
 	 * \param[in] dim1 First dimension
 	 * \param[in] dim2 Second dimension
 	 */
@@ -207,6 +207,9 @@ namespace core {
 	 *
 	 * \tparam RevIterContainer Container type to use. Must follow ReversiableContainer.
 	 * \tparam WhereFun Where lambda function. Must be `bool (const T&)`.
+	 *
+	 * \param[in] vec Container to find an item in.
+	 * \param[in] evalulator Evalulator function. Refer to the documentation of the WhereFun template parameter.
 	 */
 	template<class RevIterContainer, class WhereFun>
 	inline typename RevIterContainer::iterator Where(RevIterContainer& vec, WhereFun evalulator) {

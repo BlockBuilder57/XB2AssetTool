@@ -13,7 +13,7 @@ namespace core {
 	};
 
 	inline std::string msrdReaderStatusToString(msrdReaderStatus status) {
-		const char* status_str[] = {
+		static const char* status_str[] = {
 			"Success",
 			"Error reading MSRD header",
 			"File is not a MSRD file"
@@ -30,7 +30,7 @@ namespace core {
 		/**
 		 * The output directory (where we should place files.)
 		 */
-		const fs::path& outputDirectory;
+		fs::path outputDirectory;
 
 		/**
 		 * Save decompressed XBC1 files to the output directory.

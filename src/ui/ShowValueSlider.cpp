@@ -16,19 +16,22 @@ namespace ui {
 	}
 
 	void ShowValueSlider::sliderChange(QAbstractSlider::SliderChange change) {
+		// Call into base first
 		QSlider::sliderChange(change);
 
-		if(change == QAbstractSlider::SliderValueChange) {
+		// Show the value if the change is a value change
+		if(change == QAbstractSlider::SliderValueChange)
 			ShowValue();
-		}
 	}
 
 	bool ShowValueSlider::event(QEvent* event) {
 		switch (event->type()) {
 		case QEvent::HoverEnter:
+
 			// Only show the value tooltip if the slider is enabled (the user is allowed to change it). 
 			if(isEnabled())
 				ShowValue();
+
 			break;
 
 		case QEvent::HoverLeave:

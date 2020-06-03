@@ -241,7 +241,10 @@ namespace ui {
 
 						case msrd::data_item_type::Texture: {
 							lbimReader lbimreader;
-							lbimReaderOptions lbimoptions(msrd.files[i].data);
+							lbimReaderOptions lbimoptions(msrd.files[1].data);
+
+							lbimoptions.offset = msrd.textureInfo[i].offset;
+							lbimoptions.size = msrd.dataItems[i].size;
 
 							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MSRD file " << i << " is a texture")
 
@@ -249,13 +252,17 @@ namespace ui {
 							lbim::texture texture = lbimreader.Read(lbimoptions);
 
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
-								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
-								return;
+								PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+							} else {
+								msrd.textures.push_back(texture);
+								PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "LBIM " << i << " successfully read.")
 							}
 						} break;
 
 					}
 				}
+
+				msrd.files.clear();
 
 				if (fs::exists(path)) {
 					stream.open(path.string(), std::ifstream::binary);
@@ -281,6 +288,10 @@ namespace ui {
 				ms.forward(msrdreader);
 				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs, options.saveOutlines };
 				ms.Serialize(msrd.meshes, mxmd, msoptions);
+				
+				msrd.meshes.clear();
+				msrd.textures.clear();
+				msrd.dataItems.clear();
 			} else {
 				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wismt doesn't exist.");
 				return;

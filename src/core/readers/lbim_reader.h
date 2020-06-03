@@ -13,9 +13,9 @@ namespace core {
 		};
 
 		inline std::string lbimReaderStatusToString(lbimReaderStatus status) {
-			const char* status_str[] = {
+			static const char* status_str[] = {
 				"Success",
-				"Error reading LBIM header",
+				"Error reading the LBIM header",
 				"File is not a LBIM"
 			};
 
@@ -23,7 +23,7 @@ namespace core {
 		}
 
 		/**
-		 * Options for lbimReader::Read()
+		 * Options to pass to the lbimReader.
 		 */
 		struct lbimReaderOptions {
 
@@ -38,7 +38,18 @@ namespace core {
 			std::vector<char>& file;
 
 			/**
+			 * Start offset of the LBIM.
+			 */
+			int32 offset;
+
+			/**
+			 * Size of the texture data.
+			 */
+			int32 size;
+
+			/**
 			 * The result of the read operation.
+			 * Will be lbimReaderStatus::Success if the read was successful.
 			 */
 			lbimReaderStatus Result;
 		};
@@ -49,9 +60,10 @@ namespace core {
 		struct lbimReader : public base_reader {
 
 			/**
-			 * Read a mesh and output a deserialized structure.
+			 * Read a LBIM and output the texture data.
+			 * This function does not decompress/unswizzle any data.
 			 *
-			 * \param[in] opts Options.
+			 * \param[in] opts Reference to options to pass to the reader.
 			 */
 			lbim::texture Read(lbimReaderOptions& opts);
 

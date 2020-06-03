@@ -6,6 +6,7 @@
 #include <core.h>
 #include "xbc1.h"
 #include "mesh.h"
+#include "lbim.h"
 
 namespace xb2at {
 namespace core {
@@ -169,6 +170,11 @@ namespace msrd {
 
 		std::vector<texture_info> textureInfo;
 		std::vector<std::string> textureNames;
+		
+		/**
+		 * List of textures
+		 */
+		std::vector<lbim::texture> textures;
 	};
 
 

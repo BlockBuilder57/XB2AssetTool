@@ -13,7 +13,7 @@ namespace core {
 	};
 
 	inline std::string xbc1ReaderStatusToString(xbc1ReaderStatus status) {
-		const char* status_str[] = {
+		static const char* status_str[] = {
 			"Success",
 			"Error reading XBC1 header",
 			"File is not XBC1",
@@ -36,7 +36,7 @@ namespace core {
 		/**
 		 * Output directory.
 		 */
-		const fs::path& output_dir; 
+		fs::path output_dir; 
 
 		/**
 		 * Whether or not we should save files in the output directory.
