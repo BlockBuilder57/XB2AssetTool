@@ -20,6 +20,7 @@ namespace sar1 {
 		int32 fileSize;
 		int32 pointerCount;
 		int32 offsetToData;
+		char unknown1[0x10];
 	};
 
 	struct bc : public bc_data {

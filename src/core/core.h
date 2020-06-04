@@ -230,6 +230,17 @@ namespace core {
 		return vec.end();
 	}
 
+	/**
+	 * Returns the element count of an array on the stack.
+	 *
+	 * \tparam T Type of the array.
+	 * \tparam N Count of elements in the array.
+	 */
+	template<typename T, int N>
+	constexpr std::size_t ArraySize(T(&)[N]) {
+		return N;
+	}
+
 	/** @} */
 	
 	/**

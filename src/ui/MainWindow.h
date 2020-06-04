@@ -18,6 +18,7 @@
 #include <readers/mxmd_reader.h>
 #include <readers/lbim_reader.h>
 #include <readers/sar1_reader.h>
+#include <readers/skel_reader.h>
 #include <serializers/model_serializer.h>
 
 

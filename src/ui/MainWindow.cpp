@@ -201,8 +201,7 @@ namespace ui {
 				msrd::msrd msrd;
 				mesh::mesh mesh;
 				mxmd::mxmd mxmd;
-				sar1::sar1 sar1_skeleton;
-				sar1::sar1 sar1_animations;
+				skel::skel skel;
 				
 				msrdreader.set_progress(func);
 
@@ -233,6 +232,37 @@ namespace ui {
 					}
 
 					return sar1;
+				};
+
+				auto readSKEL = [&]() -> skel::skel {
+					skel::skel skel;
+					sar1::sar1 sar1_skeleton = readSAR1();
+
+					sar1::bc* bcItem;
+					for (int i = 0; i < sar1_skeleton.numFiles; i++)
+					{
+						if (sar1_skeleton.tocItems[i].filename.find(".skl") != std::string::npos)
+							bcItem = &sar1_skeleton.bcItems[i];
+					}
+
+					if (bcItem == nullptr) {
+						PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Skeleton not found in " << filename << ", continuing without skeleton...")
+						return;
+					}
+
+					skelReader skelreader;
+					skelReaderOptions skeloptions = {(*bcItem).data};
+
+					skelreader.forward(msrdreader);
+
+					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading SKEL in " << filename)
+					skel = skelreader.Read(skeloptions);
+
+					if(skeloptions.Result != skelReaderStatus::Success) {
+						PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading skeleton, continuing without skeleton...")
+					}
+
+					return skel;
 				};
 
 				// Close the wismt file and set the extension
@@ -311,24 +341,20 @@ namespace ui {
 				msrd.textureNames.clear();
 
 				path.replace_extension(".arc");
-				PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 1");
-				// note: this is not how version differences will be implemented,
+				// note: this is not how skeleton version differences will be implemented,
 				// but it's the only method so far of telling the difference between XC2 and XCDE models w/out asking the user
 				if (fs::exists(path)) {
 					// we're probably an XC2 model 
-					sar1_skeleton = readSAR1();
-					PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 2");
+					skel = readSKEL();
 				} else {
 					path.replace_extension(".chr");
-					PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 3");
 					if (fs::exists(path)) {
 						// we're probably an XCDE model
-						PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 4");
+						skel = readSKEL();
 					} else {
-						PROGRESS_UPDATE_MAIN(ProgressType::Warning, false, filenameOnly << "Skeleton file doesn't exist, continuing...");
+						PROGRESS_UPDATE_MAIN(ProgressType::Warning, false, filename << " doesn't exist, continuing without skeleton...");
 					}
 				}
-
 				
 				path.replace_extension(".wimdo");
 
