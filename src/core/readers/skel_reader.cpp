@@ -42,6 +42,8 @@ namespace core {
 		for (int i = 0; i < skel.tocItems[skel::Items::Transforms].count; ++i)
 			reader.ReadType<skel::transform>(skel.transforms[i]);
 
+		opts.Result = skelReaderStatus::Success;
+		CheckedProgressUpdate("SKEL reading successful", ProgressType::Info);
 		return skel;
 	}
 

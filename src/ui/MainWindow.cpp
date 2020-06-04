@@ -234,7 +234,7 @@ namespace ui {
 					return sar1;
 				};
 
-				auto readSKEL = [&]() -> skel::skel {
+				auto readSKEL = [&]() {
 					skel::skel skel;
 					sar1::sar1 sar1_skeleton = readSAR1();
 
@@ -246,8 +246,8 @@ namespace ui {
 					}
 
 					if (bcItem == nullptr) {
-						PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Skeleton not found in " << filename << ", continuing without skeleton...")
-						return;
+						PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Skeleton not found in " << path.filename().string() << ", continuing without skeleton...")
+						return skel;
 					}
 
 					skelReader skelreader;
@@ -255,7 +255,7 @@ namespace ui {
 
 					skelreader.forward(msrdreader);
 
-					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading SKEL in " << filename)
+					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading SKEL in " << path.filename().string())
 					skel = skelreader.Read(skeloptions);
 
 					if(skeloptions.Result != skelReaderStatus::Success) {
@@ -352,7 +352,7 @@ namespace ui {
 						// we're probably an XCDE model
 						skel = readSKEL();
 					} else {
-						PROGRESS_UPDATE_MAIN(ProgressType::Warning, false, filename << " doesn't exist, continuing without skeleton...");
+						PROGRESS_UPDATE_MAIN(ProgressType::Warning, false, "Skeleton doesn't exist, continuing without skeleton...");
 					}
 				}
 				

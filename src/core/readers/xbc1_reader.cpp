@@ -61,6 +61,7 @@ namespace core {
 			file.close();
 		}
 
+		opts.Result = xbc1ReaderStatus::Success;
 		return xbc;
 	}
 

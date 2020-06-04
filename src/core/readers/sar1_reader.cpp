@@ -50,6 +50,7 @@ namespace core {
 			stream.read(bcItem.data.data(), bcItem.fileSize);
 		}
 
+		opts.Result = sar1ReaderStatus::Success;
 		return sar;
 	}
 
