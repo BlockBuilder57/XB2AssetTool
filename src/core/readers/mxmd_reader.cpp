@@ -15,7 +15,7 @@ namespace xb2at {
 				return data;
 			}
 
-			if(!strncmp(data.magic, "DMXM", sizeof("DMXM"))) {
+			if(strncmp(data.magic, "DMXM", sizeof(data.magic)) != 0) {
 				opts.Result = mxmdReaderStatus::NotMXMD;
 				return data;
 			}

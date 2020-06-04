@@ -17,7 +17,7 @@ namespace core {
 			return data;
 		}
 
-		if(!strncmp(data.magic, "DRSM", sizeof("DRSM"))) {
+		if(strncmp(data.magic, "DRSM", sizeof(data.magic)) != 0) {
 			opts.Result = msrdReaderStatus::NotMSRD;
 			return data;
 		}

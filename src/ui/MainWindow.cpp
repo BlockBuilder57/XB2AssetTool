@@ -201,6 +201,8 @@ namespace ui {
 				msrd::msrd msrd;
 				mesh::mesh mesh;
 				mxmd::mxmd mxmd;
+				sar1::sar1 sar1_skeleton;
+				sar1::sar1 sar1_animations;
 				
 				msrdreader.set_progress(func);
 
@@ -213,10 +215,29 @@ namespace ui {
 					return;
 				}
 
+				auto readSAR1 = [&]() {
+					sar1::sar1 sar1;
+
+					stream.open(path.string(), std::ifstream::binary);
+					sar1Reader sar1reader(stream);
+					sar1ReaderOptions sar1options = {};
+
+					sar1reader.forward(msrdreader);
+					sar1 = sar1reader.Read(sar1options);
+
+					stream.close();
+
+					if (sar1options.Result != sar1ReaderStatus::Success) {
+						PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading SAR1 file: " << sar1ReaderStatusToString(sar1options.Result))
+						return sar1;
+					}
+
+					return sar1;
+				};
+
 				// Close the wismt file and set the extension
 				// in preparation of reading the wimdo/MXMD
 				stream.close();
-				path.replace_extension(".wimdo");
 
 				for(int i = 0; i < msrd.files.size(); ++i) {
 					switch(msrd.dataItems[i].type) {
@@ -289,6 +310,28 @@ namespace ui {
 				msrd.files.clear();
 				msrd.textureNames.clear();
 
+				path.replace_extension(".arc");
+				PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 1");
+				// note: this is not how version differences will be implemented,
+				// but it's the only method so far of telling the difference between XC2 and XCDE models w/out asking the user
+				if (fs::exists(path)) {
+					// we're probably an XC2 model 
+					sar1_skeleton = readSAR1();
+					PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 2");
+				} else {
+					path.replace_extension(".chr");
+					PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 3");
+					if (fs::exists(path)) {
+						// we're probably an XCDE model
+						PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "I fuck 4");
+					} else {
+						PROGRESS_UPDATE_MAIN(ProgressType::Warning, false, filenameOnly << "Skeleton file doesn't exist, continuing...");
+					}
+				}
+
+				
+				path.replace_extension(".wimdo");
+
 				if (fs::exists(path)) {
 					stream.open(path.string(), std::ifstream::binary);
 					mxmdReader mxmdreader(stream);
@@ -313,7 +356,7 @@ namespace ui {
 				ms.forward(msrdreader);
 				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs, options.saveOutlines };
 				ms.Serialize(msrd.meshes, mxmd, msoptions);
-				
+			
 				msrd.meshes.clear();
 				msrd.textures.clear();
 				msrd.dataItems.clear();

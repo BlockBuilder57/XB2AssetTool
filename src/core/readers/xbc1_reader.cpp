@@ -18,7 +18,7 @@ namespace core {
 			return xbc;
 		}
 
-		if(!strncmp(xbc.magic, "xbc1", sizeof("xbc1"))) {
+		if(strncmp(xbc.magic, "xbc1", sizeof(xbc.magic)) != 0) {
 			opts.Result = xbc1ReaderStatus::NotXBC1;
 			return xbc;
 		}

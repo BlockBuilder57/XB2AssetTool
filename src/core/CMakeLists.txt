@@ -18,6 +18,7 @@ set(XB2CORE_SOURCES
 	structs/mesh.h
 	structs/mxmd.h
 	structs/lbim.h
+	structs/sar1.h
 
 	# Readers
 
@@ -37,6 +38,9 @@ set(XB2CORE_SOURCES
 
 	readers/lbim_reader.h
 	readers/lbim_reader.cpp
+
+	readers/sar1_reader.h
+	readers/sar1_reader.cpp
 	
 	# Serializers
 

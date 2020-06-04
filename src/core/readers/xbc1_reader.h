@@ -56,7 +56,6 @@ namespace core {
 		
 		}
 
-		// TODO: Make this use a xbc1ReaderOptions struct like the rest of the readers
 		/**
 		 * Read and decompress a singular XBC1 file.
 		 *
