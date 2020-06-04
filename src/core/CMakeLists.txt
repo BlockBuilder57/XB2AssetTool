@@ -10,7 +10,7 @@ set(XB2CORE_SOURCES
 	streamhelper.h
 	ivstream.h
 	base_progress_reporter.h
-	
+
 	# Data structs
 	structs.h
 	structs/xbc1.h
@@ -44,6 +44,8 @@ set(XB2CORE_SOURCES
 
 	serializers/model_serializer.h
 	serializers/model_serializer.cpp
+
+	deswizzle.cpp
 )
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
