@@ -63,7 +63,7 @@ namespace skel {
 	struct skel : public header {
 		
 		toc tocItems[9];
-		std::vector<short> nodeParents;
+		std::vector<unsigned short> nodeParents;
 		std::vector<node> nodes;
 		std::vector<transform> transforms;
 

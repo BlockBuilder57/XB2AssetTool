@@ -155,7 +155,7 @@ namespace core {
 			stream.seekg(mesh.dataOffset +  mesh.vertexTables[i].dataOffset, std::istream::beg);
 
 			mesh.vertexTables[i].vertices.resize(mesh.vertexTables[i].dataCount);
-			mesh.vertexTables[i].weights.resize(mesh.vertexTables[i].dataCount);
+			mesh.vertexTables[i].weightTableIndex.resize(mesh.vertexTables[i].dataCount);
 
 			ResizeMultiDimVec(mesh.vertexTables[i].uvPos, 4, mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].vertexColor.resize(mesh.vertexTables[i].dataCount);
@@ -168,10 +168,6 @@ namespace core {
 					switch(desc.type) {
 					case mesh::vertex_descriptor_type::Position:
 						 mesh.vertexTables[i].vertices[j] = reader.ReadVec3();
-						break;
-
-					case mesh::vertex_descriptor_type::BoneID:
-						mesh.vertexTables[i].weights[j] = reader.ReadType<int32>();
 						break;
 
 					case mesh::vertex_descriptor_type::UV1:
@@ -194,10 +190,19 @@ namespace core {
 						mesh.vertexTables[i].normals[j] = reader.ReadS8Quaternion();
 						break;
 
+					case mesh::vertex_descriptor_type::WeightID:
+						reader.ReadType<int32>(mesh.vertexTables[i].weightTableIndex[j]);
+						break;
+
 					case mesh::vertex_descriptor_type::Weight16:
 						mesh.vertexTables[i].weightStrengths[j] = reader.ReadU16Quaternion();
 						break;
 
+					case mesh::vertex_descriptor_type::Weight32:
+						mesh.vertexTables[i].weightStrengths[j] = reader.ReadU8Quaternion();
+						break;
+
+					case mesh::vertex_descriptor_type::BoneID:
 					case mesh::vertex_descriptor_type::BoneID2:
 						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[0][j]);
 						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[1][j]);

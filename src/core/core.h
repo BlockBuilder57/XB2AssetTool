@@ -16,6 +16,10 @@
 #include <functional>
 #include <algorithm>
 
+#include <glm/mat4x4.hpp>
+#include <glm/common.hpp>
+#include <glm/matrix.hpp>
+
 namespace xb2at {
 namespace core {
 
@@ -42,6 +46,18 @@ namespace core {
 
 	typedef std::int64_t int64;
 	typedef std::uint64_t uint64;
+	
+	/**
+	 * shorthand for numeric_limits<T>::max()
+	 */
+	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
+
+	/**
+	 * shorthand for numeric_limits<T>::max()
+	 */
+	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
 	
 	/**
 	 * Vector2 of floats.
@@ -71,11 +87,25 @@ namespace core {
 		float w;
 	};
 
+	struct u16_quaternion {
+		uint16 x;
+		uint16 y;
+		uint16 z;
+		uint16 w;
+	};
+
 	struct color {
 		byte r;
 		byte g;
 		byte b;
 		byte a;
+	};
+
+	struct matrix4x4 {
+		float m1,  m2,  m3,  m4;
+		float m5,  m6,  m7,  m8;
+		float m9,  m10, m11, m12;
+		float m13, m14, m15, m16;
 	};
 	
 	/** @} */
@@ -92,6 +122,39 @@ namespace core {
 		vector.x = vector.x / (float)mag;
 		vector.y = vector.y / (float)mag;
 		vector.z = vector.z / (float)mag;
+	}
+
+	/**
+	 * Convert a Vector3 position, a quaternion rotation, and a Vector3 scale to a 4x4 matrix.
+	 *
+	 * \param[in] pos Position of the object.
+	 * \param[in] rot Rotation of the object.
+	 * \param[in] scale Scale of the object.
+	 */
+	inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale)
+	{
+		matrix4x4 m;
+		m.m1 = m.m2 = m.m3 = m.m4 = m.m5 = m.m6 = m.m7 = m.m8 = m.m9 = m.m10 = m.m11 = m.m12 = m.m13 = m.m14 = m.m15 = 0;
+		m.m16 = 1;
+
+		m.m1 = scale.x;
+		m.m6 = scale.y;
+		m.m11 = scale.z;
+		m.m4 = pos.x;
+		m.m8 = pos.y;
+		m.m12 = pos.z;
+
+		float s = 1.f / (sqrt(rot.y) + sqrt(rot.z) + sqrt(rot.w));
+		m.m1 *= 1 - (2 * s) * (pow(rot.z, 2) + pow(rot.w, 2));
+		m.m2 *= (2 * s) * (rot.y * rot.z - rot.w * rot.x);
+		m.m3 *= (2 * s) * (rot.y * rot.w + rot.z * rot.x);
+		m.m5 *= (2 * s) * (rot.y * rot.z + rot.w * rot.x);
+		m.m6 *= 1 - (2 * s) * (pow(rot.y, 2) + pow(rot.w, 2));
+		m.m7 *= (2 * s) * (rot.z * rot.w - rot.y * rot.x);
+		m.m9 *= (2 * s) * (rot.y * rot.w - rot.z * rot.x);
+		m.m10 *= (2 * s) * (rot.z * rot.w + rot.y * rot.x);
+		m.m11 *= 1 - (2 * s) * (pow(rot.y, 2) + pow(rot.z, 2));
+		return glm::mat4x4(m.m1, m.m2, m.m3, m.m4, m.m5, m.m6, m.m7, m.m8, m.m9, m.m10, m.m11, m.m12, m.m13, m.m14, m.m15, m.m16);
 	}
 
 	/**

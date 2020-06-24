@@ -130,7 +130,7 @@ namespace mesh {
 
 		// not in order but i'll fix it later
 		std::vector<vector3> vertices;
-		std::vector<int32> weights;
+		std::vector<int32> weightTableIndex;
 		std::vector<std::vector<vector2>> uvPos;
 		int32 uvLayerCount;
 		std::vector<color> vertexColor;

@@ -8,3 +8,5 @@
 #include "structs/mesh.h"
 #include "structs/mxmd.h"
 #include "structs/lbim.h"
+#include "structs/sar1.h"
+#include "structs/skel.h"

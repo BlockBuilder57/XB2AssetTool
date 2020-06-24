@@ -65,7 +65,7 @@ target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
 
 # Allow projects that import xb2core to immediately get includes of core
 target_include_directories(xb2core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf)
+target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf glm::glm)
 
 # Link additional libraries required for using the 
 # filesystem library with libc++ and libstdc++.

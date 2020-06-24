@@ -26,7 +26,7 @@ namespace core {
 		stream.seekg(skel.tocItems[skel::Items::NodeParents].offset - sizeof(sar1::bc_data), std::iostream::beg);
 		skel.nodeParents.resize(skel.tocItems[skel::Items::NodeParents].count);
 		for (int i = 0; i < skel.tocItems[skel::Items::NodeParents].count; ++i)
-			reader.ReadType<int16>(skel.nodeParents[i]);
+			reader.ReadType<uint16>(skel.nodeParents[i]);
 		
 		skel.nodes.resize(skel.tocItems[skel::Items::Nodes].count);
 		for (int i = 0; i < skel.tocItems[skel::Items::Nodes].count; ++i) {

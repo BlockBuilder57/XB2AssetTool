@@ -301,7 +301,7 @@ namespace ui {
 
 							lbimreader.forward(msrdreader);
 							lbim::texture texture = lbimreader.Read(lbimoptions);
-							texture.filename = msrd.textureNames[i];
+							texture.filename = msrd.textureNames[i - 2];
 
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
 								PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
@@ -381,7 +381,7 @@ namespace ui {
 
 				ms.forward(msrdreader);
 				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs, options.saveOutlines };
-				ms.Serialize(msrd.meshes, mxmd, msoptions);
+				ms.Serialize(msrd.meshes, mxmd, skel, msoptions);
 			
 				msrd.meshes.clear();
 				msrd.textures.clear();

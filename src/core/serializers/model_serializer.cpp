@@ -1,5 +1,9 @@
 #include <serializers/model_serializer.h>
 #include <fx/gltf.h>
+#include <glm/mat4x4.hpp>
+#include <glm/common.hpp>
+#include <glm/matrix.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 #include "version.h"
 
@@ -20,15 +24,20 @@ namespace core {
 		return bytesToSerialize;
 	}
 
-	struct gltfDef {
+	struct gltf_defintion {
 		uint32 sizeInBuffer;
 		uint32 bufferViewIndex;
 		uint32 accessorIndex;
 	};
 
+	struct node {
+		skel::node& node;
+		glm::mat4x4 transform;
+	};
+
 	template <typename T>
-	inline gltfDef CommitGLTFDefinition(gltf::Document& doc, std::vector<T>& data, gltf::Buffer& buffer, uint64& bufferTally, int32 bufferIndex, gltf::Accessor::ComponentType accessorComponentType, gltf::Accessor::Type accessorType, bool accessorNormalized, std::string accessorName = "") {
-		gltfDef def;
+	inline gltf_defintion AddElement(gltf::Document& doc, std::vector<T>& data, gltf::Buffer& buffer, uint64& bufferTally, int32 bufferIndex, gltf::Accessor::ComponentType accessorComponentType, gltf::Accessor::Type accessorType, bool accessorNormalized, std::string accessorName = "") {
+		gltf_defintion def;
 		
 		def.sizeInBuffer = FlattenSerialize(data, buffer.data, bufferTally);
 
@@ -55,7 +64,7 @@ namespace core {
 		return def;
 	}
 
-	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, modelSerializerOptions& options) {
+	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options) {
 		fs::path outPath(options.outputDir);
 		
 		outPath = outPath / options.filename;
@@ -86,6 +95,12 @@ namespace core {
 
 				PROGRESS_UPDATE(ProgressType::Info, "Converting mesh " << i << " (" << i << '/' << mxmdData.Model.meshesCount << ')')
 
+				int32 bonesNodeOffset = doc.nodes.size();
+
+				std::map<std::string, int> SKELNameToNodeIndex;
+				for (int k = 0; k < skelData.nodes.size(); ++k) 
+					SKELNameToNodeIndex[skelData.nodes[k].name] = k + bonesNodeOffset;
+
 				mesh::mesh& meshToDump = meshesToDump[i];
 
 				mesh::vertex_table weightTbl = meshToDump.vertexTables.back();
@@ -99,7 +114,7 @@ namespace core {
 						else if (mxmdData.Model.Meshes[i].descriptors[j].lod >= highestLOD)
 							highestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
 					}
-					if (lowestLOD != options.lod && highestLOD != options.lod) {
+					if (Clamp(options.lod, lowestLOD, highestLOD) != options.lod) {
 						options.lod = Clamp(options.lod, lowestLOD, highestLOD);
 						PROGRESS_UPDATE(ProgressType::Info, "No meshes at chosen LOD level, setting LOD to " << options.lod)
 					}
@@ -134,7 +149,7 @@ namespace core {
 					memcpy(&positions[0], &vertTbl.vertices[0], vertTbl.vertices.size() * sizeof(vec3));
 
 					std::vector<vec3> normals(vertTbl.dataCount);
-					for (int k = 0; k < vertTbl.dataCount; k++) {
+					for (int k = 0; k < vertTbl.dataCount; ++k) {
 						memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
 						NormalizeVector3(normals[k]);
 					}
@@ -146,23 +161,38 @@ namespace core {
 					std::vector<vector2> uv2 = vertTbl.uvPos[2];
 					std::vector<vector2> uv3 = vertTbl.uvPos[3];
 
+					std::vector<u16_quaternion> joints(vertTbl.dataCount);
+					for (int k = 0; k < vertTbl.dataCount; ++k) {
+						joints[k].x = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[0][vertTbl.weightTableIndex[k]]].name];
+						joints[k].y = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[1][vertTbl.weightTableIndex[k]]].name];
+						joints[k].z = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[2][vertTbl.weightTableIndex[k]]].name];
+						joints[k].w = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[3][vertTbl.weightTableIndex[k]]].name];
+					}
+
+					std::vector<quaternion> weights(vertTbl.dataCount);
+					for (int k = 0; k < vertTbl.dataCount; ++k) {
+						weights[k] = weightTbl.weightStrengths[vertTbl.weightTableIndex[k]];
+					}
+
 					// toss all vectors into a buffer
 					// model buffer format: indices, positions, normals, vertexColors, uv0, uv1, uv2, uv3
 					gltf::Buffer modelBuffer{};
 					uint64 modelBufferTally = 0;
 
 					uint32 buffersCount = (uint32)doc.buffers.size();
-					gltfDef defIndices =      CommitGLTFDefinition(doc, indices,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Scalar, false);
-					gltfDef defPositions =    CommitGLTFDefinition(doc, positions,    modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
-					gltfDef defNormals =      CommitGLTFDefinition(doc, normals,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
-					gltfDef defVertexColors = CommitGLTFDefinition(doc, vertexColors, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedByte,  gltf::Accessor::Type::Vec4,   true);
-					gltfDef defUV0 =          CommitGLTFDefinition(doc, uv0,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltfDef defUV1 =          CommitGLTFDefinition(doc, uv1,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltfDef defUV2 =          CommitGLTFDefinition(doc, uv2,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltfDef defUV3 =          CommitGLTFDefinition(doc, uv3,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
+					gltf_defintion defIndices =      AddElement(doc, indices,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Scalar, false);
+					gltf_defintion defPositions =    AddElement(doc, positions,    modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
+					gltf_defintion defNormals =      AddElement(doc, normals,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
+					gltf_defintion defVertexColors = AddElement(doc, vertexColors, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedByte,  gltf::Accessor::Type::Vec4,   true);
+					gltf_defintion defUV0 =          AddElement(doc, uv0,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
+					gltf_defintion defUV1 =          AddElement(doc, uv1,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
+					gltf_defintion defUV2 =          AddElement(doc, uv2,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
+					gltf_defintion defUV3 =          AddElement(doc, uv3,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
+					gltf_defintion defJoints =       AddElement(doc, joints,       modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Vec4,   false);
+					gltf_defintion defWeights =      AddElement(doc, weights,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec4,   false);
 
 					modelBuffer.byteLength = (uint32)modelBuffer.data.size();
-					if (j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
+					if (options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
 						modelBuffer.SetEmbeddedResource();
 
 					// insert into document
@@ -186,8 +216,8 @@ namespace core {
 					uint64 morphBufferTally = 0;
 					buffersCount = (uint32)doc.buffers.size();
 
-					std::vector<gltfDef> morphPositionDefs;
-					std::vector<gltfDef> morphNormalDefs;
+					std::vector<gltf_defintion> morphPositionDefs;
+					std::vector<gltf_defintion> morphNormalDefs;
 
 					// cleanup the buffers we've already commited and don't need at this point
 					indices.clear();
@@ -213,7 +243,7 @@ namespace core {
 								morphPositions[l].z = morphTarget.vertices[l].z;
 							}
 
-							gltfDef defMorphPositions = CommitGLTFDefinition(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
+							gltf_defintion defMorphPositions = AddElement(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
 							morphPositions.clear();
 
 							std::vector<vec3> morphNormals(vertTbl.vertices.size());
@@ -223,7 +253,7 @@ namespace core {
 								morphNormals[l].z = morphTarget.normals[l].z;
 							}
 
-							gltfDef defMorphNormals =   CommitGLTFDefinition(doc, morphNormals,   morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
+							gltf_defintion defMorphNormals =   AddElement(doc, morphNormals,   morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
 							morphNormals.clear();
 
 							morphPositionDefs.push_back(defMorphPositions);
@@ -262,6 +292,9 @@ namespace core {
 					if (vertTbl.uvLayerCount > 3)
 						gltfPrimitive.attributes["TEXCOORD_3"] = defUV3.accessorIndex;
 
+					gltfPrimitive.attributes["JOINTS_0"] = defJoints.accessorIndex;
+					gltfPrimitive.attributes["WEIGHTS_0"] = defWeights.accessorIndex;
+
 					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
 					{
 						gltfPrimitive.targets.resize(morphPositionDefs.size());
@@ -284,15 +317,41 @@ namespace core {
 
 					gltf::Node node{};
 					node.mesh = (int32)doc.meshes.size() - 1;
+					node.skin = (int32)doc.skins.size(); //not size - 1 as we create the skin later
 
 					doc.nodes.push_back(node);
 					scene.nodes.push_back((int32)doc.nodes.size() - 1);
 				}
 
+				bonesNodeOffset = doc.nodes.size();
+				PROGRESS_UPDATE(ProgressType::Info, "Starting to add SKEL to glTF, bonesNodeOffset == " << bonesNodeOffset)
+
+				gltf::Skin skin;
+				for (int k = 0; k < skelData.nodes.size(); ++k)
+					skin.joints.push_back(k + bonesNodeOffset);
+				doc.skins.push_back(skin);
+
+				for (int k = 0; k < skelData.nodes.size(); ++k) {
+					gltf::Node node;
+					node.name = skelData.nodes[k].name;
+					if (skelData.nodeParents[k] != Max<uint16>::value) {
+						doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
+						//PROGRESS_UPDATE(ProgressType::Info, "Node " << skelData.nodes[k].name << " with SKEL Parent of " << skelData.nodeParents[k] << " with a theoritical glTF parent of " << skelData.nodeParents[k] + bonesNodeOffset << " (name: " << doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].name << " at skelData.nodes[" << skelData.nodeParents[k] << "])")
+					}
+					memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
+					memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
+					memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
+					glm::mat4x4 test = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+
+					doc.nodes.push_back(node);
+					if (skelData.nodeParents[k] == Max<uint16>::value)
+						scene.nodes.push_back((int32)doc.nodes.size() - 1);
+				}
+
 				doc.scenes.push_back(scene);
 				doc.scene = i;
 
-				PROGRESS_UPDATE(ProgressType::Info, "Writing GLTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
+				PROGRESS_UPDATE(ProgressType::Info, "Writing glTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
 
 				try {
 					gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);

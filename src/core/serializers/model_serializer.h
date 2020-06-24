@@ -64,7 +64,7 @@ namespace core {
 		 * \param[in] meshesToDump The meshes to dump.
 		 * \param[in] options Options.
 		 */
-		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, modelSerializerOptions& options);
+		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
 
 	};
 }
