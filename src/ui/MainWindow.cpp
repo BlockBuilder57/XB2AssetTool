@@ -7,7 +7,6 @@
 
 #include "version.h"
 
-
 namespace xb2at {
 namespace ui {
 
@@ -197,9 +196,9 @@ namespace ui {
 		if (message.isEmpty())
 			return;
 
-
-		if(type == LogSeverity::Verbose && !ui.enableVerbose->isChecked())
-			return;
+		// new logger has checks for this that's just a single bool check
+//		if(type == LogSeverity::Verbose && !ui.enableVerbose->isChecked())
+//			return;
 
 		switch (type) {
 			default:
@@ -238,14 +237,15 @@ namespace ui {
 	void ExtractionWorker::DoIt(std::string& filename, fs::path& outputPath, uiOptions& options) {
 			using namespace std::placeholders;
 
-		// marshal from C++ -> QT
+			// marshal from C++ -> QT
 			auto progress = [&](std::string message, LogSeverity type) {
 					Log(QString::fromStdString(message), type);
 			};
 
-			// set logger output function if it isn't
-			if(!Logger::OutputFunction)
-				Logger::OutputFunction = progress;
+			// set logger output function
+			// (we can't only set it once because we rely on a non-static wrapper,
+			// and then we would have an invalid `this` pointer once this function exits. Sucks, I know.)
+			Logger::OutputFunction = progress;
 			
 			logger.info("Input: ", filename);
 			logger.info("Output path: ", outputPath.string());
@@ -270,8 +270,6 @@ namespace ui {
 
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
-
-
 
 				msrdReaderOptions msrdoptions = { outputPath / "Dump", options.saveXBC1 };
 				msrdReader msrdreader(stream);
