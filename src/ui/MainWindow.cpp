@@ -7,13 +7,6 @@
 
 #include "version.h"
 
-// Override the VARARGS_LOG in Core's base_log_reporter
-// so that we can use the same macro.
-#ifdef VARARGS_LOG
-	#undef VARARGS_LOG
-	#define VARARGS_LOG(type, ...) { std::stringstream ss; ss << __VA_ARGS__; Log(QString::fromStdString(ss.str()), type); ss.clear(); }
-#endif
-
 
 namespace xb2at {
 namespace ui {
@@ -101,6 +94,11 @@ namespace ui {
 		ui.debugConsole->clear();
 		ui.extractButton->setDisabled(true);
 		ui.allTabs->setCurrentWidget(ui.logTab);
+
+		if(ui.enableVerbose->isChecked())
+			Logger::AllowVerbose = true;
+		else
+			Logger::AllowVerbose = false;
 		
 		QString file = ui.inputFiles->text();
 
@@ -240,14 +238,23 @@ namespace ui {
 	void ExtractionWorker::DoIt(std::string& filename, fs::path& outputPath, uiOptions& options) {
 			using namespace std::placeholders;
 
-			VARARGS_LOG(LogSeverity::Info, "Input: " << filename)
-			VARARGS_LOG(LogSeverity::Info, "Output path: " << outputPath.string())
+		// marshal from C++ -> QT
+			auto progress = [&](std::string message, LogSeverity type) {
+					Log(QString::fromStdString(message), type);
+			};
+
+			// set logger output function if it isn't
+			if(!Logger::OutputFunction)
+				Logger::OutputFunction = progress;
+			
+			logger.info("Input: ", filename);
+			logger.info("Output path: ", outputPath.string());
 			
 			fs::path path(filename);
 			std::string filenameOnly = path.stem().string();
 
 			if(!fs::exists(outputPath)) {
-				Log("Creating output directory tree", LogSeverity::Info);
+				logger.info("Creating output directory tree");
 				fs::create_directories(outputPath);
 			}
 
@@ -264,10 +271,7 @@ namespace ui {
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
 
-				// marshal from C++ -> QT
-				auto progress = [&](std::string message, LogSeverity type) {
-					Log(QString::fromStdString(message), type);
-				};
+
 
 				msrdReaderOptions msrdoptions = { outputPath / "Dump", options.saveXBC1 };
 				msrdReader msrdreader(stream);
@@ -278,14 +282,13 @@ namespace ui {
 				mxmd::mxmd mxmd;
 				skel::skel skel;
 				
-				msrdreader.set_progress(progress);
-
-				VARARGS_LOG(LogSeverity::Info, "Reading MSRD file...")
+				logger.info("Reading MSRD file.");
 
 				msrd = msrdreader.Read(msrdoptions);
 
 				if(msrdoptions.Result != msrdReaderStatus::Success) {
-					VARARGS_LOG(LogSeverity::Error, "Error reading MSRD file: " << msrdReaderStatusToString(msrdoptions.Result))
+					//VARARGS_LOG(LogSeverity::Error, "Error reading MSRD file: " << msrdReaderStatusToString(msrdoptions.Result))
+					logger.error("Error reading MSRD file: ", msrdReaderStatusToString(msrdoptions.Result));
 					Done();
 					return;
 				}
@@ -297,13 +300,12 @@ namespace ui {
 					sar1Reader sar1reader(stream);
 					sar1ReaderOptions sar1options = {};
 
-					sar1reader.forward(msrdreader);
 					sar1 = sar1reader.Read(sar1options);
 
 					stream.close();
 
 					if (sar1options.Result != sar1ReaderStatus::Success) {
-						VARARGS_LOG(LogSeverity::Error, "Error reading SAR1 file: " << sar1ReaderStatusToString(sar1options.Result))
+						logger.error("Error reading SAR1 file: ", sar1ReaderStatusToString(sar1options.Result));
 						return sar1;
 					}
 
@@ -322,20 +324,18 @@ namespace ui {
 					}
 
 					if (bcItem == nullptr) {
-						VARARGS_LOG(LogSeverity::Error, "Skeleton not found in " << path.filename().string() << ", continuing without skeleton...")
+						logger.error("Skeleton not found in ", path.filename().string(), ", continuing without skeleton...");
 						return skel;
 					}
 
 					skelReader skelreader;
 					skelReaderOptions skeloptions = {(*bcItem).data};
 
-					skelreader.forward(msrdreader);
-
-					VARARGS_LOG(LogSeverity::Info, "Reading SKEL in " << path.filename().string())
+					logger.info("Reading SKEL in ", path.filename().string());
 					skel = skelreader.Read(skeloptions);
 
 					if(skeloptions.Result != skelReaderStatus::Success) {
-						VARARGS_LOG(LogSeverity::Error, "Error reading skeleton, continuing without skeleton...")
+						logger.error("Error reading skeleton, continuing without skeleton...");
 					}
 
 					return skel;
@@ -351,17 +351,15 @@ namespace ui {
 							meshReader meshreader;
 							meshReaderOptions meshoptions(msrd.files[i].data);
 						
-							VARARGS_LOG(LogSeverity::Verbose, "MSRD file " << i << " is a mesh")
-
-							meshreader.forward(msrdreader);
-
-							VARARGS_LOG(LogSeverity::Info, "Reading mesh " << i)
+							logger.verbose("MSRD file ", i, " is a mesh");
+							
+							logger.verbose("Reading mesh ", i, "...");
 							mesh = meshreader.Read(meshoptions);
 
 							if(meshoptions.Result == meshReaderStatus::Success) {
 								msrd.meshes.push_back(mesh);
 							} else {
-								VARARGS_LOG(LogSeverity::Error, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))	
+								logger.error("Error reading mesh from MSRD file ", i, ": ", meshReaderStatusToString(meshoptions.Result));
 								Done();
 								return;
 							}
@@ -374,17 +372,16 @@ namespace ui {
 							lbimoptions.offset = msrd.dataItems[i].offset;
 							lbimoptions.size = msrd.dataItems[i].size;
 
-							VARARGS_LOG(LogSeverity::Verbose, "MSRD file " << i << " is a texture")
+							logger.verbose("MSRD file ", i, " is a texture");
 
-							lbimreader.forward(msrdreader);
 							lbim::texture texture = lbimreader.Read(lbimoptions);
 							texture.filename = msrd.textureNames[i - 2];
 
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
-								VARARGS_LOG(LogSeverity::Error, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+								logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
 							} else {
 								msrd.textures.push_back(texture);
-								VARARGS_LOG(LogSeverity::Info, "LBIM " << i << " successfully read.")
+								logger.info("LBIM ", i, " successfully read.");
 							}
 						} break;
 
@@ -396,17 +393,16 @@ namespace ui {
 								lbimoptions.offset = msrd.dataItems[i].offset + msrd.textureInfo[j].offset;
 								lbimoptions.size = msrd.textureInfo[j].size;
 
-								VARARGS_LOG(LogSeverity::Verbose, "MSRD texture " << j << " has a CachedTexture")
+								logger.verbose("MSRD texture ", j, " has a CachedTexture");
 
-								lbimreader.forward(msrdreader);
 								lbim::texture texture = lbimreader.Read(lbimoptions);
 								texture.filename = msrd.textureNames[j];
 
 								if(lbimoptions.Result != lbimReaderStatus::Success) {
-									VARARGS_LOG(LogSeverity::Error, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+									logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
 								} else {
 									msrd.textures.push_back(texture);
-									VARARGS_LOG(LogSeverity::Info, "Cached LBIM " << j << " successfully read.")
+									logger.info("Cached LBIM ", j, " successfully read.");
 								}
 							}
 						} break;
@@ -429,7 +425,7 @@ namespace ui {
 						// we're probably an XCDE model
 						skel = readSKEL();
 					} else {
-						VARARGS_LOG(LogSeverity::Warning, "Skeleton doesn't exist, continuing without skeleton...");
+						logger.warn("Skeleton doesn't exist, continuing without skeleton...");
 					}
 				}
 				
@@ -440,25 +436,23 @@ namespace ui {
 					mxmdReader mxmdreader(stream);
 					mxmdReaderOptions mxmdoptions = {};
 
-					mxmdreader.forward(msrdreader);
 					mxmd = mxmdreader.Read(mxmdoptions);
 
 					stream.close();
 
 					if (mxmdoptions.Result != mxmdReaderStatus::Success) {
-						VARARGS_LOG(LogSeverity::Error, "Error reading MXMD file: " << mxmdReaderStatusToString(mxmdoptions.Result))
+						logger.error("Error reading MXMD file: ", mxmdReaderStatusToString(mxmdoptions.Result));
 						Done();
 						return;
 					}
 
-					VARARGS_LOG(LogSeverity::Info, "MXMD file successfully read")
+					logger.info("MXMD file successfully read.");
 				} else {
-					VARARGS_LOG(LogSeverity::Error, filenameOnly << ".wimdo doesn't exist.");
+					logger.error(filenameOnly, ".wimdo doesn't exist.");
 					Done();
 					return;
 				}
 
-				ms.forward(msrdreader);
 				modelSerializerOptions msoptions = { options.modelFormat, outputPath, filenameOnly, options.lod, options.saveMorphs, options.saveOutlines };
 				ms.Serialize(msrd.meshes, mxmd, skel, msoptions);
 			
@@ -466,13 +460,13 @@ namespace ui {
 				msrd.textures.clear();
 				msrd.dataItems.clear();
 			} else {
-				VARARGS_LOG(LogSeverity::Error, filenameOnly << ".wismt doesn't exist.");
+				logger.error(filenameOnly, ".wismt doesn't exist.");
 				Done();
 				return;
 			}
 
 			// Signal successful finish
-			VARARGS_LOG(LogSeverity::Info, "Extraction successful")
+			logger.info("Extraction successful.");
 			Done();
 	}
 

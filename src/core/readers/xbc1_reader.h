@@ -66,6 +66,8 @@ namespace core {
 
 	private:
 		std::istream& stream;
+
+		Logger logger = Logger::GetLogger("XBC1Reader");
 	};
 
 }

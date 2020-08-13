@@ -51,6 +51,8 @@ namespace core {
 		 */
 		skel::skel Read(skelReaderOptions& opts);
 
+	private:
+		Logger logger = Logger::GetLogger("SKELReader");
 	};
 
 }

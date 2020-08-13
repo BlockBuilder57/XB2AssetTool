@@ -93,7 +93,7 @@ namespace core {
 			for (int i = 0; i < mxmdData.Model.meshesCount; ++i) {
 				gltf::Scene scene{};
 
-				VARARGS_LOG(LogSeverity::Info, "Converting mesh " << i << " (" << i << '/' << mxmdData.Model.meshesCount << ')')
+				logger.info("Converting mesh ", i, " (", i, '/', mxmdData.Model.meshesCount, ')');
 
 				int32 bonesNodeOffset = doc.nodes.size();
 
@@ -116,7 +116,7 @@ namespace core {
 					}
 					if (Clamp(options.lod, lowestLOD, highestLOD) != options.lod) {
 						options.lod = Clamp(options.lod, lowestLOD, highestLOD);
-						VARARGS_LOG(LogSeverity::Info, "No meshes at chosen LOD level, setting LOD to " << options.lod)
+						logger.warn("No meshes at chosen LOD level, setting LOD to ", options.lod);
 					}
 				}
 
@@ -324,7 +324,7 @@ namespace core {
 				}
 
 				bonesNodeOffset = doc.nodes.size();
-				VARARGS_LOG(LogSeverity::Info, "Starting to add SKEL to glTF, bonesNodeOffset == " << bonesNodeOffset)
+				logger.info("Starting to add SKEL to glTF, bonesNodeOffset == ", bonesNodeOffset);
 
 				gltf::Skin skin;
 				for (int k = 0; k < skelData.nodes.size(); ++k)
@@ -351,12 +351,12 @@ namespace core {
 				doc.scenes.push_back(scene);
 				doc.scene = i;
 
-				VARARGS_LOG(LogSeverity::Info, "Writing glTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
+				logger.info("Writing ", ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text"), " glTF file to ", outPath.string());
 
 				try {
 					gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
 				} catch (gltf::invalid_gltf_document ex) {
-					VARARGS_LOG(LogSeverity::Error, "fx-glTF exception: " << ex.what());
+					logger.error("fx-glTF exception: ", ex.what());
 				} 
 
 				// clear document explicitly

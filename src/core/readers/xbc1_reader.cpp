@@ -9,7 +9,7 @@ namespace core {
 		StreamHelper reader(stream);
 		xbc1::xbc1 xbc;
 
-		VARARGS_LOG(LogSeverity::Verbose, "Reading XBC1 file at " << opts.offset);
+		logger.info("Reading XBC1 file at ", opts.offset);
 
 		stream.seekg(opts.offset, std::istream::beg);
 
@@ -33,7 +33,7 @@ namespace core {
 		compressedData.resize(xbc.compressedSize);
 		stream.read(compressedData.data(), xbc.compressedSize);
 
-		Log("Decompressing XBC1 data", LogSeverity::Verbose);
+		logger.verbose("Decompressing XBC1 data");
 
 		// I suspect monolith was just as lazy as I am
 		// and they just use compress() or compress2()
@@ -41,11 +41,11 @@ namespace core {
 		compressedData.clear();
 
 		if(result != Z_OK) {
-			VARARGS_LOG(LogSeverity::Error, "ZLib Error: uncompress() returned error code " << result);
+			logger.error("ZLib uncompress() returned ", result);
 			return xbc;
 		}
 		
-		Log("Decompressed data successfully", LogSeverity::Verbose);
+		logger.verbose("Uncompressed XBC1 file data");
 
 		// if the user wants to save raw files
 		if(opts.save) {
@@ -53,7 +53,7 @@ namespace core {
 			path = path / std::string("file_" + std::to_string(xbc.offset));
 			path.replace_extension(".bin");
 
-			VARARGS_LOG(LogSeverity::Info, "Writing uncompressed XBC1 to " << path.string());
+			logger.info("Writing uncompressed XBC1 to ", path.string());
 
 			std::ofstream file(path.string(), std::ofstream::binary);
 

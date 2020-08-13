@@ -19,8 +19,8 @@ namespace xb2at {
 				opts.Result = mxmdReaderStatus::NotMXMD;
 				return data;
 			}
-
-			VARARGS_LOG(LogSeverity::Verbose, "MXMD version: " << data.version << " (0x" << std::hex << data.version << ")")
+			
+			logger.verbose("MXMD version: ", data.version, " (0x", std::hex, data.version, ")");
 
 			if(data.modelStructOffset != 0) {
 				stream.seekg(data.modelStructOffset, std::istream::beg);

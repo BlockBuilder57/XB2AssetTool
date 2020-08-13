@@ -66,6 +66,9 @@ namespace core {
 		 */
 		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
 
+	private:
+
+		Logger logger = Logger::GetLogger("ModelSerializer");
 	};
 }
 }
