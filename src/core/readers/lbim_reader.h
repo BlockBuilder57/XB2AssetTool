@@ -73,7 +73,6 @@ namespace core {
 			 */
 			lbim::texture Read(lbimReaderOptions& opts);
 
-
 		};
 
 

@@ -44,7 +44,7 @@ namespace core {
 
 		opts.Result = skelReaderStatus::Success;
 
-		Log("SKEL reading successful", LogSeverity::Info);
+		logger.info("SKEL reading successful");
 		return skel;
 	}
 

@@ -75,6 +75,9 @@ namespace ui {
 			delete this;
 		}
 
+		
+		Logger logger = Logger::GetLogger("Main");
+
 	signals:
 		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
 		void Finished();
@@ -166,6 +169,7 @@ namespace ui {
 		QThread* extraction_thread;
 
 		Ui::mainWindow ui;
+
 	};
 
 }

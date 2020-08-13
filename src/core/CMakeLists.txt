@@ -9,7 +9,9 @@ set(XB2CORE_SOURCES
 	endian_swap.h
 	streamhelper.h
 	ivstream.h
-	base_log_reporter.h
+	
+	Logger.h
+	Logger.cpp
 
 	# Data structs
 	structs.h
