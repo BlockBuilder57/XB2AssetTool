@@ -16,6 +16,11 @@ namespace ui {
 		setFixedSize(width(), height());
 		setWindowTitle(tr("%1 %2").arg(windowTitle(), QString::fromLatin1(version::tag)));
 
+		// replace {VERSION} with the version tag once
+		auto text = ui.aboutxb2at->text();
+		text.replace("{VERSION}", QString::fromLatin1(version::tag));
+		ui.aboutxb2at->setText(text);
+
 		// connect UI events
 		connect(ui.inputBrowse, SIGNAL(clicked()), this, SLOT(InputBrowseButtonClicked()));
 		connect(ui.outputBrowse, SIGNAL(clicked()), this, SLOT(OutputBrowseButtonClicked()));
@@ -70,6 +75,7 @@ namespace ui {
 	}
 
 	void MainWindow::TextChanged() {
+		// responsively enable/disable extract button
 		if(!ui.inputFiles->text().isEmpty() && !ui.outputDir->text().isEmpty()) {
 			ui.extractButton->setDisabled(false);
 		} else {
@@ -77,17 +83,12 @@ namespace ui {
 		}
 	}
 
-
 	void MainWindow::ExtractButtonClicked() {
 		ClearLog();
 		ui.extractButton->setDisabled(true);
 		ui.allTabs->setCurrentWidget(ui.logTab);
 		
 		QString file = ui.inputFiles->text();
-
-		// Make the timer for the UI to check for log messages
-		queue_empty_timer = new QTimer(this);
-		queue_empty_timer->callOnTimeout(std::bind(&MainWindow::OnQueueEmptyTimer, this));
 
 		uiOptions options;
 
@@ -118,55 +119,115 @@ namespace ui {
 
 		std::string filename = file.toStdString();
 
-		// Start the timer and the thread.
-		queue_empty_timer->start(10);
-		extraction_thread = std::thread(std::bind(&MainWindow::ExtractFile, this, filename, fs::path(ui.outputDir->text().toStdString()), options));
-		extraction_thread.detach();
+		// Start the thread.
+		extraction_thread = new QThread(this);
+		ExtractionThread* et = new ExtractionThread();
+		et->setParent(this);
+		et->moveToThread(extraction_thread);
+
+		// connect signals and stuff
+		connect(et, SIGNAL(Finished()), this, SLOT(Finished()));
+		connect(et, SIGNAL(LogMessage(QString, ProgressType)), this, SLOT(LogMessage(QString, ProgressType)));
+		connect(extraction_thread, SIGNAL(destroyed()), et, SLOT(deleteLater()));
+
+		// then do it!
+		et->DoIt(filename, fs::path(ui.outputDir->text().toStdString()), options);
 	}
 
-	void MainWindow::OnQueueEmptyTimer() {
-		// Spin this function until we are able to 
-		// lock the mutex guarding the log message queue.
-		std::lock_guard<std::mutex> lock(log_queue_lock);
+	void MainWindow::Finished() {
+		ui.extractButton->setDisabled(false);
+	}
 
-		// Process the queue until it is empty.
-		while(log_queue.size() != 0) {
-			auto message = log_queue.front();
 
-			// Cast the progress type to LogType.
-			// ProgressType and LogType have the same order so we do not lose type safety
-			LogMessage(QString::fromStdString(message.data), (LogType)message.type);
+	void MainWindow::ClearLogButtonClicked() {
+		ClearLog();
+	}
 
-			// If we recieved a finish message,
-			// do what we need to do to uninitalize the things we allocated in ExtractButtonClicked() 
-			if(message.finished) {
-				// Stop ourselves.
-				if (queue_empty_timer)
-					queue_empty_timer->stop();
+	void MainWindow::SaveLogButtonClicked() {
+		QFileDialog savePicker(this, "Select output log path");
+		QString rawText = ui.debugConsole->toPlainText();
+		rawText.append('\n');
 
-				// Delete the timer object.
-				// ExtractButtonClicked() creates a new timer object each time it is invoked,
-				// so we need to delete the current instance.
-				if (queue_empty_timer)
-					delete queue_empty_timer;
+		savePicker.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
+		savePicker.setFileMode(QFileDialog::FileMode::AnyFile);
 
-				// Enable the "Extract" button in the UI.
-				ui.extractButton->setDisabled(false);
+		if(savePicker.exec()) {
+			QStringList selectedFiles = savePicker.selectedFiles();
+
+			if(selectedFiles.isEmpty())
+				return;
+
+			QString filename = selectedFiles[0];
+
+			if(!filename.isEmpty()) {
+				QFile file(filename);
+
+				if(!file.open(QFile::ReadWrite)) {
+					rawText.clear();
+					return;
+				}
+
+				QTextStream stream(&file);
+
+				stream << rawText;
+				file.close();
+				rawText.clear();
 			}
-
-			log_queue.pop();
 		}
 
 	}
 
-	void MainWindow::ProgressFunction(const std::string& progress, ProgressType type, bool finish = false) {
-		// Spinlock until the calling thread can lock the mutex
-		std::lock_guard<std::mutex> lock(log_queue_lock);
-
-		log_queue.push({progress, type, finish});
+	void MainWindow::AboutButtonClicked() {
+		QApplication::aboutQt();
 	}
 
-	void MainWindow::ExtractFile(std::string& filename, fs::path& outputPath, uiOptions& options) {
+	void MainWindow::ClearLog() {
+		ui.debugConsole->clear();
+	}
+
+	void MainWindow::LogMessage(QString message, ProgressType type) {
+		if (message.isEmpty())
+			return;
+
+
+		if(type == ProgressType::Verbose && !ui.enableVerbose->isChecked())
+			return;
+
+		switch (type) {
+			default:
+			break;
+		
+			case ProgressType::Verbose:
+				ui.debugConsole->insertHtml("<font>[Verbose] ");
+			break;
+
+			case ProgressType::Info:
+				ui.debugConsole->insertHtml("<font>[Info] ");
+			break;
+		
+			case ProgressType::Warning:
+				ui.debugConsole->insertHtml("<font color=\"#b3ae20\">[Warning] ");
+			break;
+
+			case ProgressType::Error:
+				ui.debugConsole->insertHtml("<font color=\"#e00d0d\">[Error] ");
+			break;
+		}
+
+		ui.debugConsole->insertHtml(message);
+		ui.debugConsole->insertHtml("</font><br>");
+		ui.debugConsole->verticalScrollBar()->setValue(ui.debugConsole->verticalScrollBar()->maximum());
+
+		// process events when signal called
+		// (cheap way of making the application perform better)
+		QCoreApplication::processEvents();
+	}
+
+	//
+	// EXTRACTION THREAD
+	//
+
+	void ExtractionThread::DoIt(std::string& filename, fs::path& outputPath, uiOptions& options) {
 			using namespace std::placeholders;
 
 			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Input: " << filename)
@@ -176,7 +237,7 @@ namespace ui {
 			std::string filenameOnly = path.stem().string();
 
 			if(!fs::exists(outputPath)) {
-				ProgressFunction("Creating output directory tree", ProgressType::Info);
+				Log("Creating output directory tree", ProgressType::Info);
 				fs::create_directories(outputPath);
 			}
 
@@ -192,7 +253,11 @@ namespace ui {
 
 			if(fs::exists(path)) {
 				std::ifstream stream(path.string(), std::ifstream::binary);
-				auto func = std::bind(&MainWindow::ProgressFunction, this, _1, _2, false);
+
+				// marshal from C++ -> QT
+				auto progress = [&](std::string message, ProgressType type) {
+					Log(QString::fromStdString(message), type);
+				};
 
 				msrdReaderOptions msrdoptions = { outputPath / "Dump", options.saveXBC1 };
 				msrdReader msrdreader(stream);
@@ -203,7 +268,7 @@ namespace ui {
 				mxmd::mxmd mxmd;
 				skel::skel skel;
 				
-				msrdreader.set_progress(func);
+				msrdreader.set_progress(progress);
 
 				PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading MSRD file...")
 
@@ -211,6 +276,7 @@ namespace ui {
 
 				if(msrdoptions.Result != msrdReaderStatus::Success) {
 					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading MSRD file: " << msrdReaderStatusToString(msrdoptions.Result))
+					Done();
 					return;
 				}
 
@@ -285,7 +351,8 @@ namespace ui {
 							if(meshoptions.Result == meshReaderStatus::Success) {
 								msrd.meshes.push_back(mesh);
 							} else {
-								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))
+								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))	
+								Done();
 								return;
 							}
 						} break;
@@ -370,12 +437,14 @@ namespace ui {
 
 					if (mxmdoptions.Result != mxmdReaderStatus::Success) {
 						PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading MXMD file: " << mxmdReaderStatusToString(mxmdoptions.Result))
+						Done();
 						return;
 					}
 
 					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MXMD file successfully read")
 				} else {
 					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wimdo doesn't exist.");
+					Done();
 					return;
 				}
 
@@ -388,96 +457,13 @@ namespace ui {
 				msrd.dataItems.clear();
 			} else {
 				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wismt doesn't exist.");
+				Done();
 				return;
 			}
 
 			// Signal successful finish
 			PROGRESS_UPDATE_MAIN(ProgressType::Info, true, "Extraction successful")
-	}
-
-	void MainWindow::ClearLogButtonClicked() {
-		ClearLog();
-	}
-
-	void MainWindow::SaveLogButtonClicked() {
-		QFileDialog savePicker(this, "Select output log path");
-		QString rawText = ui.debugConsole->toPlainText();
-		rawText.append('\n');
-
-		savePicker.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
-		savePicker.setFileMode(QFileDialog::FileMode::AnyFile);
-
-		if(savePicker.exec()) {
-			QStringList selectedFiles = savePicker.selectedFiles();
-
-			if(selectedFiles.isEmpty())
-				return;
-
-			// Only using Qt OS abstraction objects here cause this is UI code.
-			QString filename = selectedFiles[0];
-
-			if(!filename.isEmpty()) {
-				QFile file(filename);
-
-				if(!file.open(QFile::ReadWrite)) {
-					rawText.clear();
-					return;
-				}
-
-				QTextStream stream(&file);
-
-				stream << rawText;
-				file.close();
-				rawText.clear();
-			}
-		}
-
-	}
-
-	void MainWindow::AboutButtonClicked() {
-		QApplication::aboutQt();
-	}
-
-
-
-	void MainWindow::ClearLog() {
-		// Clear both the log buffer and the debug console buffer.
-		logBuffer.clear();
-		ui.debugConsole->clear();
-	}
-
-	void MainWindow::LogMessage(QString message, LogType type) {
-		if (message.isEmpty())
-			return;
-
-		if(type == LogType::Verbose && !ui.enableVerbose->isChecked())
-			return;
-
-		switch (type) {
-			default:
-			break;
-		
-			case LogType::Verbose:
-				logBuffer.append("<font>[Verbose] ");
-			break;
-
-			case LogType::Info:
-				logBuffer.append("<font>[Info] ");
-			break;
-		
-			case LogType::Warning:
-				logBuffer.append("<font color=\"#b3ae20\">[Warning] ");
-			break;
-
-			case LogType::Error:
-				logBuffer.append("<font color=\"#e00d0d\">[Error] ");
-			break;
-		}
-
-		logBuffer.append(message);
-		logBuffer.append("</font><br>");
-		ui.debugConsole->setHtml(logBuffer);
-		ui.debugConsole->verticalScrollBar()->setValue(ui.debugConsole->verticalScrollBar()->maximum());
+			Done();
 	}
 
 }

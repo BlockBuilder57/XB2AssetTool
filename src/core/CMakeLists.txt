@@ -52,8 +52,9 @@ set(XB2CORE_SOURCES
 
 	serializers/model_serializer.h
 	serializers/model_serializer.cpp
-
-	deswizzle.cpp
+	
+	tegra_texture.h
+	tegra_texture.cpp
 )
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
@@ -83,3 +84,6 @@ target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
 add_dependencies(xb2core __xb2at_gittag)
 
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR})
+
+# precompile core.h
+target_precompile_headers(xb2core PUBLIC core.h)

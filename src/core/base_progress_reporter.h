@@ -31,9 +31,11 @@ namespace core {
 	};
 
 
+// TODO: These should simply just call into a varadic template function so that a single function set is generated instead of 100+ lambdas
 #define PROGRESS_UPDATE(type, ...) { std::stringstream ss; ss << __VA_ARGS__; CheckedProgressUpdate(ss.str(), type); ss.clear(); }
 
-#define PROGRESS_UPDATE_MAIN(type, finish, ...) { std::stringstream ss; ss << __VA_ARGS__; ProgressFunction(ss.str(), type, finish); ss.clear(); }
+// Only for backwards compatibility
+#define PROGRESS_UPDATE_MAIN(type, finish, ...) { std::stringstream ss; ss << __VA_ARGS__; Log(QString::fromStdString(ss.str()), type); ss.clear(); }
 
 }
 }

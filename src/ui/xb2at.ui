@@ -585,21 +585,23 @@
      <widget class="QLabel" name="aboutxb2at">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>0</y>
+        <x>50</x>
+        <y>100</y>
         <width>611</width>
-        <height>261</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="text">
-       <string>## About XB2AssetTool
-XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockBuilder57/XBC2ModelDecomp) written in C++17.</string>
+       <string>## XB2AssetTool {VERSION}
+A *full* rewrite of [XBC2ModelDecomp](https://github.com/BlockBuilder57/XBC2ModelDecomp) written in modern C++17 and Qt.
+
+(c) 2020 under the GNU LGPLv3.</string>
       </property>
       <property name="textFormat">
        <enum>Qt::MarkdownText</enum>
       </property>
       <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
      <widget class="QPushButton" name="aboutQtButton">

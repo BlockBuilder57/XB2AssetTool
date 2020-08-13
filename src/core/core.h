@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <filesystem>
+#include <future>
 #include <functional>
 #include <algorithm>
 
@@ -48,13 +49,13 @@ namespace core {
 	typedef std::uint64_t uint64;
 	
 	/**
-	 * shorthand for numeric_limits<T>::max()
+	 * constant shorthand for numeric_limits<T>::min()
 	 */
 	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
 	struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
 
 	/**
-	 * shorthand for numeric_limits<T>::max()
+	 * constant shorthand for numeric_limits<T>::max()
 	 */
 	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
 	struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
@@ -116,8 +117,7 @@ namespace core {
 	 *
 	 * \param[in] vector Vector to normalize.
 	 */
-	inline void NormalizeVector3(vector3& vector)
-	{
+	inline void NormalizeVector3(vector3& vector) {
 		double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
 		vector.x = vector.x / (float)mag;
 		vector.y = vector.y / (float)mag;
@@ -131,8 +131,7 @@ namespace core {
 	 * \param[in] rot Rotation of the object.
 	 * \param[in] scale Scale of the object.
 	 */
-	inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale)
-	{
+	inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale) {
 		matrix4x4 m;
 		m.m1 = m.m2 = m.m3 = m.m4 = m.m5 = m.m6 = m.m7 = m.m8 = m.m9 = m.m10 = m.m11 = m.m12 = m.m13 = m.m14 = m.m15 = 0;
 		m.m16 = 1;

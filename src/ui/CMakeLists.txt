@@ -28,5 +28,5 @@ set_property(TARGET xb2at PROPERTY CXX_STANDARD 17)
 set_property(TARGET xb2at PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(xb2at xb2core Qt5::Widgets)
 
-
-
+# PCH mainwindow.h for nyoom speed max
+target_precompile_headers(xb2at PRIVATE MainWindow.h)

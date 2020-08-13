@@ -2,7 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QTextEdit>
-#include <QTimer>
+#include <QThread>
 
 #include <thread>
 #include <mutex>
@@ -13,6 +13,7 @@
 
 #include <core.h>
 
+// Core reader API
 #include <readers/msrd_reader.h>
 #include <readers/mesh_reader.h>
 #include <readers/mxmd_reader.h>
@@ -26,6 +27,51 @@ namespace xb2at {
 namespace ui {
 
 	using namespace xb2at::core;
+
+	struct uiOptions {
+			bool saveTextures;
+			bool saveMorphs;
+			bool saveAnimations;
+			bool saveOutlines;
+			modelSerializerOptions::Format modelFormat;
+			int32 lod;
+
+			bool saveMapMesh;
+			bool saveMapProps;
+			int32 propSplitSize;
+
+			bool saveXBC1;
+	};
+
+
+	class ExtractionThread : public QObject {
+		Q_OBJECT
+
+	public:
+
+		~ExtractionThread() {
+			emit Finished();
+		}
+
+
+		void DoIt(std::string& filename, fs::path& outputPath, uiOptions& options);
+
+		// simple wrapper to emit LogMessage
+		void Log(QString message, ProgressType type = ProgressType::Info) {
+			emit LogMessage(message, type);
+		}
+
+		// hack (but we're always allocated with new)
+		inline void Done() {
+			delete this;
+		}
+
+	signals:
+		void LogMessage(QString message, ProgressType type = ProgressType::Info);
+		void Finished();
+	};
+
+
 
 	class MainWindow : public QMainWindow {
 
@@ -87,110 +133,32 @@ namespace ui {
 		 */
 		void AboutButtonClicked();
 
-	private:
-
-		struct uiOptions {
-			bool saveTextures;
-			bool saveMorphs;
-			bool saveAnimations;
-			bool saveOutlines;
-			modelSerializerOptions::Format modelFormat;
-			int32 lod;
-
-			bool saveMapMesh;
-			bool saveMapProps;
-			int32 propSplitSize;
-
-			bool saveXBC1;
-		};
-
-		/**
-		 * Extract data from files.
-		 * Can be used as an example of how to use xb2core to convert files from the file repressentation
-		 * to xb2core repressentation with proper error handling.
-		 *
-		 * \param[in] filename Filename to extract all applicable data from
-		 * \param[in] outputPath Output path
-		 * \param[in] options All options
-		 */
-		void ExtractFile(std::string& filename, fs::path& outputPath, uiOptions& options);
-
-		/**
-		 * Extraction thread.
-		 */
-		std::thread extraction_thread;
-
-		/**
-		 * Progress function for the UI.
-		 * Does not call UI functions, rather, pushes to a queue that is emptied on a timer on the main thread
-		 * (as to not make Qt upset)
-		 *
-		 * \param[in] message Message to push.
-		 * \param[in] type Progress message type.
-		 * \param[in] finish if work is finished
-		 */
-		void ProgressFunction(const std::string& message, ProgressType type, bool finish);
-
-		/**
-		 * Progress data that we store in a struct.
-		 */
-		struct ProgressData {
-			std::string data;
-			core::ProgressType type;
-			bool finished;
-		};
-
-		/**
-		 * Mutex for locking exclusive access to the log queue.
-		 */
-		std::mutex log_queue_lock;
-
-		/**
-		 * Queue of log messages from extraction thread.
-		 * 
-		 */
-		std::queue<ProgressData> log_queue;
-
-		/**
-		 * The timer object that handles emptying the log queue.
-		 */
-		QTimer* queue_empty_timer;
-
-		/**
-		 * Function that runs when the timer elapses on the UI thread.
-		 * Locks the mutex, empties the log queue (actually posting the messages)
-		 * and also handles the timer destruction (to avoid memory leaks).
-		 */
-		void OnQueueEmptyTimer();
-
-		/**
-		 * Log type. Should be synced and in order of ProgressType.
-		 */
-		enum class LogType : std::uint8_t {
-			Verbose,
-			Info,
-			Warning,
-			Error
-		};
-
-		/**
-		 * Clear both the log buffer and the information in the "Log" tab in the User Interface.
-		 */
-		void ClearLog();
+		// public slots
+	public slots:
 
 		/**
 		 * Log a message to the "Log" tab in the User Interface, and the logging buffer.
-		 * This method is only safe to use on the UI thread.
 		 *
 		 * \param[in] message The message to log.
 		 * \param[in] type The type of the message.
 		 */
-		void LogMessage(QString message, LogType type = LogType::Info);
+		void LogMessage(QString message, ProgressType type = ProgressType::Info);
+
+		void Finished();
+
+	private:
 
 		/**
-		 * The logging buffer.
+		 * Extraction thread.
 		 */
-		QString logBuffer;
+		QThread* extraction_thread;
+
+
+		/**
+		 * Clear the information in the "Log" tab in the User Interface.
+		 */
+		void ClearLog();
+
 
 		Ui::mainWindow ui;
 	};
