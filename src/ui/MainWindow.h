@@ -4,86 +4,14 @@
 #include <QtWidgets/QTextEdit>
 #include <QThread>
 
-#include <thread>
-#include <mutex>
-#include <deque>
-#include <queue>
+#include <core.h>
 
 #include "ui_xb2at.h"
 
-#include <core.h>
-
-// Core reader API
-#include <readers/msrd_reader.h>
-#include <readers/mesh_reader.h>
-#include <readers/mxmd_reader.h>
-#include <readers/lbim_reader.h>
-#include <readers/sar1_reader.h>
-#include <readers/skel_reader.h>
-#include <serializers/model_serializer.h>
-
-
 namespace xb2at {
 namespace ui {
-
+	
 	using namespace xb2at::core;
-
-	struct uiOptions {
-			bool saveTextures;
-			bool saveMorphs;
-			bool saveAnimations;
-			bool saveOutlines;
-			modelSerializerOptions::Format modelFormat;
-			int32 lod;
-
-			bool saveMapMesh;
-			bool saveMapProps;
-			int32 propSplitSize;
-
-			bool saveXBC1;
-	};
-
-	/**
-	 * Extraction worker.
-	 */
-	class ExtractionWorker : public QObject {
-		Q_OBJECT
-
-	public:
-
-		inline ~ExtractionWorker() {
-			// Simply emit the Finished() signal
-			// so that the UI knows we're done.
-			emit Finished();
-		}
-
-		// Perform extraction.
-		void DoIt(std::string& filename, fs::path& outputPath, uiOptions& options);
-
-		/**
-		 * Wrapper to LogMessage
-		 */
-		inline void Log(QString message, LogSeverity type = LogSeverity::Info) {
-			emit LogMessage(message, type);
-		}
-
-		/**
-		 * This is a very bad hack to avoid memory leaking.
-		 * We delete ourselves when we're done so that we also emit the finished signal.
-		 */
-		inline void Done() {
-			delete this;
-		}
-
-		
-		Logger logger = Logger::GetLogger("Main");
-
-	signals:
-		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
-		void Finished();
-	};
-
-
 
 	class MainWindow : public QMainWindow {
 
@@ -126,7 +54,7 @@ namespace ui {
 		/**
 		 * Fired when the "Clear Log" button in the Log tab is clicked.
 		 *
-		 * Simply calls MainWindow::ClearLog().
+		 * Simply clears the console buffer..
 		 */
 		void ClearLogButtonClicked();
 
@@ -134,7 +62,7 @@ namespace ui {
 		 * Fired when the "Save Log" button in the Log tab is clicked.
 		 *
 		 * Brings up a file selector to select filename and location of the log to save,
-		 * and then saves the log.
+		 * and then saves the log in a plain text form.
 		 */
 		void SaveLogButtonClicked();
 		
@@ -145,7 +73,7 @@ namespace ui {
 		 */
 		void AboutButtonClicked();
 
-		// Slots for the public
+		// Slots other people connect to.
 	public slots:
 
 		/**
@@ -157,7 +85,7 @@ namespace ui {
 		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
 
 		/**
-		 * Fired
+		 * When fired, anything needed for finished extraction is called
 		 */
 		void Finished();
 

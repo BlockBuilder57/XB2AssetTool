@@ -6,6 +6,10 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(XB2AT_UI_SOURCES
 	main.cpp
+	
+	# Extraction worker
+	ExtractionWorker.h
+	ExtractionWorker.cpp
 
 	MainWindow.h
 	MainWindow.cpp
