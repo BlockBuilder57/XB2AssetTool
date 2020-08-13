@@ -1,8 +1,9 @@
 /**
  * \file 
- * Core library common include file
+ * Core library common include file.
  */
 #pragma once
+
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -11,17 +12,33 @@
 #include <vector>
 #include <map>
 #include <memory>
-
 #include <filesystem>
-#include <functional> // std::function
+#include <future>
+#include <functional>
+#include <algorithm>
 
+#include <glm/mat4x4.hpp>
+#include <glm/common.hpp>
+#include <glm/matrix.hpp>
 
 namespace xb2at {
 namespace core {
 
-	typedef std::uint8_t byte;
-	typedef std::int8_t sbyte;
+	/**
+	 * \defgroup Types Types
+	 * @{
+	 */
 	
+	/**
+	 * Unsigned 8-bit value.
+	 */
+	typedef std::uint8_t byte;
+
+	/**
+	 * Signed 8-bit value.
+	 */
+	typedef std::int8_t sbyte;
+
 	typedef std::int16_t int16;
 	typedef std::uint16_t uint16;
 
@@ -30,8 +47,129 @@ namespace core {
 
 	typedef std::int64_t int64;
 	typedef std::uint64_t uint64;
+	
+	/**
+	 * constant shorthand for numeric_limits<T>::min()
+	 */
+	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
+
+	/**
+	 * constant shorthand for numeric_limits<T>::max()
+	 */
+	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
+	
+	/**
+	 * Vector2 of floats.
+	 */
+	struct vector2 {
+		float x;
+		float y;
+	};
+
+	/**
+	 * Vector3 of floats.
+	 */
+	struct vector3 {
+		float x;
+		float y;
+		float z;
+	};
 
 	
+	/**
+	 * Quaternion of floats.
+	 */
+	struct quaternion {
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+
+	struct u16_quaternion {
+		uint16 x;
+		uint16 y;
+		uint16 z;
+		uint16 w;
+	};
+
+	struct color {
+		byte r;
+		byte g;
+		byte b;
+		byte a;
+	};
+
+	struct matrix4x4 {
+		float m1,  m2,  m3,  m4;
+		float m5,  m6,  m7,  m8;
+		float m9,  m10, m11, m12;
+		float m13, m14, m15, m16;
+	};
+	
+	/** @} */
+
+
+	/**
+	 * Normalize a Vector3.
+	 *
+	 * \param[in] vector Vector to normalize.
+	 */
+	inline void NormalizeVector3(vector3& vector) {
+		double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
+		vector.x = vector.x / (float)mag;
+		vector.y = vector.y / (float)mag;
+		vector.z = vector.z / (float)mag;
+	}
+
+	/**
+	 * Convert a Vector3 position, a quaternion rotation, and a Vector3 scale to a 4x4 matrix.
+	 *
+	 * \param[in] pos Position of the object.
+	 * \param[in] rot Rotation of the object.
+	 * \param[in] scale Scale of the object.
+	 */
+	inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale) {
+		matrix4x4 m;
+		m.m1 = m.m2 = m.m3 = m.m4 = m.m5 = m.m6 = m.m7 = m.m8 = m.m9 = m.m10 = m.m11 = m.m12 = m.m13 = m.m14 = m.m15 = 0;
+		m.m16 = 1;
+
+		m.m1 = scale.x;
+		m.m6 = scale.y;
+		m.m11 = scale.z;
+		m.m4 = pos.x;
+		m.m8 = pos.y;
+		m.m12 = pos.z;
+
+		float s = 1.f / (sqrt(rot.y) + sqrt(rot.z) + sqrt(rot.w));
+		m.m1 *= 1 - (2 * s) * (pow(rot.z, 2) + pow(rot.w, 2));
+		m.m2 *= (2 * s) * (rot.y * rot.z - rot.w * rot.x);
+		m.m3 *= (2 * s) * (rot.y * rot.w + rot.z * rot.x);
+		m.m5 *= (2 * s) * (rot.y * rot.z + rot.w * rot.x);
+		m.m6 *= 1 - (2 * s) * (pow(rot.y, 2) + pow(rot.w, 2));
+		m.m7 *= (2 * s) * (rot.z * rot.w - rot.y * rot.x);
+		m.m9 *= (2 * s) * (rot.y * rot.w - rot.z * rot.x);
+		m.m10 *= (2 * s) * (rot.z * rot.w + rot.y * rot.x);
+		m.m11 *= 1 - (2 * s) * (pow(rot.y, 2) + pow(rot.z, 2));
+		return glm::mat4x4(m.m1, m.m2, m.m3, m.m4, m.m5, m.m6, m.m7, m.m8, m.m9, m.m10, m.m11, m.m12, m.m13, m.m14, m.m15, m.m16);
+	}
+
+	/**
+	 * \defgroup FunTempls Function Templates
+	 * @{
+	 */
+
+	/**
+	 * Resize a multi-dimensional vector of elements of type T.
+	 *
+	 * \tparam T Element type
+	 * 
+	 * \param[in] vec Multi-dimensional vector to resize
+	 * \param[in] dim1 First dimension
+	 * \param[in] dim2 Second dimension
+	 */
 	template<class T>
 	inline void ResizeMultiDimVec(std::vector<std::vector<T>>& vec, int dim1, int dim2) {
 		vec.resize(dim1);
@@ -39,49 +177,147 @@ namespace core {
 		for(std::vector<T>& v : vec)
 			v.resize(dim2);
 	}
-
-	// Default max function
-	template<typename T>
-	inline bool DefaultMax(const T& LValue, const T& RValue) {
-		return std::max(LValue, RValue) == RValue;
-	}
-
-	// Get max element of a vector
-	template<typename T>
-	inline T GetMaxElement(const std::vector<T>& vec) {
-		auto it = std::max_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
-			return std::max(L, R) == R;
-		});
-
-		return (*it);
-	}
-
-	// Default min function
+	
+	/**
+	 * Default min function for GetMinElement().
+	 *
+	 * \tparam T Type to compare.
+	 *
+	 * \param[in] LValue Left value.
+	 * \param[in] RValue Right value.
+	 */
 	template<typename T>
 	inline bool DefaultMin(const T& LValue, const T& RValue) {
 		return std::min(LValue, RValue) == RValue;
 	}
 
-	// Get min element of a vector
+	/**
+	 * Default max function for GetMaxElement().
+	 *
+	 * \tparam T Type to compare.
+	 *
+	 * \param[in] LValue Left value.
+	 * \param[in] RValue Right value.
+	 */
 	template<typename T>
-	inline T GetMinElement(const std::vector<T>& vec) {
-		auto it = std::min_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
-			return std::min(L, R) == R;
+	inline bool DefaultMax(const T& LValue, const T& RValue) {
+		return std::max(LValue, RValue) == RValue;
+	}
+	
+	/**
+	 * Get the max element inside of a container.
+	 *
+	 * \tparam RevIterContainer Container type to use. Must follow ReversiableContainer.
+	 * \tparam MaxFun Max function lambda type. Must be `bool (const T&, const T&)`.
+	 *
+	 * \param[in] container Container to use.
+	 * \param[in] Max Max function to use. Refer to the documentation of the MaxFun template parameter.
+	 */
+	template<class RevIterContainer, class MaxFun>
+	inline typename RevIterContainer::value_type GetMaxElement(const RevIterContainer& container, MaxFun& Max = DefaultMax<typename RevIterContainer::value_type>) {
+		typedef typename RevIterContainer::value_type T;
+
+		auto it = std::max_element(container.begin(), container.end(), [&](const T& L, const T& R) {
+			return Max(L, R);
 		});
 
 		return (*it);
 	}
+
+	
+	/**
+	 * Get the min element inside of a container.
+	 *
+	 * \tparam RevIterContainer Container type to use. Must follow ReversiableContainer.
+	 * \tparam MaxFun Max function lambda type. Must be bool (const T&, const T&).
+	 *
+	 * \param[in] vec Container to use.
+	 * \param[in] Min Min function to use. Refer to the documentation of the MinFun template parameter.
+	 */
+	template<class RevIterContainer, class MinFun>
+	inline typename RevIterContainer::value_type GetMinElement(const RevIterContainer& container, MinFun& Min = DefaultMin<typename RevIterContainer::value_type>) {
+		typedef typename RevIterContainer::value_type T;
+
+		auto it = std::min_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
+			return Min(L, R);
+		});
+
+		return (*it);
+	}
+
+	/**
+	 * Clamp a expression to specified min and max values.
+	 *
+	 * \tparam T Value type.
+	 *
+	 * \param[in] Expression Expression or value to clamp.
+	 * \param[in] Min Minimum value.
+	 * \param[in] Max Maximum value.
+	 */
+	template<typename T>
+	inline T Clamp(T Expression, const T Min, const T Max) {
+		return (Expression > Max) ? Max :
+			(Expression < Min) ? Min : Expression;
+	}
+
+	/**
+	 * Replacement for LINQ's .Where function.
+	 * Takes a lambda function that returns a bool. If it returns true,
+	 * the iterator to that object will be returned. 
+	 * To get a applicable index, you can do `std::distance(container.begin(), it)`,
+	 * where `it` can either be a previously gathered index or a Where() call.
+	 *
+	 * \tparam RevIterContainer Container type to use. Must follow ReversiableContainer.
+	 * \tparam WhereFun Where lambda function. Must be `bool (const T&)`.
+	 *
+	 * \param[in] vec Container to find an item in.
+	 * \param[in] evalulator Evalulator function. Refer to the documentation of the WhereFun template parameter.
+	 */
+	template<class RevIterContainer, class WhereFun>
+	inline typename RevIterContainer::iterator Where(RevIterContainer& vec, WhereFun evalulator) {
+		auto it = vec.begin();
+
+		// return end iterator if container has no allocated elements
+		if(vec.size() == 0)
+			return vec.end();
+
+		for(int i = 0; i < vec.size(); ++i) {
+			if(evalulator(*it))
+				return it;
+
+			it++;
+		}
+
+		// return end iterator if the evalulator never returned true
+		return vec.end();
+	}
+
+	/**
+	 * Returns the element count of an array on the stack.
+	 *
+	 * \tparam T Type of the array.
+	 * \tparam N Count of elements in the array.
+	 */
+	template<typename T, int N>
+	constexpr std::size_t ArraySize(T(&)[N]) {
+		return N;
+	}
+
+	/** @} */
 	
 	/**
 	 * Progress reporting severity.
 	 */
 	enum ProgressType : int16 {
-		Error,
-		Warning,
+		Verbose,
 		Info,
-		Verbose
+		Warning,
+		Error
 	};
 
+	/**
+	 * Namespace alias of the filesystem library.
+	 */
 	namespace fs = std::filesystem;
 }
 }

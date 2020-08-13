@@ -266,3 +266,4 @@ __pycache__/
 /bin32
 /bind64
 /bind32
+/**/*.7z

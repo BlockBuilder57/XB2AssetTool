@@ -9,90 +9,14 @@
 namespace xb2at {
 namespace core {
 
-	mesh::mesh meshReader::Read(const meshReaderOptions& opts) {
+	mesh::mesh meshReader::Read(meshReaderOptions& opts) {
 		ivstream stream(opts.file);
 		StreamHelper reader(stream);
 		mesh::mesh mesh;
 
-		// these could be imported into streamhelper
-		// but i'd rather not import a soft dependency
-		// of glm into streamhelper
-		auto readVec3 = [&]() -> mesh::vector3 {
-			float x;
-			float y;
-			float z;
-			
-			reader.ReadType<float>(x);
-			reader.ReadType<float>(y);
-			reader.ReadType<float>(z);
-
-			return {x, y, z};
-		};
-
-		auto readVec2 = [&]() -> mesh::vector2 {
-			float x;
-			float y;
-			
-			reader.ReadType<float>(x);
-			reader.ReadType<float>(y);
-
-			
-			return {x, y};
-		};
-
-		auto readQuat = [&]() -> mesh::quaternion { 
-			float x;
-			float y;
-			float z;
-			float w;
-			
-			reader.ReadType<float>(x);
-			reader.ReadType<float>(y);
-			reader.ReadType<float>(z);
-			reader.ReadType<float>(w);
-			
-			return {x, y, z, w};
-		};
-
-		auto readu32u8Quat = [&]() -> mesh::quaternion {
-			uint32 total;
-			reader.ReadType<uint32>(total);
-
-			float x = (float)(((sbyte*)&total)[0]) / 128.f;
-			float y = (float)(((sbyte*)&total)[1]) / 128.f;
-			float z = (float)(((sbyte*)&total)[2]) / 128.f;
-			float w = (float)(((sbyte*)&total)[3]);
-
-			return { x, y, z, w };
-		};
-
-		auto readu32s8Quat = [&]() -> mesh::quaternion { 
-			uint32 total;
-			reader.ReadType<uint32>(total);
-
-			float x = (float) ( ((sbyte*)&total)[0] ) / 128.f;
-			float y = (float) ( ((sbyte*)&total)[1] ) / 128.f;
-			float z = (float) ( ((sbyte*)&total)[2] ) / 128.f;
-			float w = (float) ( ((sbyte*)&total)[3] );
-
-			return {x, y, z, w};
-		};
-
-		auto readu16Quat = [&]() -> mesh::quaternion { 
-			uint64 total;
-			reader.ReadType<uint64>(total);
-
-			float x = (float) ( ((uint16*)&total)[0] ) / 65535.f;
-			float y = (float) ( ((uint16*)&total)[1] ) / 65535.f;
-			float z = (float) ( ((uint16*)&total)[2] ) / 65535.f;
-			float w = (float) ( ((uint16*)&total)[3] ) / 65535.f;
-			
-			return {x, y, z, w};
-		};
-
 		// Read the mesh header
 		if(!reader.ReadType<mesh::mesh_header>(mesh)) {
-			CheckedProgressUpdate("file could not be read", ProgressType::Error);
+			opts.Result = meshReaderStatus::ErrorReadingHeader;
 			return mesh;
 		}
 		
@@ -101,10 +25,11 @@ namespace core {
 			mesh.vertexTables.resize(mesh.vertexTableCount);
 
 			for(int i = 0; i < mesh.vertexTableCount; ++i) {
-				CheckedProgressUpdate("Reading vertextable " + std::to_string(i), ProgressType::Info);
+				PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex table " << i)
+
 				stream.seekg(mesh.vertexTableOffset + (i * sizeof(mesh::vertex_table_header)), std::istream::beg);
 				if(!reader.ReadType<mesh::vertex_table_header>(mesh.vertexTables[i])) {
-					CheckedProgressUpdate("could not read vertex table header", ProgressType::Error);
+					opts.Result = meshReaderStatus::ErrorReadingVertexData;
 					return mesh;
 				}
 
@@ -113,8 +38,9 @@ namespace core {
 				mesh.vertexTables[i].vertexDescriptors.resize(mesh.vertexTables[i].descriptorCount);
 
 				for(int j = 0; j < mesh.vertexTables[i].descriptorCount; ++j) {
+					PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex descriptor " << j)
 					if(!reader.ReadType<mesh::vertex_descriptor>(mesh.vertexTables[i].vertexDescriptors[j])) {
-						CheckedProgressUpdate("could not read vertex descriptor", ProgressType::Error);
+						opts.Result = meshReaderStatus::ErrorReadingVertexData;
 						return mesh;
 					}
 				}
@@ -126,12 +52,12 @@ namespace core {
 			mesh.faceTables.resize(mesh.faceTableCount);
 
 			for(int i = 0; i < mesh.faceTableCount; ++i) {
-				CheckedProgressUpdate("Reading facetable " + std::to_string(i), ProgressType::Info);
+				PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh face table " << i)
 
 				stream.seekg(mesh.faceTableOffset + (i * sizeof(mesh::face_table_header)), std::istream::beg);
 
 				if(!reader.ReadType<mesh::face_table_header>(mesh.faceTables[i])) {
-					CheckedProgressUpdate("Error reading vertex table header", ProgressType::Error);
+					opts.Result = meshReaderStatus::ErrorReadingFaceData;
 					return mesh;
 				}
 
@@ -139,8 +65,9 @@ namespace core {
 
 				mesh.faceTables[i].vertices.resize(mesh.faceTables[i].vertCount);
 				for(int j = 0; j < mesh.faceTables[i].vertCount; ++j) {
-					if(!reader.ReadType<uint16>(mesh.faceTables[i].vertices[j])){
-						CheckedProgressUpdate("Error reading facetable " + std::to_string(i), ProgressType::Error);
+					if(!reader.ReadType<uint16>(mesh.faceTables[i].vertices[j])) {
+						opts.Result = meshReaderStatus::ErrorReadingFaceData;
+						//PROGRESS_UPDATE(ProgressType::Error, "Error reading face table " << i)
 						return mesh;
 					}
 				}
@@ -149,10 +76,12 @@ namespace core {
 
 		// Read weight data and weight managers
 		if(mesh.weightDataOffset != 0) {
+			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh weight data")
+
 			stream.seekg(mesh.weightDataOffset, std::istream::beg);
 			
-			if(!reader.ReadType<mesh::weight_data_header>(mesh.weightData)){
-				CheckedProgressUpdate("Error reading weight data header", ProgressType::Error);
+			if(!reader.ReadType<mesh::weight_data_header>(mesh.weightData)) {
+				opts.Result = meshReaderStatus::ErrorReadingWeightData;
 				return mesh;
 			}
 
@@ -161,6 +90,7 @@ namespace core {
 
 			for(int i = 0; i < mesh.weightData.managerCount; ++i) {
 				if(!reader.ReadType<mesh::weight_manager>(mesh.weightData.weightManagers[i])) {
+					opts.Result = meshReaderStatus::ErrorReadingWeightData;
 					CheckedProgressUpdate("Error reading weight manager", ProgressType::Error);
 					return mesh;
 				}
@@ -169,18 +99,21 @@ namespace core {
 		
 		// Read morph data if we have it at all
 		if(mesh.morphDataOffset > 0) {
+			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh morph data")
+
 			stream.seekg(mesh.morphDataOffset, std::istream::beg);
 
-			reader.ReadType<int32>(mesh.morphData.morphDescriptorCount);
-			reader.ReadType<int32>(mesh.morphData.morphDescriptorOffset);
-			reader.ReadType<int32>(mesh.morphData.morphTargetCount);
-			reader.ReadType<int32>(mesh.morphData.morphTargetOffset);
+			if (!reader.ReadType<mesh::morph_data_header>(mesh.morphData)) {
+				opts.Result = meshReaderStatus::ErrorReadingMorphData;
+				return mesh;
+			}
 
 			mesh.morphData.morphDescriptors.resize(mesh.morphData.morphDescriptorCount);
 			stream.seekg(mesh.morphData.morphDescriptorOffset, std::istream::beg);
 
 			for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
 				if(!reader.ReadType<mesh::morph_descriptor_header>(mesh.morphData.morphDescriptors[i])) {
+					opts.Result = meshReaderStatus::ErrorReadingMorphData;
 					CheckedProgressUpdate("Error reading morph descriptor header", ProgressType::Error);
 					return mesh;
 				}
@@ -191,6 +124,7 @@ namespace core {
 
 			for(int i = 0; i < mesh.morphData.morphTargetCount; ++i) {
 				if(!reader.ReadType<mesh::morph_target_header>(mesh.morphData.morphTargets[i])) {
+					opts.Result = meshReaderStatus::ErrorReadingMorphData;
 					CheckedProgressUpdate("Error reading morph target header", ProgressType::Error);
 					return mesh;
 				}
@@ -216,34 +150,30 @@ namespace core {
 
 		
 		for(int i = 0; i < mesh.vertexTableCount; ++i) {
-
+			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex data table for vertex table " << i)
 
 			stream.seekg(mesh.dataOffset +  mesh.vertexTables[i].dataOffset, std::istream::beg);
 
 			mesh.vertexTables[i].vertices.resize(mesh.vertexTables[i].dataCount);
-			mesh.vertexTables[i].weights.resize(mesh.vertexTables[i].dataCount);
+			mesh.vertexTables[i].weightTableIndex.resize(mesh.vertexTables[i].dataCount);
 
-			ResizeMultiDimVec(mesh.vertexTables[i].uvPos, mesh.vertexTables[i].dataCount, 4);
+			ResizeMultiDimVec(mesh.vertexTables[i].uvPos, 4, mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].vertexColor.resize(mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].normals.resize(mesh.vertexTables[i].dataCount);
 			mesh.vertexTables[i].weightStrengths.resize(mesh.vertexTables[i].dataCount);
-			ResizeMultiDimVec(mesh.vertexTables[i].weightIds, mesh.vertexTables[i].dataCount, 4);
+			ResizeMultiDimVec(mesh.vertexTables[i].weightIds, 4, mesh.vertexTables[i].dataCount);
 
 			for(int j = 0; j < mesh.vertexTables[i].dataCount; j++) {
 				for(mesh::vertex_descriptor& desc : mesh.vertexTables[i].vertexDescriptors) {
 					switch(desc.type) {
 					case mesh::vertex_descriptor_type::Position:
-						 mesh.vertexTables[i].vertices[j] = readVec3();
-						break;
-
-					case mesh::vertex_descriptor_type::BoneID:
-						mesh.vertexTables[i].weights[j] = reader.ReadType<int32>();
+						 mesh.vertexTables[i].vertices[j] = reader.ReadVec3();
 						break;
 
 					case mesh::vertex_descriptor_type::UV1:
 					case mesh::vertex_descriptor_type::UV2:
 					case mesh::vertex_descriptor_type::UV3:
-						mesh.vertexTables[i].uvPos[j][desc.type - 5] = readVec2();
+						mesh.vertexTables[i].uvPos[desc.type - 5][j] = reader.ReadVec2();
 						if(desc.type - 4 > mesh.vertexTables[i].uvLayerCount)
 							mesh.vertexTables[i].uvLayerCount = desc.type - 4;
 						break;
@@ -256,18 +186,28 @@ namespace core {
 						break;
 
 					case mesh::vertex_descriptor_type::Normal:
-						mesh.vertexTables[i].normals[j] = readu32s8Quat();
+					case mesh::vertex_descriptor_type::Normal2:
+						mesh.vertexTables[i].normals[j] = reader.ReadS8Quaternion();
+						break;
+
+					case mesh::vertex_descriptor_type::WeightID:
+						reader.ReadType<int32>(mesh.vertexTables[i].weightTableIndex[j]);
 						break;
 
 					case mesh::vertex_descriptor_type::Weight16:
-						mesh.vertexTables[i].weightStrengths[j] = readu16Quat();
+						mesh.vertexTables[i].weightStrengths[j] = reader.ReadU16Quaternion();
 						break;
 
+					case mesh::vertex_descriptor_type::Weight32:
+						mesh.vertexTables[i].weightStrengths[j] = reader.ReadU8Quaternion();
+						break;
+
+					case mesh::vertex_descriptor_type::BoneID:
 					case mesh::vertex_descriptor_type::BoneID2:
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][0]);
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][1]);
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][2]);
-						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[j][3]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[0][j]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[1][j]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[2][j]);
+						reader.ReadType<byte>(mesh.vertexTables[i].weightIds[3][j]);
 						break;
 
 					default:
@@ -280,26 +220,26 @@ namespace core {
 
 		for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
 
-			mesh.morphData.morphDescriptors[i].targetIds.resize(mesh.morphData.morphDescriptors[i].targetCounts);
-			stream.seekg(mesh.morphData.morphDescriptors[i].targetIdOffsets, std::istream::beg);
-
-			for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
-				reader.ReadType<int16>(mesh.morphData.morphDescriptors[i].targetIds[j]);
-
 			mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
 
-			stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset, std::istream::beg);
+			desc.targetIds.resize(desc.targetCounts);
+			stream.seekg(desc.targetIdOffsets, std::istream::beg);
+
+			for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
+				reader.ReadType<int16>(desc.targetIds[j]);
+
+			int morphTargetOffset = mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset;
+			stream.seekg(morphTargetOffset, std::istream::beg);
 			
 			for(int j = 0; j < mesh.morphData.morphTargets[desc.targetIndex].vertCount; ++j) {
-				//mesh.vertexTables[desc.bufferId].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
-				//mesh.vertexTables[desc.bufferId].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+				stream.seekg(morphTargetOffset + (0x20 * j), std::istream::beg);
 
-				mesh.vertexTables[desc.bufferId].vertices[j] = readVec3();
-				mesh.vertexTables[desc.bufferId].normals[j] = readu32u8Quat();
-				stream.seekg(mesh.morphData.morphTargets[desc.targetIndex].blockSize - 15, std::istream::cur); //TODO investigate other stuff
+				mesh.vertexTables[desc.bufferId].vertices[j] = reader.ReadVec3();
+				mesh.vertexTables[desc.bufferId].normals[j] = reader.ReadU8Quaternion();
 			}
 
-			for(int j = 1; j < desc.targetCounts; ++j) {
+			// j = 2 as we skip the basis, then skip something else I don't know what it is god help me
+			for(int j = 2; j < mesh.morphData.morphTargetCount; ++j) {
 				mesh.morphData.morphTargets[desc.targetIndex+j].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 				mesh.morphData.morphTargets[desc.targetIndex+j].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 
@@ -307,9 +247,9 @@ namespace core {
 				for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex+j].vertCount; ++k) {
 					int32 dummy;
 					
-					mesh::vector3 vert = readVec3();
+					vector3 vert = reader.ReadVec3();
 					reader.ReadType<int32>(dummy);
-					mesh::quaternion norm = readu32u8Quat();
+					quaternion norm = reader.ReadS8Quaternion();
 
 					reader.ReadType<int32>(dummy);
 					reader.ReadType<int32>(dummy);
@@ -323,6 +263,7 @@ namespace core {
 			}
 		}
 
+		opts.Result = meshReaderStatus::Success;
 		CheckedProgressUpdate("Mesh reading successful", ProgressType::Info);
 		return mesh;
 	}

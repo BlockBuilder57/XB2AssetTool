@@ -10,31 +10,6 @@ namespace core {
 
 namespace mesh {
 
-	struct vector2 {
-		float x;
-		float y;
-	};
-
-	struct vector3 {
-		float x;
-		float y;
-		float z;
-	};
-
-	struct quaternion {
-		float x;
-		float y;
-		float z;
-		float w;
-	};
-
-	struct color {
-		byte r;
-		byte g;
-		byte b;
-		byte a;
-	};
-
 	enum vertex_descriptor_type : int16 {
 		Position,
 		Weight32,
@@ -101,6 +76,8 @@ namespace mesh {
 	struct morph_data_header {
 		int32 morphDescriptorCount;		
 		int32 morphDescriptorOffset;
+		int32 morphTargetCount;
+		int32 morphTargetOffset;
 	};
 
 	struct morph_descriptor_header {
@@ -133,10 +110,6 @@ namespace mesh {
 
 	struct morph_data : public morph_data_header {
 		std::vector<morph_descriptor> morphDescriptors;
-
-		int32 morphTargetCount;
-		int32 morphTargetOffset;
-
 		std::vector<morph_target> morphTargets;
 	};
 
@@ -157,7 +130,7 @@ namespace mesh {
 
 		// not in order but i'll fix it later
 		std::vector<vector3> vertices;
-		std::vector<int32> weights;
+		std::vector<int32> weightTableIndex;
 		std::vector<std::vector<vector2>> uvPos;
 		int32 uvLayerCount;
 		std::vector<color> vertexColor;

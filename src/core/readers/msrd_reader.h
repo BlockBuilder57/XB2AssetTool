@@ -6,6 +6,22 @@
 namespace xb2at {
 namespace core {
 
+	enum class msrdReaderStatus {
+		Success,
+		ErrorReadingHeader,
+		NotMSRD,
+	};
+
+	inline std::string msrdReaderStatusToString(msrdReaderStatus status) {
+		static const char* status_str[] = {
+			"Success",
+			"Error reading MSRD header",
+			"File is not a MSRD file"
+		};
+
+		return status_str[(int)status];
+	}
+
 	/**
 	 * Options to pass to msrdReader::Read().
 	 */
@@ -20,7 +36,8 @@ namespace core {
 		 * Save decompressed XBC1 files to the output directory.
 		 */
 		bool saveDecompressedXbc1;
-
+		
+		msrdReaderStatus Result;
 	};
 
 	/**
@@ -38,7 +55,7 @@ namespace core {
 		 *
 		 * \param[in] opts Options to pass to the reader
 		 */
-		msrd::msrd Read(const msrdReaderOptions& opts);
+		msrd::msrd Read(msrdReaderOptions& opts);
 		
 
 	private:

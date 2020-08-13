@@ -22,11 +22,12 @@ namespace core {
 			vector_streambuf(std::vector<char>& buffer_) 
 				: read_pos(0),
 				buffer(buffer_) {
+				setg(&buffer_[0], &buffer_[1], &buffer_[0] + buffer_.size());
 			}
 
 			pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which = std::ios_base::in) override {
 				if (dir == std::ios_base::cur)
-					gbump(off);
+					gbump((int32)off);
 				else if (dir == std::ios_base::end)
 					setg(eback(), egptr() + off, egptr());
 				else if (dir == std::ios_base::beg)
@@ -57,7 +58,7 @@ namespace core {
 			int_type pbackfail(int_type c) {
 				// if they are trying to push back a character that they didn't read last
 				// that is an error
-				const unsigned long prev = read_pos-1;
+				const unsigned long prev = (unsigned long)read_pos-1;
 				if (c != EOF && prev < buffer.size() && 
 					c != static_cast<unsigned char>(buffer[prev])) {
 					return EOF;

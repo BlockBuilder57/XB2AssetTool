@@ -7,20 +7,22 @@
 namespace xb2at {
 namespace core {
 
-	msrd::msrd msrdReader::Read(const msrdReaderOptions& opts) {
+	msrd::msrd msrdReader::Read(msrdReaderOptions& opts) {
 		StreamHelper reader(stream);
 		msrd::msrd data;
 
 		// Read the initial header
 		if(!reader.ReadType<msrd::msrd_header>(data)) {
-			CheckedProgressUpdate("file could not be read", ProgressType::Error);
+			opts.Result = msrdReaderStatus::ErrorReadingHeader;
 			return data;
 		}
 
-		if(!strncmp(data.magic, "DRSM", sizeof("DRSM"))) {
-				CheckedProgressUpdate("file is not MSRD", ProgressType::Error);
+		if(strncmp(data.magic, "DRSM", sizeof(data.magic)) != 0) {
+			opts.Result = msrdReaderStatus::NotMSRD;
 			return data;
 		}
+
+		PROGRESS_UPDATE(ProgressType::Verbose, "MSRD version: " << data.version << " (0x" << std::hex << data.version << ")")
 		
 		if(data.dataitemsOffset != 0) {
 			stream.seekg(data.offset + data.dataitemsOffset, std::istream::beg);
@@ -68,24 +70,29 @@ namespace core {
 			stream.seekg(data.offset + data.tocOffset + (i * sizeof(msrd::toc_entry)), std::istream::beg);
 			reader.ReadType<msrd::toc_entry>(data.toc[i]);
 
-			CheckedProgressUpdate("MSRD file " + std::to_string(i), ProgressType::Verbose);
-			CheckedProgressUpdate(".. is " + std::to_string(data.toc[i].compressedSize) + " bytes compressed", ProgressType::Verbose);
-			CheckedProgressUpdate(".. is " + std::to_string(data.toc[i].fileSize) + " bytes decompressed", ProgressType::Verbose);
-			CheckedProgressUpdate(".. is at offset (decimal) " + std::to_string(data.toc[i].offset), ProgressType::Verbose);
+			PROGRESS_UPDATE(ProgressType::Verbose, "MSRD file " << i << ':')
+			PROGRESS_UPDATE(ProgressType::Verbose, ".. is at decimal offset " << data.toc[i].offset)
+			PROGRESS_UPDATE(ProgressType::Verbose, ".. is " << data.toc[i].compressedSize << " bytes compressed")
+			PROGRESS_UPDATE(ProgressType::Verbose, ".. is " << data.toc[i].fileSize << " bytes uncompressed")
 
 			// Decompress the xbc1 file
 			xbc1Reader reader(stream);
 
 			reader.set_progress(std::bind(&msrdReader::CheckedProgressUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
-			xbc1::xbc1 file = reader.Read({ data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1 });
+			xbc1ReaderOptions options = { data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1 };
 
-			if(!file.data.empty())
+			xbc1::xbc1 file = reader.Read(options);
+
+			if(options.Result == xbc1ReaderStatus::Success) {
 				data.files.push_back(file);
+			} else {
+				PROGRESS_UPDATE(ProgressType::Error, "Error reading XBC1: " << xbc1ReaderStatusToString(options.Result))
+			}
 
 		}
 
-
+		opts.Result = msrdReaderStatus::Success;
 		return data;
 	}
 

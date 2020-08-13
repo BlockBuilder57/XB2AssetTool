@@ -5,6 +5,24 @@
 namespace xb2at {
 namespace core {
 
+	enum class xbc1ReaderStatus {
+		Success,
+		ErrorReadingHeader,
+		NotXBC1,
+		ZlibError
+	};
+
+	inline std::string xbc1ReaderStatusToString(xbc1ReaderStatus status) {
+		static const char* status_str[] = {
+			"Success",
+			"Error reading XBC1 header",
+			"File is not XBC1",
+			"Error decompressing Zlib data"
+		};
+
+		return status_str[(int)status];
+	}
+
 	/**
 	 * Options to pass to xbc1Reader::Read().
 	 */
@@ -24,6 +42,8 @@ namespace core {
 		 * Whether or not we should save files in the output directory.
 		 */
 		bool save;
+
+		xbc1ReaderStatus Result;
 	};
 
 	/**
@@ -36,13 +56,12 @@ namespace core {
 		
 		}
 
-		// TODO: Make this use a xbc1ReaderOptions struct like the rest of the readers
 		/**
 		 * Read and decompress a singular XBC1 file.
 		 *
 		 * \param[in] opts Options to pass to the reader.
 		 */
-		xbc1::xbc1 Read(const xbc1ReaderOptions& opts);
+		xbc1::xbc1 Read(xbc1ReaderOptions& opts);
 		
 
 	private:

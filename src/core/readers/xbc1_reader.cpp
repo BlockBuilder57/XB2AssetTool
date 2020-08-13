@@ -5,20 +5,21 @@
 namespace xb2at {
 namespace core {
 
-	xbc1::xbc1 xbc1Reader::Read(const xbc1ReaderOptions& opts) {
+	xbc1::xbc1 xbc1Reader::Read(xbc1ReaderOptions& opts) {
 		StreamHelper reader(stream);
 		xbc1::xbc1 xbc;
 
-		CheckedProgressUpdate("Reading XBC1 at " + std::to_string(opts.offset), ProgressType::Info);
+		PROGRESS_UPDATE(ProgressType::Verbose, "Reading XBC1 file at " << opts.offset);
+
 		stream.seekg(opts.offset, std::istream::beg);
 
-		if(!reader.ReadType<xbc1::xbc1_header>(xbc)) {
-			CheckedProgressUpdate("could not read XBC1 header", ProgressType::Error);
+		if(!reader.ReadType<xbc1::header>(xbc)) {
+			opts.Result = xbc1ReaderStatus::ErrorReadingHeader;
 			return xbc;
 		}
 
-		if(!strncmp(xbc.magic, "xbc1", sizeof("xbc1"))) {
-			CheckedProgressUpdate("not XBC1 data", ProgressType::Error);
+		if(strncmp(xbc.magic, "xbc1", sizeof(xbc.magic)) != 0) {
+			opts.Result = xbc1ReaderStatus::NotXBC1;
 			return xbc;
 		}
 
@@ -40,7 +41,7 @@ namespace core {
 		compressedData.clear();
 
 		if(result != Z_OK) {
-			CheckedProgressUpdate("zlib error: uncompress() returned " + std::to_string(result), ProgressType::Error);
+			PROGRESS_UPDATE(ProgressType::Error, "ZLib Error: uncompress() returned error code " << result);
 			return xbc;
 		}
 		
@@ -52,13 +53,15 @@ namespace core {
 			path = path / std::string("file_" + std::to_string(xbc.offset));
 			path.replace_extension(".bin");
 
-			CheckedProgressUpdate("Writing raw XBC1 file to " + path.string() + "...", ProgressType::Verbose);
+			PROGRESS_UPDATE(ProgressType::Info, "Writing uncompressed XBC1 to " << path.string());
+
 			std::ofstream file(path.string(), std::ofstream::binary);
 
 			file.write((char*)xbc.data.data(), xbc.decompressedSize);
 			file.close();
 		}
 
+		opts.Result = xbc1ReaderStatus::Success;
 		return xbc;
 	}
 

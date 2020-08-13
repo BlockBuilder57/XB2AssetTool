@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
-    <height>224</height>
+    <width>720</width>
+    <height>350</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,8 +30,8 @@
      <rect>
       <x>0</x>
       <y>40</y>
-      <width>541</width>
-      <height>191</height>
+      <width>722</width>
+      <height>310</height>
      </rect>
     </property>
     <property name="tabShape">
@@ -49,8 +49,8 @@
        <rect>
         <x>10</x>
         <y>0</y>
-        <width>141</width>
-        <height>16</height>
+        <width>100</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="font">
@@ -68,7 +68,7 @@
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>451</width>
+        <width>630</width>
         <height>20</height>
        </rect>
       </property>
@@ -79,16 +79,16 @@
        <bool>false</bool>
       </property>
       <property name="placeholderText">
-       <string>Input filename</string>
+       <string>Input filename...</string>
       </property>
      </widget>
      <widget class="QPushButton" name="inputBrowse">
       <property name="geometry">
        <rect>
-        <x>470</x>
+        <x>650</x>
         <y>20</y>
-        <width>51</width>
-        <height>21</height>
+        <width>50</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -102,10 +102,10 @@
      <widget class="QPushButton" name="outputBrowse">
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>70</y>
-        <width>51</width>
-        <height>21</height>
+        <x>650</x>
+        <y>60</y>
+        <width>50</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -120,9 +120,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>50</y>
-        <width>161</width>
-        <height>16</height>
+        <y>40</y>
+        <width>100</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="font">
@@ -139,8 +139,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>70</y>
-        <width>451</width>
+        <y>60</y>
+        <width>630</width>
         <height>20</height>
        </rect>
       </property>
@@ -163,10 +163,10 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>100</y>
-        <width>51</width>
-        <height>21</height>
+        <x>650</x>
+        <y>260</y>
+        <width>50</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -176,14 +176,340 @@
      <widget class="QCheckBox" name="saveXbc1">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>151</width>
-        <height>16</height>
+        <x>20</x>
+        <y>240</y>
+        <width>150</width>
+        <height>20</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Saves uncompressed versions of compressed files to disk.</string>
       </property>
       <property name="text">
        <string>Save raw XBC1 files</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="enableVerbose">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>260</y>
+        <width>300</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Sends a lot more debug messages into the log, can and will cause slowdown!</string>
+      </property>
+      <property name="text">
+       <string>Enable verbose messages (For debugging purposes)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="optionsLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Options:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="formatComboBox">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>140</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>glTF Binary</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>glTF Text</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="meshFormatLabel">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>140</y>
+        <width>120</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Mesh output format:</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveTextures">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>150</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Saves textures of the model to a &quot;Textures&quot; folder.</string>
+      </property>
+      <property name="text">
+       <string>Save textures to folder</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveAnimations">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>140</y>
+        <width>200</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Save animations to the model file.</string>
+      </property>
+      <property name="text">
+       <string>Save animations (not implemented)</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveMorphs">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>120</y>
+        <width>110</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Exports the morphs of the mesh to the model file.</string>
+      </property>
+      <property name="text">
+       <string>Save facial flexes</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="debugOptionsLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>220</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Debug Options:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="mapOptionsLabel">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>170</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Map Options: (not implemented)</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveMapMesh">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>180</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Saves the mesh of the map to a file.</string>
+      </property>
+      <property name="text">
+       <string>Save map mesh</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveMapProps">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>200</y>
+        <width>100</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Saves the props of the map to a file.</string>
+      </property>
+      <property name="text">
+       <string>Save map props</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="propSplitLabel">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>180</y>
+        <width>120</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Prop split size:</string>
+      </property>
+     </widget>
+     <widget class="xb2at::ui::ShowValueSlider" name="propSplitSize">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>319</x>
+        <y>180</y>
+        <width>320</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>How many props are allowed per prop file.</string>
+      </property>
+      <property name="minimum">
+       <number>500</number>
+      </property>
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="singleStep">
+       <number>500</number>
+      </property>
+      <property name="pageStep">
+       <number>500</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
+      <property name="invertedControls">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="levelOfDetailLabel">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>140</y>
+        <width>80</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Level of Detail:</string>
+      </property>
+     </widget>
+     <widget class="xb2at::ui::ShowValueSlider" name="levelOfDetail">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>140</y>
+        <width>80</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The level of detail controls how detailed the model will be.&lt;/p&gt;&lt;p&gt;The higher this number, the less detailed the model becomes.&lt;/p&gt;&lt;p&gt;Setting the number to -1 will export every level of detail into the model file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="minimum">
+       <number>-1</number>
+      </property>
+      <property name="maximum">
+       <number>3</number>
+      </property>
+      <property name="singleStep">
+       <number>1</number>
+      </property>
+      <property name="pageStep">
+       <number>1</number>
+      </property>
+      <property name="value">
+       <number>0</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
+      <property name="invertedControls">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="saveOutlines">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>100</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the saving of duplicate meshes for outline materials.&lt;/p&gt;&lt;p&gt;These are found in the model by default but are disabled by default to reduce file size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Save outline duplicates</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -196,8 +522,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>531</width>
-        <height>131</height>
+        <width>715</width>
+        <height>250</height>
        </rect>
       </property>
       <property name="font">
@@ -225,30 +551,30 @@
        <string/>
       </property>
      </widget>
-     <widget class="QCheckBox" name="enableVerbose">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>130</y>
-        <width>441</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Enable verbose messages (For debugging purposes)</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="saveLog">
       <property name="geometry">
        <rect>
-        <x>450</x>
-        <y>135</y>
-        <width>75</width>
-        <height>21</height>
+        <x>620</x>
+        <y>260</y>
+        <width>80</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
        <string>Save Log...</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="clearLog">
+      <property name="geometry">
+       <rect>
+        <x>529</x>
+        <y>260</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear Log</string>
       </property>
      </widget>
     </widget>
@@ -259,30 +585,32 @@
      <widget class="QLabel" name="aboutxb2at">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>421</width>
-        <height>141</height>
+        <x>50</x>
+        <y>100</y>
+        <width>611</width>
+        <height>151</height>
        </rect>
       </property>
       <property name="text">
-       <string>## About XB2AssetTool
-XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockBuilder57/XBC2ModelDecomp) written in C++17.</string>
+       <string>## XB2AssetTool {VERSION}
+A *full* rewrite of [XBC2ModelDecomp](https://github.com/BlockBuilder57/XBC2ModelDecomp) written in modern C++17 and Qt.
+
+(c) 2020 under the GNU LGPLv3.</string>
       </property>
       <property name="textFormat">
        <enum>Qt::MarkdownText</enum>
       </property>
       <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
      <widget class="QPushButton" name="aboutQtButton">
       <property name="geometry">
        <rect>
-        <x>440</x>
-        <y>120</y>
-        <width>75</width>
-        <height>23</height>
+        <x>620</x>
+        <y>260</y>
+        <width>80</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -317,7 +645,7 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>471</width>
+      <width>701</width>
       <height>21</height>
      </rect>
     </property>
@@ -328,12 +656,19 @@ XB2AssetTool is a *full* rewrite of  [XBC2ModelDecomp](https://github.com/BlockB
      </font>
     </property>
     <property name="text">
-     <string>TODO: Add a description here</string>
+     <string>Lightweight tool to extract assets from Xenoblade Chronicles 2 and games based on the XBC2 engine.</string>
     </property>
    </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>xb2at::ui::ShowValueSlider</class>
+   <extends>QSlider</extends>
+   <header>ShowValueSlider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="xb2at.qrc"/>
  </resources>

@@ -4,17 +4,24 @@
 # they trigger a rebuild of xb2core source files
 set(XB2CORE_SOURCES
 
-	# core library stuff
+	# Core library things
 	core.h
 	endian_swap.h
 	streamhelper.h
 	ivstream.h
 	base_progress_reporter.h
-	
+
+	# Data structs
 	structs.h
 	structs/xbc1.h
 	structs/msrd.h
 	structs/mesh.h
+	structs/mxmd.h
+	structs/lbim.h
+	structs/sar1.h
+	structs/skel.h
+
+	# Readers
 
 	readers/base_reader.h
 
@@ -26,11 +33,28 @@ set(XB2CORE_SOURCES
 
 	readers/mesh_reader.h
 	readers/mesh_reader.cpp
+
+	readers/mxmd_reader.h
+	readers/mxmd_reader.cpp
+
+	readers/lbim_reader.h
+	readers/lbim_reader.cpp
+
+	readers/sar1_reader.h
+	readers/sar1_reader.cpp
+
+	readers/skel_reader.h
+	readers/skel_reader.cpp
 	
+	# Serializers
+
 	serializers/base_serializer.h
 
-	serializers/mesh_serializer.h
-	serializers/mesh_serializer.cpp
+	serializers/model_serializer.h
+	serializers/model_serializer.cpp
+	
+	tegra_texture.h
+	tegra_texture.cpp
 )
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
@@ -42,7 +66,7 @@ target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
 
 # Allow projects that import xb2core to immediately get includes of core
 target_include_directories(xb2core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf)
+target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf glm::glm)
 
 # Link additional libraries required for using the 
 # filesystem library with libc++ and libstdc++.
@@ -55,4 +79,11 @@ elseif(XB2AT_STDLIB STREQUAL "libstdc++")
 endif()
 
 target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
-	
+
+
+add_dependencies(xb2core __xb2at_gittag)
+
+target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR})
+
+# precompile core.h
+target_precompile_headers(xb2core PUBLIC core.h)

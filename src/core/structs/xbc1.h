@@ -19,7 +19,7 @@ namespace xbc1 {
 	 *
 	 * XBC1 files are Zlib compressed.
 	 */
-	struct xbc1_header {
+	struct header {
 		
 		/**
 		 * Magic value. Should be "xbc1".
@@ -45,7 +45,7 @@ namespace xbc1 {
 	/**
 	 * XBC1 data.
 	 */
-	struct xbc1 : public xbc1_header {
+	struct xbc1 : public header {
 		/**
 		 * The name the packing tool decided for this XBC1.
 		 * This can either be something that makes *some* sense or no sense at all 
@@ -64,7 +64,6 @@ namespace xbc1 {
 		 */
 		int32 offset;
 	};
-
 }
 
 
