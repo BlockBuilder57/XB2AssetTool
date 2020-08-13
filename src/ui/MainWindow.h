@@ -43,31 +43,40 @@ namespace ui {
 			bool saveXBC1;
 	};
 
-
-	class ExtractionThread : public QObject {
+	/**
+	 * Extraction worker.
+	 */
+	class ExtractionWorker : public QObject {
 		Q_OBJECT
 
 	public:
 
-		~ExtractionThread() {
+		inline ~ExtractionWorker() {
+			// Simply emit the Finished() signal
+			// so that the UI knows we're done.
 			emit Finished();
 		}
 
-
+		// Perform extraction.
 		void DoIt(std::string& filename, fs::path& outputPath, uiOptions& options);
 
-		// simple wrapper to emit LogMessage
-		void Log(QString message, ProgressType type = ProgressType::Info) {
+		/**
+		 * Wrapper to LogMessage
+		 */
+		inline void Log(QString message, LogSeverity type = LogSeverity::Info) {
 			emit LogMessage(message, type);
 		}
 
-		// hack (but we're always allocated with new)
+		/**
+		 * This is a very bad hack to avoid memory leaking.
+		 * We delete ourselves when we're done so that we also emit the finished signal.
+		 */
 		inline void Done() {
 			delete this;
 		}
 
 	signals:
-		void LogMessage(QString message, ProgressType type = ProgressType::Info);
+		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
 		void Finished();
 	};
 
@@ -133,17 +142,20 @@ namespace ui {
 		 */
 		void AboutButtonClicked();
 
-		// public slots
+		// Slots for the public
 	public slots:
 
 		/**
-		 * Log a message to the "Log" tab in the User Interface, and the logging buffer.
+		 * Logs a message to the "Log" tab in the User Interface when fired.
 		 *
 		 * \param[in] message The message to log.
-		 * \param[in] type The type of the message.
+		 * \param[in] type The type/serverity of the message.
 		 */
-		void LogMessage(QString message, ProgressType type = ProgressType::Info);
+		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
 
+		/**
+		 * Fired
+		 */
 		void Finished();
 
 	private:
@@ -152,13 +164,6 @@ namespace ui {
 		 * Extraction thread.
 		 */
 		QThread* extraction_thread;
-
-
-		/**
-		 * Clear the information in the "Log" tab in the User Interface.
-		 */
-		void ClearLog();
-
 
 		Ui::mainWindow ui;
 	};

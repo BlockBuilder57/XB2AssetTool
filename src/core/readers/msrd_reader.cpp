@@ -22,7 +22,7 @@ namespace core {
 			return data;
 		}
 
-		PROGRESS_UPDATE(ProgressType::Verbose, "MSRD version: " << data.version << " (0x" << std::hex << data.version << ")")
+		VARARGS_LOG(LogSeverity::Verbose, "MSRD version: " << data.version << " (0x" << std::hex << data.version << ")")
 		
 		if(data.dataitemsOffset != 0) {
 			stream.seekg(data.offset + data.dataitemsOffset, std::istream::beg);
@@ -70,15 +70,15 @@ namespace core {
 			stream.seekg(data.offset + data.tocOffset + (i * sizeof(msrd::toc_entry)), std::istream::beg);
 			reader.ReadType<msrd::toc_entry>(data.toc[i]);
 
-			PROGRESS_UPDATE(ProgressType::Verbose, "MSRD file " << i << ':')
-			PROGRESS_UPDATE(ProgressType::Verbose, ".. is at decimal offset " << data.toc[i].offset)
-			PROGRESS_UPDATE(ProgressType::Verbose, ".. is " << data.toc[i].compressedSize << " bytes compressed")
-			PROGRESS_UPDATE(ProgressType::Verbose, ".. is " << data.toc[i].fileSize << " bytes uncompressed")
+			VARARGS_LOG(LogSeverity::Verbose, "MSRD file " << i << ':')
+			VARARGS_LOG(LogSeverity::Verbose, ".. is at decimal offset " << data.toc[i].offset)
+			VARARGS_LOG(LogSeverity::Verbose, ".. is " << data.toc[i].compressedSize << " bytes compressed")
+			VARARGS_LOG(LogSeverity::Verbose, ".. is " << data.toc[i].fileSize << " bytes uncompressed")
 
 			// Decompress the xbc1 file
 			xbc1Reader reader(stream);
 
-			reader.set_progress(std::bind(&msrdReader::CheckedProgressUpdate, this, std::placeholders::_1, std::placeholders::_2));
+			reader.forward(*this);
 
 			xbc1ReaderOptions options = { data.toc[i].offset, opts.outputDirectory, opts.saveDecompressedXbc1 };
 
@@ -87,7 +87,7 @@ namespace core {
 			if(options.Result == xbc1ReaderStatus::Success) {
 				data.files.push_back(file);
 			} else {
-				PROGRESS_UPDATE(ProgressType::Error, "Error reading XBC1: " << xbc1ReaderStatusToString(options.Result))
+				VARARGS_LOG(LogSeverity::Error, "Error reading XBC1: " << xbc1ReaderStatusToString(options.Result))
 			}
 
 		}

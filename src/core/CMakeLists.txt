@@ -9,7 +9,7 @@ set(XB2CORE_SOURCES
 	endian_swap.h
 	streamhelper.h
 	ivstream.h
-	base_progress_reporter.h
+	base_log_reporter.h
 
 	# Data structs
 	structs.h

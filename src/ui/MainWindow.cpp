@@ -7,6 +7,14 @@
 
 #include "version.h"
 
+// Override the VARARGS_LOG in Core's base_log_reporter
+// so that we can use the same macro.
+#ifdef VARARGS_LOG
+	#undef VARARGS_LOG
+	#define VARARGS_LOG(type, ...) { std::stringstream ss; ss << __VA_ARGS__; Log(QString::fromStdString(ss.str()), type); ss.clear(); }
+#endif
+
+
 namespace xb2at {
 namespace ui {
 
@@ -16,7 +24,9 @@ namespace ui {
 		setFixedSize(width(), height());
 		setWindowTitle(tr("%1 %2").arg(windowTitle(), QString::fromLatin1(version::tag)));
 
-		// replace {VERSION} with the version tag once
+		// replace {VERSION} in the about Markdown
+		// with the version tag once
+		// TODO maybe make this a lambda so we can replace other keys?
 		auto text = ui.aboutxb2at->text();
 		text.replace("{VERSION}", QString::fromLatin1(version::tag));
 		ui.aboutxb2at->setText(text);
@@ -35,7 +45,11 @@ namespace ui {
 	}
 
 	MainWindow::~MainWindow() {
-		ClearLog();
+		// do any cleanup here
+
+		if (extraction_thread) {
+			delete extraction_thread;
+		}
 	}
 
 	void MainWindow::InputBrowseButtonClicked() {
@@ -84,7 +98,7 @@ namespace ui {
 	}
 
 	void MainWindow::ExtractButtonClicked() {
-		ClearLog();
+		ui.debugConsole->clear();
 		ui.extractButton->setDisabled(true);
 		ui.allTabs->setCurrentWidget(ui.logTab);
 		
@@ -121,13 +135,13 @@ namespace ui {
 
 		// Start the thread.
 		extraction_thread = new QThread(this);
-		ExtractionThread* et = new ExtractionThread();
-		et->setParent(this);
+		ExtractionWorker* et = new ExtractionWorker();
 		et->moveToThread(extraction_thread);
+		et->setParent(this);
 
 		// connect signals and stuff
 		connect(et, SIGNAL(Finished()), this, SLOT(Finished()));
-		connect(et, SIGNAL(LogMessage(QString, ProgressType)), this, SLOT(LogMessage(QString, ProgressType)));
+		connect(et, SIGNAL(LogMessage(QString, LogSeverity)), this, SLOT(LogMessage(QString, LogSeverity)));
 		connect(extraction_thread, SIGNAL(destroyed()), et, SLOT(deleteLater()));
 
 		// then do it!
@@ -140,7 +154,7 @@ namespace ui {
 
 
 	void MainWindow::ClearLogButtonClicked() {
-		ClearLog();
+		ui.debugConsole->clear();
 	}
 
 	void MainWindow::SaveLogButtonClicked() {
@@ -181,35 +195,31 @@ namespace ui {
 		QApplication::aboutQt();
 	}
 
-	void MainWindow::ClearLog() {
-		ui.debugConsole->clear();
-	}
-
-	void MainWindow::LogMessage(QString message, ProgressType type) {
+	void MainWindow::LogMessage(QString message, LogSeverity type) {
 		if (message.isEmpty())
 			return;
 
 
-		if(type == ProgressType::Verbose && !ui.enableVerbose->isChecked())
+		if(type == LogSeverity::Verbose && !ui.enableVerbose->isChecked())
 			return;
 
 		switch (type) {
 			default:
 			break;
 		
-			case ProgressType::Verbose:
+			case LogSeverity::Verbose:
 				ui.debugConsole->insertHtml("<font>[Verbose] ");
 			break;
 
-			case ProgressType::Info:
+			case LogSeverity::Info:
 				ui.debugConsole->insertHtml("<font>[Info] ");
 			break;
 		
-			case ProgressType::Warning:
+			case LogSeverity::Warning:
 				ui.debugConsole->insertHtml("<font color=\"#b3ae20\">[Warning] ");
 			break;
 
-			case ProgressType::Error:
+			case LogSeverity::Error:
 				ui.debugConsole->insertHtml("<font color=\"#e00d0d\">[Error] ");
 			break;
 		}
@@ -227,17 +237,17 @@ namespace ui {
 	// EXTRACTION THREAD
 	//
 
-	void ExtractionThread::DoIt(std::string& filename, fs::path& outputPath, uiOptions& options) {
+	void ExtractionWorker::DoIt(std::string& filename, fs::path& outputPath, uiOptions& options) {
 			using namespace std::placeholders;
 
-			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Input: " << filename)
-			PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Output path: " << outputPath.string())
+			VARARGS_LOG(LogSeverity::Info, "Input: " << filename)
+			VARARGS_LOG(LogSeverity::Info, "Output path: " << outputPath.string())
 			
 			fs::path path(filename);
 			std::string filenameOnly = path.stem().string();
 
 			if(!fs::exists(outputPath)) {
-				Log("Creating output directory tree", ProgressType::Info);
+				Log("Creating output directory tree", LogSeverity::Info);
 				fs::create_directories(outputPath);
 			}
 
@@ -255,7 +265,7 @@ namespace ui {
 				std::ifstream stream(path.string(), std::ifstream::binary);
 
 				// marshal from C++ -> QT
-				auto progress = [&](std::string message, ProgressType type) {
+				auto progress = [&](std::string message, LogSeverity type) {
 					Log(QString::fromStdString(message), type);
 				};
 
@@ -270,12 +280,12 @@ namespace ui {
 				
 				msrdreader.set_progress(progress);
 
-				PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading MSRD file...")
+				VARARGS_LOG(LogSeverity::Info, "Reading MSRD file...")
 
 				msrd = msrdreader.Read(msrdoptions);
 
 				if(msrdoptions.Result != msrdReaderStatus::Success) {
-					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading MSRD file: " << msrdReaderStatusToString(msrdoptions.Result))
+					VARARGS_LOG(LogSeverity::Error, "Error reading MSRD file: " << msrdReaderStatusToString(msrdoptions.Result))
 					Done();
 					return;
 				}
@@ -293,7 +303,7 @@ namespace ui {
 					stream.close();
 
 					if (sar1options.Result != sar1ReaderStatus::Success) {
-						PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading SAR1 file: " << sar1ReaderStatusToString(sar1options.Result))
+						VARARGS_LOG(LogSeverity::Error, "Error reading SAR1 file: " << sar1ReaderStatusToString(sar1options.Result))
 						return sar1;
 					}
 
@@ -312,7 +322,7 @@ namespace ui {
 					}
 
 					if (bcItem == nullptr) {
-						PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Skeleton not found in " << path.filename().string() << ", continuing without skeleton...")
+						VARARGS_LOG(LogSeverity::Error, "Skeleton not found in " << path.filename().string() << ", continuing without skeleton...")
 						return skel;
 					}
 
@@ -321,11 +331,11 @@ namespace ui {
 
 					skelreader.forward(msrdreader);
 
-					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading SKEL in " << path.filename().string())
+					VARARGS_LOG(LogSeverity::Info, "Reading SKEL in " << path.filename().string())
 					skel = skelreader.Read(skeloptions);
 
 					if(skeloptions.Result != skelReaderStatus::Success) {
-						PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading skeleton, continuing without skeleton...")
+						VARARGS_LOG(LogSeverity::Error, "Error reading skeleton, continuing without skeleton...")
 					}
 
 					return skel;
@@ -341,17 +351,17 @@ namespace ui {
 							meshReader meshreader;
 							meshReaderOptions meshoptions(msrd.files[i].data);
 						
-							PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << " is a mesh")
+							VARARGS_LOG(LogSeverity::Verbose, "MSRD file " << i << " is a mesh")
 
 							meshreader.forward(msrdreader);
 
-							PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Reading mesh " << i)
+							VARARGS_LOG(LogSeverity::Info, "Reading mesh " << i)
 							mesh = meshreader.Read(meshoptions);
 
 							if(meshoptions.Result == meshReaderStatus::Success) {
 								msrd.meshes.push_back(mesh);
 							} else {
-								PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))	
+								VARARGS_LOG(LogSeverity::Error, "Error reading mesh from MSRD file " << i << ": " << meshReaderStatusToString(meshoptions.Result))	
 								Done();
 								return;
 							}
@@ -359,22 +369,22 @@ namespace ui {
 
 						case msrd::data_item_type::Texture: {
 							lbimReader lbimreader;
-							lbimReaderOptions lbimoptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex - 1].data);
+							lbimReaderOptions lbimoptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex == 0 ? 0 : msrd.dataItems[i].tocIndex - 1].data);
 
 							lbimoptions.offset = msrd.dataItems[i].offset;
 							lbimoptions.size = msrd.dataItems[i].size;
 
-							PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD file " << i << " is a texture")
+							VARARGS_LOG(LogSeverity::Verbose, "MSRD file " << i << " is a texture")
 
 							lbimreader.forward(msrdreader);
 							lbim::texture texture = lbimreader.Read(lbimoptions);
 							texture.filename = msrd.textureNames[i - 2];
 
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
-								PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+								VARARGS_LOG(LogSeverity::Error, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
 							} else {
 								msrd.textures.push_back(texture);
-								PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "LBIM " << i << " successfully read.")
+								VARARGS_LOG(LogSeverity::Info, "LBIM " << i << " successfully read.")
 							}
 						} break;
 
@@ -386,17 +396,17 @@ namespace ui {
 								lbimoptions.offset = msrd.dataItems[i].offset + msrd.textureInfo[j].offset;
 								lbimoptions.size = msrd.textureInfo[j].size;
 
-								PROGRESS_UPDATE_MAIN(ProgressType::Verbose, false, "MSRD texture " << j << " has a CachedTexture")
+								VARARGS_LOG(LogSeverity::Verbose, "MSRD texture " << j << " has a CachedTexture")
 
 								lbimreader.forward(msrdreader);
 								lbim::texture texture = lbimreader.Read(lbimoptions);
 								texture.filename = msrd.textureNames[j];
 
 								if(lbimoptions.Result != lbimReaderStatus::Success) {
-									PROGRESS_UPDATE_MAIN(ProgressType::Error, false, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
+									VARARGS_LOG(LogSeverity::Error, "Error reading LBIM: " << lbimReaderStatusToString(lbimoptions.Result))
 								} else {
 									msrd.textures.push_back(texture);
-									PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "Cached LBIM " << j << " successfully read.")
+									VARARGS_LOG(LogSeverity::Info, "Cached LBIM " << j << " successfully read.")
 								}
 							}
 						} break;
@@ -419,7 +429,7 @@ namespace ui {
 						// we're probably an XCDE model
 						skel = readSKEL();
 					} else {
-						PROGRESS_UPDATE_MAIN(ProgressType::Warning, false, "Skeleton doesn't exist, continuing without skeleton...");
+						VARARGS_LOG(LogSeverity::Warning, "Skeleton doesn't exist, continuing without skeleton...");
 					}
 				}
 				
@@ -436,14 +446,14 @@ namespace ui {
 					stream.close();
 
 					if (mxmdoptions.Result != mxmdReaderStatus::Success) {
-						PROGRESS_UPDATE_MAIN(ProgressType::Error, true, "Error reading MXMD file: " << mxmdReaderStatusToString(mxmdoptions.Result))
+						VARARGS_LOG(LogSeverity::Error, "Error reading MXMD file: " << mxmdReaderStatusToString(mxmdoptions.Result))
 						Done();
 						return;
 					}
 
-					PROGRESS_UPDATE_MAIN(ProgressType::Info, false, "MXMD file successfully read")
+					VARARGS_LOG(LogSeverity::Info, "MXMD file successfully read")
 				} else {
-					PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wimdo doesn't exist.");
+					VARARGS_LOG(LogSeverity::Error, filenameOnly << ".wimdo doesn't exist.");
 					Done();
 					return;
 				}
@@ -456,13 +466,13 @@ namespace ui {
 				msrd.textures.clear();
 				msrd.dataItems.clear();
 			} else {
-				PROGRESS_UPDATE_MAIN(ProgressType::Error, true, filenameOnly << ".wismt doesn't exist.");
+				VARARGS_LOG(LogSeverity::Error, filenameOnly << ".wismt doesn't exist.");
 				Done();
 				return;
 			}
 
 			// Signal successful finish
-			PROGRESS_UPDATE_MAIN(ProgressType::Info, true, "Extraction successful")
+			VARARGS_LOG(LogSeverity::Info, "Extraction successful")
 			Done();
 	}
 

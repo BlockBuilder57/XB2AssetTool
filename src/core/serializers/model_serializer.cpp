@@ -93,7 +93,7 @@ namespace core {
 			for (int i = 0; i < mxmdData.Model.meshesCount; ++i) {
 				gltf::Scene scene{};
 
-				PROGRESS_UPDATE(ProgressType::Info, "Converting mesh " << i << " (" << i << '/' << mxmdData.Model.meshesCount << ')')
+				VARARGS_LOG(LogSeverity::Info, "Converting mesh " << i << " (" << i << '/' << mxmdData.Model.meshesCount << ')')
 
 				int32 bonesNodeOffset = doc.nodes.size();
 
@@ -116,7 +116,7 @@ namespace core {
 					}
 					if (Clamp(options.lod, lowestLOD, highestLOD) != options.lod) {
 						options.lod = Clamp(options.lod, lowestLOD, highestLOD);
-						PROGRESS_UPDATE(ProgressType::Info, "No meshes at chosen LOD level, setting LOD to " << options.lod)
+						VARARGS_LOG(LogSeverity::Info, "No meshes at chosen LOD level, setting LOD to " << options.lod)
 					}
 				}
 
@@ -324,7 +324,7 @@ namespace core {
 				}
 
 				bonesNodeOffset = doc.nodes.size();
-				PROGRESS_UPDATE(ProgressType::Info, "Starting to add SKEL to glTF, bonesNodeOffset == " << bonesNodeOffset)
+				VARARGS_LOG(LogSeverity::Info, "Starting to add SKEL to glTF, bonesNodeOffset == " << bonesNodeOffset)
 
 				gltf::Skin skin;
 				for (int k = 0; k < skelData.nodes.size(); ++k)
@@ -336,7 +336,7 @@ namespace core {
 					node.name = skelData.nodes[k].name;
 					if (skelData.nodeParents[k] != Max<uint16>::value) {
 						doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
-						//PROGRESS_UPDATE(ProgressType::Info, "Node " << skelData.nodes[k].name << " with SKEL Parent of " << skelData.nodeParents[k] << " with a theoritical glTF parent of " << skelData.nodeParents[k] + bonesNodeOffset << " (name: " << doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].name << " at skelData.nodes[" << skelData.nodeParents[k] << "])")
+						//VARARGS_LOG(LogSeverity::Info, "Node " << skelData.nodes[k].name << " with SKEL Parent of " << skelData.nodeParents[k] << " with a theoritical glTF parent of " << skelData.nodeParents[k] + bonesNodeOffset << " (name: " << doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].name << " at skelData.nodes[" << skelData.nodeParents[k] << "])")
 					}
 					memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
 					memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
@@ -351,12 +351,12 @@ namespace core {
 				doc.scenes.push_back(scene);
 				doc.scene = i;
 
-				PROGRESS_UPDATE(ProgressType::Info, "Writing glTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
+				VARARGS_LOG(LogSeverity::Info, "Writing glTF " << ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text") << " file to " << outPath.string());
 
 				try {
 					gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
 				} catch (gltf::invalid_gltf_document ex) {
-					PROGRESS_UPDATE(ProgressType::Error, "fx-glTF exception: " << ex.what());
+					VARARGS_LOG(LogSeverity::Error, "fx-glTF exception: " << ex.what());
 				} 
 
 				// clear document explicitly

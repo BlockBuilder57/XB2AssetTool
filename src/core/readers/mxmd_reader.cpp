@@ -20,7 +20,7 @@ namespace xb2at {
 				return data;
 			}
 
-			PROGRESS_UPDATE(ProgressType::Verbose, "MXMD version: " << data.version << " (0x" << std::hex << data.version << ")")
+			VARARGS_LOG(LogSeverity::Verbose, "MXMD version: " << data.version << " (0x" << std::hex << data.version << ")")
 
 			if(data.modelStructOffset != 0) {
 				stream.seekg(data.modelStructOffset, std::istream::beg);

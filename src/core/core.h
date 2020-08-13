@@ -306,9 +306,10 @@ namespace core {
 	/** @} */
 	
 	/**
-	 * Progress reporting severity.
+	 * Log reporting serverity.
+	 * Stuck here cause it's very common
 	 */
-	enum ProgressType : int16 {
+	enum LogSeverity : int16 {
 		Verbose,
 		Info,
 		Warning,

@@ -25,7 +25,7 @@ namespace core {
 			mesh.vertexTables.resize(mesh.vertexTableCount);
 
 			for(int i = 0; i < mesh.vertexTableCount; ++i) {
-				PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex table " << i)
+				VARARGS_LOG(LogSeverity::Verbose, "Reading mesh vertex table " << i)
 
 				stream.seekg(mesh.vertexTableOffset + (i * sizeof(mesh::vertex_table_header)), std::istream::beg);
 				if(!reader.ReadType<mesh::vertex_table_header>(mesh.vertexTables[i])) {
@@ -38,7 +38,7 @@ namespace core {
 				mesh.vertexTables[i].vertexDescriptors.resize(mesh.vertexTables[i].descriptorCount);
 
 				for(int j = 0; j < mesh.vertexTables[i].descriptorCount; ++j) {
-					PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex descriptor " << j)
+					VARARGS_LOG(LogSeverity::Verbose, "Reading mesh vertex descriptor " << j)
 					if(!reader.ReadType<mesh::vertex_descriptor>(mesh.vertexTables[i].vertexDescriptors[j])) {
 						opts.Result = meshReaderStatus::ErrorReadingVertexData;
 						return mesh;
@@ -52,7 +52,7 @@ namespace core {
 			mesh.faceTables.resize(mesh.faceTableCount);
 
 			for(int i = 0; i < mesh.faceTableCount; ++i) {
-				PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh face table " << i)
+				VARARGS_LOG(LogSeverity::Verbose, "Reading mesh face table " << i)
 
 				stream.seekg(mesh.faceTableOffset + (i * sizeof(mesh::face_table_header)), std::istream::beg);
 
@@ -67,7 +67,7 @@ namespace core {
 				for(int j = 0; j < mesh.faceTables[i].vertCount; ++j) {
 					if(!reader.ReadType<uint16>(mesh.faceTables[i].vertices[j])) {
 						opts.Result = meshReaderStatus::ErrorReadingFaceData;
-						//PROGRESS_UPDATE(ProgressType::Error, "Error reading face table " << i)
+						//VARARGS_LOG(LogSeverity::Error, "Error reading face table " << i)
 						return mesh;
 					}
 				}
@@ -76,7 +76,7 @@ namespace core {
 
 		// Read weight data and weight managers
 		if(mesh.weightDataOffset != 0) {
-			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh weight data")
+			VARARGS_LOG(LogSeverity::Verbose, "Reading mesh weight data")
 
 			stream.seekg(mesh.weightDataOffset, std::istream::beg);
 			
@@ -91,7 +91,7 @@ namespace core {
 			for(int i = 0; i < mesh.weightData.managerCount; ++i) {
 				if(!reader.ReadType<mesh::weight_manager>(mesh.weightData.weightManagers[i])) {
 					opts.Result = meshReaderStatus::ErrorReadingWeightData;
-					CheckedProgressUpdate("Error reading weight manager", ProgressType::Error);
+					Log("Error reading weight manager", LogSeverity::Error);
 					return mesh;
 				}
 			}
@@ -99,7 +99,7 @@ namespace core {
 		
 		// Read morph data if we have it at all
 		if(mesh.morphDataOffset > 0) {
-			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh morph data")
+			VARARGS_LOG(LogSeverity::Verbose, "Reading mesh morph data")
 
 			stream.seekg(mesh.morphDataOffset, std::istream::beg);
 
@@ -114,7 +114,7 @@ namespace core {
 			for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
 				if(!reader.ReadType<mesh::morph_descriptor_header>(mesh.morphData.morphDescriptors[i])) {
 					opts.Result = meshReaderStatus::ErrorReadingMorphData;
-					CheckedProgressUpdate("Error reading morph descriptor header", ProgressType::Error);
+					Log("Error reading morph descriptor header", LogSeverity::Error);
 					return mesh;
 				}
 			}
@@ -125,7 +125,7 @@ namespace core {
 			for(int i = 0; i < mesh.morphData.morphTargetCount; ++i) {
 				if(!reader.ReadType<mesh::morph_target_header>(mesh.morphData.morphTargets[i])) {
 					opts.Result = meshReaderStatus::ErrorReadingMorphData;
-					CheckedProgressUpdate("Error reading morph target header", ProgressType::Error);
+					Log("Error reading morph target header", LogSeverity::Error);
 					return mesh;
 				}
 
@@ -150,7 +150,7 @@ namespace core {
 
 		
 		for(int i = 0; i < mesh.vertexTableCount; ++i) {
-			PROGRESS_UPDATE(ProgressType::Verbose, "Reading mesh vertex data table for vertex table " << i)
+			VARARGS_LOG(LogSeverity::Verbose, "Reading mesh vertex data table for vertex table " << i)
 
 			stream.seekg(mesh.dataOffset +  mesh.vertexTables[i].dataOffset, std::istream::beg);
 
@@ -264,7 +264,7 @@ namespace core {
 		}
 
 		opts.Result = meshReaderStatus::Success;
-		CheckedProgressUpdate("Mesh reading successful", ProgressType::Info);
+		Log("Mesh reading successful", LogSeverity::Info);
 		return mesh;
 	}
 

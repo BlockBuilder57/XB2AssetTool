@@ -21,16 +21,14 @@ namespace core {
 		sar.path = reader.ReadString();
 
 		sar.tocItems.resize(sar.numFiles);
-		for (int i = 0; i < sar.numFiles; i++)
-		{
+		for (int i = 0; i < sar.numFiles; i++) {
 			stream.seekg(sar.tocOffset + (i * 0x40), std::istream::beg);
 			reader.ReadType<sar1::toc_data>(sar.tocItems[i]);
 			sar.tocItems[i].filename = reader.ReadString();
 		}
 
 		sar.bcItems.resize(sar.numFiles);
-		for (int i = 0; i < sar.numFiles; i++)
-		{
+		for (int i = 0; i < sar.numFiles; i++) {
 			stream.seekg(sar.tocItems[i].offset, std::istream::beg);
 			sar1::bc& bcItem = sar.bcItems[i];
 

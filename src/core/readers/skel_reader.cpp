@@ -43,7 +43,8 @@ namespace core {
 			reader.ReadType<skel::transform>(skel.transforms[i]);
 
 		opts.Result = skelReaderStatus::Success;
-		CheckedProgressUpdate("SKEL reading successful", ProgressType::Info);
+
+		Log("SKEL reading successful", LogSeverity::Info);
 		return skel;
 	}
 

@@ -261,6 +261,7 @@ __pycache__/
 *.pyc
 
 /out
+/relbuild
 /testcases
 /bin64
 /bin32

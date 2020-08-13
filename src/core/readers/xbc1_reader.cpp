@@ -9,7 +9,7 @@ namespace core {
 		StreamHelper reader(stream);
 		xbc1::xbc1 xbc;
 
-		PROGRESS_UPDATE(ProgressType::Verbose, "Reading XBC1 file at " << opts.offset);
+		VARARGS_LOG(LogSeverity::Verbose, "Reading XBC1 file at " << opts.offset);
 
 		stream.seekg(opts.offset, std::istream::beg);
 
@@ -33,7 +33,7 @@ namespace core {
 		compressedData.resize(xbc.compressedSize);
 		stream.read(compressedData.data(), xbc.compressedSize);
 
-		CheckedProgressUpdate("Decompressing XBC1 data", ProgressType::Verbose);
+		Log("Decompressing XBC1 data", LogSeverity::Verbose);
 
 		// I suspect monolith was just as lazy as I am
 		// and they just use compress() or compress2()
@@ -41,11 +41,11 @@ namespace core {
 		compressedData.clear();
 
 		if(result != Z_OK) {
-			PROGRESS_UPDATE(ProgressType::Error, "ZLib Error: uncompress() returned error code " << result);
+			VARARGS_LOG(LogSeverity::Error, "ZLib Error: uncompress() returned error code " << result);
 			return xbc;
 		}
 		
-		CheckedProgressUpdate("Decompressed data successfully", ProgressType::Verbose);
+		Log("Decompressed data successfully", LogSeverity::Verbose);
 
 		// if the user wants to save raw files
 		if(opts.save) {
@@ -53,7 +53,7 @@ namespace core {
 			path = path / std::string("file_" + std::to_string(xbc.offset));
 			path.replace_extension(".bin");
 
-			PROGRESS_UPDATE(ProgressType::Info, "Writing uncompressed XBC1 to " << path.string());
+			VARARGS_LOG(LogSeverity::Info, "Writing uncompressed XBC1 to " << path.string());
 
 			std::ofstream file(path.string(), std::ofstream::binary);
 
