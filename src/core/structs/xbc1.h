@@ -64,6 +64,8 @@ namespace xbc1 {
 		 */
 		int32 offset;
 	};
+
+	static_assert(sizeof(header) == 20, "Invalid XBC1 header size!");
 }
 
 

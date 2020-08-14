@@ -70,6 +70,9 @@ namespace skel {
 	};
 }
 
+	static_assert(sizeof(skel::header) == 12, "Invalid SKEL header size!");
+	static_assert(sizeof(skel::toc) == 16, "Invalid SKEL TOC size!");
+	static_assert(sizeof(skel::node_data) == 16, "Invalid SKEL node_data size!");
 
 }
 }
