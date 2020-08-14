@@ -1,5 +1,3 @@
-// This file is one big giant TODO.
-// :P
 #include <core.h>
 #include "tegra_texture.h"
 
@@ -25,7 +23,36 @@ namespace core {
 	 */
 	static std::map<TextureFormat, TexFormatInfo> SupportedFormatTable = {
 		// format, bpp, block width, block height, block depth
-		{ TextureFormat::R8G8B8A8_UNORM, { 4, 1, 1, 1 } }
+		{ TextureFormat::R8_UNORM,             {1,  1,  1, 1} },
+		{ TextureFormat::R5G5B5A1_UNORM,       {2,  1,  1, 1} },
+		{ TextureFormat::B5G6R5_UNORM,         {2,  1,  1, 1} },
+		{ TextureFormat::R16_UNORM,            {2,  1,  1, 1} },
+		{ TextureFormat::R8G8B8A8_UNORM,       {4,  1,  1, 1} },
+		{ TextureFormat::R8G8B8A8_UNORM_SRGB,  {4,  1,  1, 1} },
+		{ TextureFormat::R8G8B8A8_UNORM_SRGB,  {4,  1,  1, 1} },
+		{ TextureFormat::R11G11B10_FLOAT,      {4,  1,  1, 1} },
+		{ TextureFormat::R32_FLOAT,            {4,  1,  1, 1} },
+		{ TextureFormat::D32_FLOAT_S8X24_UINT, {8,  1,  1, 1} },
+		{ TextureFormat::BC1_UNORM,            {8,  4,  4, 1} },
+		{ TextureFormat::BC1_UNORM_SRGB,       {8,  4,  4, 1} },
+		{ TextureFormat::BC1_UNORM_SRGB,       {8,  4,  4, 1} },
+		{ TextureFormat::BC2_UNORM,            {16, 4,  4, 1} },
+		{ TextureFormat::BC2_UNORM_SRGB,       {16, 4,  4, 1} },
+		{ TextureFormat::BC2_UNORM_SRGB,       {16, 4,  4, 1} },
+		{ TextureFormat::BC3_UNORM,            {16, 4,  4, 1} },
+		{ TextureFormat::BC3_UNORM_SRGB,       {16, 4,  4, 1} },
+		{ TextureFormat::BC3_UNORM_SRGB,       {16, 4,  4, 1} },
+		{ TextureFormat::BC4_UNORM,            {8,  4,  4, 1} },
+		{ TextureFormat::BC4_SNORM,            {8,  4,  4, 1} },
+		{ TextureFormat::BC5_UNORM,            {16, 4,  4, 1} },
+		{ TextureFormat::BC5_SNORM,            {16, 4,  4, 1} },
+		{ TextureFormat::BC6H_SF16,            {16, 4,  4, 1} },
+		{ TextureFormat::BC6H_UF16,            {16, 4,  4, 1} },
+		{ TextureFormat::BC7_UNORM,            {16, 4,  4, 1} },
+		{ TextureFormat::BC7_UNORM_SRGB,       {16, 4,  4, 1} },
+		{ TextureFormat::ASTC_4x4_UNORM,       {16, 4,  4, 1} },
+		{ TextureFormat::ASTC_5x5_UNORM,       {16, 5,  5, 1} },
+		{ TextureFormat::ASTC_8x8_UNORM,       {16, 8,  8, 1} }
 	};
 
 
