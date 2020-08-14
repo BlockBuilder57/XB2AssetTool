@@ -50,26 +50,29 @@ namespace ui {
 
 		void MakeDirectoryIfNotExists(fs::path& root, const std::string& directoryName);
 
+		void LogCallback(std::string message, LogSeverity type);
+
+		// read seperation functions
+
+		bool ReadMSRD(fs::path& path, msrd::msrd& msrdToReadTo, msrdReaderOptions& options);
+
+		bool ReadMXMD(fs::path& path, mxmd::mxmd& mxmdToReadTo, mxmdReaderOptions& options);
+
+		bool ReadSAR1(fs::path& path, const std::string& extension, sar1::sar1& sar1ToReadTo, sar1ReaderOptions& options);
+
+		bool ReadSKEL(fs::path& path, skel::skel& skelToReadto);
 		
+
 		void DoIt(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options);
-
-
-		/**
-		 * Wrapper to LogMessage
-		 */
-		inline void Log(QString message, LogSeverity type = LogSeverity::Info) {
-			emit LogMessage(message, type);
-		}
 
 		/**
 		 * This is a very bad hack to avoid memory leaking.
-		 * We delete ourselves when we're done so that we also emit the finished signal.
+		 * We delete ourselves when we're done with a secondary purpose of also emitting the finished signal.
 		 */
 		inline void Done() {
 			delete this;
 		}
 
-		
 		Logger logger = Logger::GetLogger("ExtractionWorker");
 
 	signals:
