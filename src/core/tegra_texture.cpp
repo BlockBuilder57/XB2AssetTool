@@ -23,7 +23,7 @@ namespace core {
 	 * Static dictionary of supported formats.
 	 */
 	const static std::map<TextureFormat, TexFormatInfo> SupportedFormatTable = {
-		// format, bpp, block width, block height, block depth
+		// format id, bpp, block width, block height, block depth
 		{ TextureFormat::R8_UNORM,             {1,  1,  1, 1} },
 		{ TextureFormat::R5G5B5A1_UNORM,       {2,  1,  1, 1} },
 		{ TextureFormat::B5G6R5_UNORM,         {2,  1,  1, 1} },

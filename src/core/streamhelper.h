@@ -19,7 +19,7 @@ namespace detail {
 		#if __cplusplus >= 201704L
 			static_assert(std::is_standard_layout<T>::value, "Non-POD (Plain Old Data) type detected.");
 		#else
-			static_assert(std::is_pod<T>::value, "Non-POD (Plain Old Data) type detected. (C++20)");
+			static_assert(std::is_pod<T>::value, "Non-POD (Plain Old Data) type detected.");
 		#endif
 	};
 
@@ -29,19 +29,22 @@ namespace xb2at {
 namespace core {
 
 	/**
-	 * A helper object making reading POD (Plain Old Data) types from a C++ iostream object easier.
-	 * Essentially like a BinaryReader.. that can read any type you want *as well as* type primitives!
-	 * Cool, huh?
+	 * A helper object to read datatypes from a stream.
+	 * Attempts to be optimized by not copying data as much.
 	 */
 	struct StreamHelper {
 	
-		StreamHelper(std::istream& stream) 
+		constexpr StreamHelper(std::istream& stream) 
 			: stream(stream) { 
 			
 		}
 			
-		// return the stream this StreamHelper is managing
-		inline std::istream& raw() { return stream; } 
+		/**
+		 * Return reference to the raw stream.
+		 */
+		constexpr std::istream& raw() { 
+			return stream; 
+		} 
 			
 		/**
 		 * Read any POD type.
@@ -56,7 +59,8 @@ namespace core {
 		template<class T>
 		inline bool ReadType(T& data) {
 
-			// The PodAssert object is only relevant during compile time (as it's only used to 
+			// The PodAssert object is only relevant during compile time 
+			// (as it's only used to check T is a POD)
 			// so make it constexpr and unused
 			constexpr CORE_UNUSED detail::PodAssert<T> pod{};
 			
