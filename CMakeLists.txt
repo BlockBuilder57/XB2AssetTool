@@ -12,8 +12,17 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 endif()
 
 if(MSVC)
-	# It's 2020. Get with the program and stop faking C++98
+	# It's 2020. Get with the program and stop faking C++98.
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /D_CRT_SECURE_NO_WARNINGS")
+endif()
+
+# clang-cl optimizations
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND MSVC)
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+		# use /clang: to pass in options from godbolt analysis
+		set(CMAKE_CXX_FLAGS_RELEASE "/MD /Oi /DNDEBUG /clang:-O3 /clang:-ffast-math")
+		set(CMAKE_C_FLAGS_RELEASE "/MD /Oi /DNDEBUG /clang:-O3 /clang:-ffast-math")
+	endif()
 endif()
 
 # Detect the particular C++ standard library.
@@ -63,7 +72,7 @@ endif()
 add_subdirectory(vendor)
 
 add_custom_target(__xb2at_gittag COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/scripts/gittag.cmake WORKING_DIRECTORY ${PROJECT_BINARY_DIR} SOURCES ${PROJECT_BINARY_DIR}/version.h)
-#set_source_files_properties(${PROJECT_BINARY_DIR}/version.h PROPERTIES GENERATED TRUE)
+set_source_files_properties(${PROJECT_BINARY_DIR}/version.h PROPERTIES GENERATED TRUE)
 
 add_subdirectory(src/core)
 

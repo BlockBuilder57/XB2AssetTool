@@ -142,8 +142,10 @@ namespace ui {
 		connect(et, SIGNAL(LogMessage(QString, LogSeverity)), this, SLOT(LogMessage(QString, LogSeverity)));
 		connect(extraction_thread, SIGNAL(destroyed()), et, SLOT(deleteLater()));
 
+		fs::path outputPath(ui.outputDir->text().toStdString());
+
 		// then do it!
-		et->DoIt(filename, fs::path(ui.outputDir->text().toStdString()), options);
+		et->DoIt(filename, outputPath, options);
 	}
 
 	void MainWindow::Finished() {

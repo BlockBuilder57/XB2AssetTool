@@ -64,7 +64,7 @@ namespace core {
 		uint32 height;
 		uint32 depth;
 
-		// In-place deswizzle this texture
+		// In-place deswizzle this texture into raw format
 		bool Deswizzle();
 	};
 

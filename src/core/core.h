@@ -24,6 +24,15 @@
 namespace xb2at {
 namespace core {
 
+	// CORE_UNUSED:
+	// marks a variable as unused so clang doesn't screech
+#if defined(__clang__) || defined(__GNUC__)
+	#define CORE_UNUSED __attribute__((unused))
+#else
+	// no-op for compilers that are looser about it
+	#define CORE_UNUSED
+#endif
+
 	/**
 	 * \defgroup Types Types
 	 * @{
@@ -51,13 +60,13 @@ namespace core {
 	/**
 	 * constant shorthand for numeric_limits<T>::min()
 	 */
-	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 	struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
 
 	/**
 	 * constant shorthand for numeric_limits<T>::max()
 	 */
-	template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 	struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
 	
 	/**

@@ -336,12 +336,15 @@ namespace core {
 					node.name = skelData.nodes[k].name;
 					if (skelData.nodeParents[k] != Max<uint16>::value) {
 						doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
+						// TODO translate to new logger
 						//VARARGS_LOG(LogSeverity::Info, "Node " << skelData.nodes[k].name << " with SKEL Parent of " << skelData.nodeParents[k] << " with a theoritical glTF parent of " << skelData.nodeParents[k] + bonesNodeOffset << " (name: " << doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].name << " at skelData.nodes[" << skelData.nodeParents[k] << "])")
 					}
 					memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
 					memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
 					memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
-					glm::mat4x4 test = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+
+					// unused until it isn't just to avoid a warning here
+					CORE_UNUSED glm::mat4x4 test = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
 
 					doc.nodes.push_back(node);
 					if (skelData.nodeParents[k] == Max<uint16>::value)

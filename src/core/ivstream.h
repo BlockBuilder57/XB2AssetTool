@@ -41,21 +41,21 @@ namespace core {
 				return seekoff(sp - pos_type(off_type(0)), std::ios_base::beg, which);
 			}
 
-			int_type underflow() {
+			int_type underflow() override {
 				if (read_pos < buffer.size())
 					return static_cast<unsigned char>(buffer[read_pos]);
 				else
 					return EOF;
 			}
 
-			int_type uflow() {   
+			int_type uflow() override {   
 				if (read_pos < buffer.size())
 					return static_cast<unsigned char>(buffer[read_pos++]);
 				else
 					return EOF;
 			}
 
-			int_type pbackfail(int_type c) {
+			int_type pbackfail(int_type c) override {
 				// if they are trying to push back a character that they didn't read last
 				// that is an error
 				const unsigned long prev = (unsigned long)read_pos-1;
@@ -68,7 +68,7 @@ namespace core {
 				return 1;
 			}
 
-			std::streamsize xsgetn(char* s, std::streamsize n) { 
+			std::streamsize xsgetn(char* s, std::streamsize n) override { 
 				if (read_pos < buffer.size()) {
 					const size_type num = std::min<size_type>(n, buffer.size()-read_pos);
 					memcpy(s, &buffer[read_pos], num);

@@ -5,15 +5,16 @@ namespace ui {
 
 
 	void ExtractionWorker::MakeDirectoryIfNotExists(fs::path& root, const std::string& directoryName) {
-		if(directoryName.empty())
+		if(directoryName.empty()) {
 			// If the directory name is empty
 			// then just assume the user just wants the path itself to be created.
 			if(!fs::exists(root))
 				fs::create_directory(root);
-		else
+		} else {
 			// Else they want to make a tree with the directory name being the name to create in the root.
 			if(!fs::exists(root / directoryName))
 				fs::create_directories(root / directoryName);
+		}
 	}
 
 	void ExtractionWorker::LogCallback(std::string message, LogSeverity type) {
@@ -235,6 +236,9 @@ namespace ui {
 						}
 					} break;
 
+					case msrd::data_item_type::ShaderBundle: // We don't care about this quite yet
+					default:
+						break;
 				}
 			}
 

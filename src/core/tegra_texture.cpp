@@ -5,7 +5,8 @@ namespace xb2at {
 namespace core {
 
 	/**
-	 * Info structure
+	 * Structure used to store information
+	 * about the supported formats in the support format table.
 	 */
 	struct TexFormatInfo {
 		uint32 bpp;
@@ -21,7 +22,7 @@ namespace core {
 	/**
 	 * Static dictionary of supported formats.
 	 */
-	static std::map<TextureFormat, TexFormatInfo> SupportedFormatTable = {
+	const static std::map<TextureFormat, TexFormatInfo> SupportedFormatTable = {
 		// format, bpp, block width, block height, block depth
 		{ TextureFormat::R8_UNORM,             {1,  1,  1, 1} },
 		{ TextureFormat::R5G5B5A1_UNORM,       {2,  1,  1, 1} },
@@ -55,9 +56,8 @@ namespace core {
 		{ TextureFormat::ASTC_8x8_UNORM,       {16, 8,  8, 1} }
 	};
 
-
-namespace TegraInternal {
-
+	// these could be methods in the class honestly...
+	
 	int32 GetBpp(TegraTexture* Texture) {
 		auto it = SupportedFormatTable.find(Texture->Format);
 
@@ -126,7 +126,7 @@ namespace TegraInternal {
 	
 
 	// Really get block height.
-	uint32 GetBlockHeightReal(uint32 height) {
+	uint32 GetRealBlockHeight(uint32 height) {
 		auto bh = pow2_roundup(height / 8);
 		if (bh > 16)
 			return 16;
@@ -135,10 +135,14 @@ namespace TegraInternal {
 	}
 
 
-}
+	/**
+	 * TODO.
+	 */
+	uint32 GetLinearAddressBlock(uint32 x, uint32 y, uint32 width) {
+		return 0;
+	}
 
 	bool TegraTexture::Deswizzle() {
-		using namespace TegraInternal;
 
 		int32 bpp = GetBpp(this);
 		int32 blockWidth = GetBlockWidth(this);

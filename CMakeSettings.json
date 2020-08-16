@@ -1,56 +1,88 @@
 ﻿{
-	"configurations": [
-		{
-			"name": "x64-Debug",
-			"generator": "Visual Studio 16 2019 Win64",
-			"configurationType": "Debug",
-			"inheritEnvironments": [ "msvc_x64_x64" ],
-			"buildRoot": "${projectDir}\\out\\build\\${name}",
-			"installRoot": "${projectDir}\\out\\install\\${name}",
-			"cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017_64",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
-			"variables": [],
-			"intelliSenseMode": "windows-msvc-x64"
-		},
-		{
-			"name": "x64-Release",
-			"generator": "Visual Studio 16 2019 Win64",
-			"configurationType": "Release",
-			"buildRoot": "${projectDir}\\out\\build\\${name}",
-			"installRoot": "${projectDir}\\out\\install\\${name}",
-			"cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017_64",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
-			"inheritEnvironments": [ "msvc_x64_x64" ],
-			"variables": [],
-			"intelliSenseMode": "windows-msvc-x64"
-		},
-		{
-			"name": "x86-Release",
-			"generator": "Visual Studio 16 2019",
-			"configurationType": "Release",
-			"buildRoot": "${projectDir}\\out\\build\\${name}",
-			"installRoot": "${projectDir}\\out\\install\\${name}",
-			"cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
-			"inheritEnvironments": [ "msvc_x86" ],
-			"variables": [],
-			"intelliSenseMode": "windows-msvc-x64"
-		},
-		{
-			"name": "x86-Debug",
-			"generator": "Visual Studio 16 2019",
-			"configurationType": "Debug",
-			"buildRoot": "${projectDir}\\out\\build\\${name}",
-			"installRoot": "${projectDir}\\out\\install\\${name}",
-			"cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": "",
-			"inheritEnvironments": [ "msvc_x86" ],
-			"variables": [],
-			"intelliSenseMode": "windows-msvc-x86"
-		}
-	]
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "clang_cl_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017_64",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
+          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
+          "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        }
+      ],
+      "intelliSenseMode": "windows-clang-x64"
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017_64",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x64_x64" ],
+      "variables": [
+        {
+          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
+          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
+          "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        }
+      ],
+      "intelliSenseMode": "windows-clang-x64"
+    },
+    {
+      "name": "x86-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x86_x64" ],
+      "variables": [
+        {
+          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
+          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
+          "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        }
+      ],
+      "intelliSenseMode": "windows-clang-x86"
+    },
+    {
+      "name": "x86-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x86_x64" ],
+      "variables": [
+        {
+          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
+          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
+          "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        }
+      ],
+      "intelliSenseMode": "windows-clang-x86"
+    }
+  ]
 }

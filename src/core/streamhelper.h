@@ -7,18 +7,19 @@
 namespace detail {
 
 	/**
-	 * Static assert helper for enforcing POD types while not being (very) ugly.
+	 * Static assert helper for enforcing POD types while being very out of the way.
+	 * 
 	 * Forward-compatible with C++20's deprecation of is_pod<T>, 
 	 * using is_standard_layout<T> in cases where C++20 experimental support is enabled.
 	 *
-	 * \tparam T The type that this object should assert is a POD type.
+	 * \tparam T The type that this object should assert is a POD type during compile time.
 	 */
 	template<class T>
 	struct PodAssert {
 		#if __cplusplus >= 201704L
-			static_assert(std::is_standard_layout<T>::value, "The given type is not a Plain Old Data (POD) type.");
+			static_assert(std::is_standard_layout<T>::value, "Non-POD (Plain Old Data) type detected.");
 		#else
-			static_assert(std::is_pod<T>::value, "The given type is not a Plain Old Data (POD) type.");
+			static_assert(std::is_pod<T>::value, "Non-POD (Plain Old Data) type detected. (C++20)");
 		#endif
 	};
 
@@ -29,7 +30,8 @@ namespace core {
 
 	/**
 	 * A helper object making reading POD (Plain Old Data) types from a C++ iostream object easier.
-	 * Essentially a BinaryReader on crack
+	 * Essentially like a BinaryReader.. that can read any type you want *as well as* type primitives!
+	 * Cool, huh?
 	 */
 	struct StreamHelper {
 	
@@ -53,7 +55,10 @@ namespace core {
 		 */
 		template<class T>
 		inline bool ReadType(T& data) {
-			static detail::PodAssert<T> pod;
+
+			// The PodAssert object is only relevant during compile time (as it's only used to 
+			// so make it constexpr and unused
+			constexpr CORE_UNUSED detail::PodAssert<T> pod{};
 			
 			if(!stream)
 				return false;
@@ -73,7 +78,7 @@ namespace core {
 		 */
 		template<class T>
 		inline T ReadType() {
-			static detail::PodAssert<T> pod;
+			constexpr CORE_UNUSED detail::PodAssert<T> pod{};
 			T temp{};
 
 			if(!stream)
