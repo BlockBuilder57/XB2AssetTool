@@ -6,7 +6,10 @@
 #
 
 # Visual Studio 2015/2017/2019/... cache/options directory
-.vs/
+.vs/*
+
+# but keep launch.vs.json
+!.vs/launch.vs.json
 
 # Since the VS CMake tools just use this directory, this is the only rule we *need* to have.
 /out

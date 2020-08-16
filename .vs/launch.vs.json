@@ -1,0 +1,34 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "xb2at.exe (src\\ui\\xb2at.exe)",
+      "name": "xb2at.exe debug x64",
+      "currentDir": "..\\..\\..\\install\\x64-Debug"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "xb2at.exe (src\\ui\\xb2at.exe)",
+      "name": "xb2at.exe release x64",
+      "currentDir": "..\\install\\x64-Release"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "xb2at.exe (src\\ui\\xb2at.exe)",
+      "name": "xb2at.exe debug x86",
+      "currentDir": "out\\install\\x86-Release"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "xb2at.exe (src\\ui\\xb2at.exe)",
+      "name": "xb2at.exe release x86",
+      "currentDir": "out\\install\\x86-Release"
+    }
+  ]
+}
