@@ -6,7 +6,7 @@ if not exist "%CD%\bind64\" mkdir bind64
 set PATH=C:\Qt\5.14.2\msvc2017_64\bin\;%PATH%
 
 pushd bind64
-	copy ..\relbuild\x64-debug\src\ui\debug\xb2at.exe .
+	copy ..\out\build\x64-debug\src\ui\debug\xb2at.exe .
 	windeployqt .\xb2at.exe
 :: delete some files that aren't needed
 :: (slims down the build tree quite a bit)

@@ -12,9 +12,12 @@
       "ctestCommandArgs": "",
       "variables": [
         {
-          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
-          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
           "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
           "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
           "type": "FILEPATH"
         }
@@ -33,9 +36,12 @@
       "inheritEnvironments": [ "clang_cl_x64_x64" ],
       "variables": [
         {
-          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
-          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
           "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
           "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
           "type": "FILEPATH"
         }
@@ -51,12 +57,15 @@
       "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "clang_cl_x86_x64" ],
+      "inheritEnvironments": [ "clang_cl_x86" ],
       "variables": [
         {
-          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
-          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
           "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
           "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
           "type": "FILEPATH"
         }
@@ -72,12 +81,15 @@
       "cmakeCommandArgs": "-DCMAKE_PREFIX_PATH=C:\\Qt\\5.14.2\\msvc2017",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "clang_cl_x86_x64" ],
+      "inheritEnvironments": [ "clang_cl_x86" ],
       "variables": [
         {
-          // To be honest, this is a very bad hack. But it's one I unfortunately have to make.
-          // Compiler detection seems to detect the clang binary, and assume it's clang-cl (when it isn't).
           "name": "CMAKE_C_COMPILER",
+          "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
           "value": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
           "type": "FILEPATH"
         }
