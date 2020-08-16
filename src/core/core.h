@@ -119,6 +119,30 @@ namespace core {
 		float m9,  m10, m11, m12;
 		float m13, m14, m15, m16;
 	};
+
+	/**
+	 * Like std::map<Key, Value> but in compile time! 
+	 */
+	template<class Key, class Value, std::size_t Size>
+	struct CompileTimeMap {
+		
+		/**
+		 * Find a value in the map. 
+		 */
+		[[nodiscard]]
+		constexpr Value at(const Key& key) const {
+			const auto it = std::find_if(std::begin(values), std::end(values), [&key](const auto& v) {
+				return v.first == key;
+			});
+
+			if (it != std::end(values))
+				return it->second;
+
+			throw std::range_error("not found");
+		}
+
+		std::array<std::pair<Key, Value>, Size> values;
+	};
 	
 	/** @} */
 

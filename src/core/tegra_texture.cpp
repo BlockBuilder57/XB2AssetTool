@@ -1,4 +1,5 @@
 #include <core.h>
+#include <array>
 #include "tegra_texture.h"
 
 namespace xb2at {
@@ -18,11 +19,11 @@ namespace core {
 		uint32 blockdepth;
 	};
 
-
 	/**
-	 * Static dictionary of supported formats.
+	 * Constexpr array of all pairs of supported format in the layout of
+	 *	{ ID, { INFO } }
 	 */
-	const static std::map<TextureFormat, TexFormatInfo> SupportedFormatTable = {
+	constexpr static std::array<std::pair<TextureFormat, TexFormatInfo>, 30> SupportedFormatData {{
 		// format id, bpp, block width, block height, block depth
 		{ TextureFormat::R8_UNORM,             {1,  1,  1, 1} },
 		{ TextureFormat::R5G5B5A1_UNORM,       {2,  1,  1, 1} },
@@ -54,54 +55,38 @@ namespace core {
 		{ TextureFormat::ASTC_4x4_UNORM,       {16, 4,  4, 1} },
 		{ TextureFormat::ASTC_5x5_UNORM,       {16, 5,  5, 1} },
 		{ TextureFormat::ASTC_8x8_UNORM,       {16, 8,  8, 1} }
-	};
+	}};
 
 	// these could be methods in the class honestly...
 	
 	int32 GetBpp(TegraTexture* Texture) {
-		auto it = SupportedFormatTable.find(Texture->Format);
+		constexpr auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
+		auto format = map.at(Texture->Format);
 
-		if(it == SupportedFormatTable.end())
-			return -1;
-
-		auto& val = ((*it).second);
-
-		return val.bpp;
+		return format.bpp;
 	}
 
 	int32 GetBlockWidth(TegraTexture* Texture) {
-		auto it = SupportedFormatTable.find(Texture->Format);
+		constexpr auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
+		auto format = map.at(Texture->Format);
 
-		if(it == SupportedFormatTable.end())
-			return -1;
-
-		auto& val = ((*it).second);
-
-		return val.blockwidth;
+		return format.blockwidth;
 	}
 
 	
 	int32 GetBlockHeight(TegraTexture* Texture) {
-		auto it = SupportedFormatTable.find(Texture->Format);
+		constexpr auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
+		auto format = map.at(Texture->Format);
 
-		if(it == SupportedFormatTable.end())
-			return -1;
-
-		auto& val = ((*it).second);
-
-		return val.blockheight;
+		return format.blockheight;
 	}
 
 
 	int32 GetBlockDepth(TegraTexture* Texture) {
-		auto it = SupportedFormatTable.find(Texture->Format);
+		constexpr auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
+		auto format = map.at(Texture->Format);
 
-		if(it == SupportedFormatTable.end())
-			return -1;
-
-		auto& val = ((*it).second);
-
-		return val.blockdepth;
+		return format.blockdepth;
 	}
 
 	// Ported from SwitchToolbox

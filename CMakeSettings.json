@@ -22,7 +22,7 @@
           "type": "FILEPATH"
         }
       ],
-      "intelliSenseMode": "windows-clang-x64"
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x64-Release",
@@ -46,7 +46,7 @@
           "type": "FILEPATH"
         }
       ],
-      "intelliSenseMode": "windows-clang-x64"
+      "intelliSenseMode": "windows-msvc-x64"
     },
     {
       "name": "x86-Release",
@@ -70,7 +70,7 @@
           "type": "FILEPATH"
         }
       ],
-      "intelliSenseMode": "windows-clang-x86"
+      "intelliSenseMode": "windows-msvc-x86"
     },
     {
       "name": "x86-Debug",
@@ -94,7 +94,7 @@
           "type": "FILEPATH"
         }
       ],
-      "intelliSenseMode": "windows-clang-x86"
+      "intelliSenseMode": "windows-msvc-x86"
     }
   ]
 }
