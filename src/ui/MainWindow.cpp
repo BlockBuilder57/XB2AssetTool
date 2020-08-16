@@ -15,16 +15,22 @@ namespace ui {
 		: QMainWindow(parent) {
 		ui.setupUi(this);
 		setFixedSize(width(), height());
+
+		// replace a keyword in the about Markdown with a value
+		auto ReplaceKeyWord = [&](QString identifier, QString replacement) {
+			auto text = ui.aboutxb2at->text();
+			text.replace(identifier, replacement);
+			ui.aboutxb2at->setText(text);
+		};
+
+		// TODO: if the described tag contains -N or -N-dirty or the branch isn't master then
+		// also show what branch the code was built on.
+
 		setWindowTitle(tr("%1 %2").arg(windowTitle(), QString::fromLatin1(version::tag)));
+		ReplaceKeyWord("{VERSION}", QString::fromLatin1(version::tag));
 
-		// replace {VERSION} in the about Markdown
-		// with the version tag once
-		// TODO maybe make this a lambda so we can replace other keys?
-		auto text = ui.aboutxb2at->text();
-		text.replace("{VERSION}", QString::fromLatin1(version::tag));
-		ui.aboutxb2at->setText(text);
+		// connect all of the UI events to functions in here
 
-		// connect UI events
 		connect(ui.inputBrowse, SIGNAL(clicked()), this, SLOT(InputBrowseButtonClicked()));
 		connect(ui.outputBrowse, SIGNAL(clicked()), this, SLOT(OutputBrowseButtonClicked()));
 		connect(ui.extractButton, SIGNAL(clicked()), this, SLOT(ExtractButtonClicked()));
@@ -33,6 +39,7 @@ namespace ui {
 
 		connect(ui.aboutQtButton, SIGNAL(clicked()), this, SLOT(AboutButtonClicked()));
 
+		// connect textchanged events to our handler for both of them
 		connect(ui.inputFiles, SIGNAL(textChanged(const QString&)), this, SLOT(TextChanged()));
 		connect(ui.outputDir, SIGNAL(textChanged(const QString&)), this, SLOT(TextChanged()));
 	}
@@ -40,6 +47,7 @@ namespace ui {
 	MainWindow::~MainWindow() {
 		// do any cleanup here
 
+		// if the extraction thread somehow exists remove it
 		if (extraction_thread) {
 			delete extraction_thread;
 		}
@@ -56,6 +64,9 @@ namespace ui {
 				return;
 
 			std::string file = fileSelector.selectedFiles()[0].toStdString();
+
+			// normalize the path by replacing the file seperator with the platform prefered one
+			// (Qt seems to always prefer / instead of choosing the platform preferred one)
 
 			QString normalized = QString::fromStdString(file.substr(0, file.find_last_of('.'))).replace('/', fs::path::preferred_separator);
 
@@ -77,6 +88,7 @@ namespace ui {
 
 			QString dir = fileSelector.selectedFiles()[0];
 
+			// Do the same thing as above, but with less scariness.
 			ui.outputDir->setText(dir.replace('/', fs::path::preferred_separator));
 		}
 	}
@@ -131,13 +143,15 @@ namespace ui {
 
 		std::string filename = file.toStdString();
 
-		// Start the thread.
+		// Create the thread and extraction objects
 		extraction_thread = new QThread(this);
 		ExtractionWorker* et = new ExtractionWorker();
+
+		// and move the extraction worker to the thread
 		et->moveToThread(extraction_thread);
 		et->setParent(this);
 
-		// connect signals and stuff
+		// connect all of the signals to the UI slots
 		connect(et, SIGNAL(Finished()), this, SLOT(Finished()));
 		connect(et, SIGNAL(LogMessage(QString, LogSeverity)), this, SLOT(LogMessage(QString, LogSeverity)));
 		connect(extraction_thread, SIGNAL(destroyed()), et, SLOT(deleteLater()));

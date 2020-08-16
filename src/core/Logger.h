@@ -145,5 +145,9 @@ namespace core {
 		std::string channel_name;
 	};
 
+	// use this macro to construct a logger statement
+	// that has file and line marked. Useful for if you want to trace stuff.
+#define LOGGER_MARKED " (" , __FILE__, " line " , __LINE__, ")"
+
 }
 }

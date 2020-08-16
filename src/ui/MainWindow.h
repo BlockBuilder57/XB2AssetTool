@@ -14,15 +14,15 @@ namespace ui {
 	using namespace xb2at::core;
 
 	class MainWindow : public QMainWindow {
-
 		Q_OBJECT
 
 	public:
-		MainWindow(QWidget *parent = Q_NULLPTR);
+		MainWindow(QWidget *parent = nullptr);
 
 		~MainWindow();
 
 	private slots:
+
 		/**
 		 * Fired when the Browse button for the input file is clicked.
 		 *
@@ -62,12 +62,12 @@ namespace ui {
 		 * Fired when the "Save Log" button in the Log tab is clicked.
 		 *
 		 * Brings up a file selector to select filename and location of the log to save,
-		 * and then saves the log in a plain text form.
+		 * and then saves the log in a plain text form, ready for anyone to look at.
 		 */
 		void SaveLogButtonClicked();
 		
 		/**
-		 * Fired when the "About Qt..." button is clicked.
+		 * Fired when the "About Qt..." button is clicked in the About tab.
 		 *
 		 * Brings up the About Qt dialog.
 		 */
@@ -85,7 +85,7 @@ namespace ui {
 		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
 
 		/**
-		 * When fired, anything needed for finished extraction is called
+		 * When fired, anything needed to be called when extraction is called.
 		 */
 		void Finished();
 

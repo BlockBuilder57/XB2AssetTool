@@ -136,6 +136,7 @@ namespace ui {
 			
 			logger.info("Input: ", filename);
 			logger.info("Output path: ", outputPath.string());
+
 			
 			fs::path path(filename);
 			std::string filenameOnly = path.stem().string();
