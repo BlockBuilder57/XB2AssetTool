@@ -15,10 +15,7 @@
 /build
 
 # Ignore raw release trees.
-/bin64
-/bin32
-/bind64
-/bind32
+# /out/install/TARGET is used now, so we don't need this anymore
 
 # As well as their compressed equlivants.
 /**/*.7z
