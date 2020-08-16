@@ -140,7 +140,7 @@ namespace core {
 		}
 
 		/**
-		 * The channle name that the logger will use.
+		 * The channel name that the logger will use.
 		 */
 		std::string channel_name;
 	};
