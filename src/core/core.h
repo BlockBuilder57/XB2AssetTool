@@ -20,8 +20,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/common.hpp>
 #include <glm/matrix.hpp>
-#include <glm\ext\matrix_transform.hpp>
-#include <glm\gtx\quaternion.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace xb2at {
 namespace core {
