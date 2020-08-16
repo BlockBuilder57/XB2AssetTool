@@ -1,6 +1,7 @@
 /**
  * \file 
  * MSRD structures.
+ *
  */
 #pragma once
 #include <core.h>
@@ -89,7 +90,6 @@ namespace msrd {
 		 */
 		int32 offset;
 
-		
 		/**
 		 * Offset to position in the string buffer where this texture's name is.
 		 */

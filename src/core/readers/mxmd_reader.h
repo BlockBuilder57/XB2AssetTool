@@ -52,7 +52,7 @@ namespace core {
 		private:
 			std::istream& stream;
 
-			Logger logger = Logger::GetLogger("MXMDReader");
+			Logger logger = Logger::CreateChannel("MXMDReader");
 		};
 
 

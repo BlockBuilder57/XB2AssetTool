@@ -27,6 +27,8 @@ namespace core {
 	 */
 	struct msrdReaderOptions {
 
+		// TODO: Move the following two members to the XBC1 reader options structure
+
 		/**
 		 * The output directory (where we should place files.)
 		 */
@@ -61,7 +63,7 @@ namespace core {
 	private:
 		std::istream& stream;
 
-		Logger logger = Logger::GetLogger("MSRDReader");
+		Logger logger = Logger::CreateChannel("MSRDReader");
 	};
 
 

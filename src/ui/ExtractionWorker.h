@@ -73,7 +73,7 @@ namespace ui {
 			delete this;
 		}
 
-		Logger logger = Logger::GetLogger("ExtractionWorker");
+		Logger logger = Logger::CreateChannel("ExtractionWorker");
 
 	signals:
 		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);

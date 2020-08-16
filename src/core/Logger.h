@@ -6,28 +6,43 @@ namespace core {
 
 	struct Logger {
 
-		// get a logger channel
-		static Logger GetLogger(std::string group_name) {
+		/**
+		 * Get a logger with a user-specified channel name.
+		 * 
+		 * \param[in] channel_name The channel name to use. Can be anything.
+		 */
+		static Logger CreateChannel(std::string channel_name) {
 			Logger l;
-			l.group_name = group_name;
+
+			if(channel_name.empty()) {
+				// group every single empty channel name into a global channel
+				// this is techinically an error, so we probably should complain.
+				// However, this works for now.
+				l.channel_name = "Global_Channel";
+				return l;
+			}
+
+
+			l.channel_name = channel_name;
 			return l;
 		}
 
-		// Logging functions
 
-		// static stuff
 		static std::function<void(const std::string, LogSeverity)> OutputFunction;
 		static bool AllowVerbose;
 
+		// Logging functions
 
 		template<typename T, typename ...Args>
 		inline void info(const T value, Args... args) {
+			if(!Logger::OutputFunction)
+				return;
+
 			std::ostringstream ss;
 
-			//ss << TimestampString() << "[" << group_name << "] " << Stringify(value, args...);
-			ss << "[" << group_name << "] " << Stringify(value, args...);
+			//ss << TimestampString() << "[" << channel_name << "] " << Stringify(value, args...);
+			ss << "[" << channel_name << "] " << Stringify(value, args...);
 			
-			//if(Logger::OutputFunction)
 			Logger::OutputFunction(ss.str(), LogSeverity::Info);
 			
 			ss.clear();
@@ -35,10 +50,12 @@ namespace core {
 		
 		template<typename T, typename ...Args>
 		inline void warn(const T value, Args... args) {
+			if(!Logger::OutputFunction)
+				return;
+
 			std::ostringstream ss;
-			ss << "[" << group_name << "] " << Stringify(value, args...);
+			ss << "[" << channel_name << "] " << Stringify(value, args...);
 			
-			//if(Logger::OutputFunction)
 			Logger::OutputFunction(ss.str(), LogSeverity::Warning);
 			
 			ss.clear();
@@ -46,10 +63,12 @@ namespace core {
 
 		template<typename T, typename ...Args>
 		inline void error(const T value, Args... args) {
+			if(!Logger::OutputFunction)
+				return;
+
 			std::ostringstream ss;
-			ss << "[" << group_name << "] " << Stringify(value, args...);
+			ss << "[" << channel_name << "] " << Stringify(value, args...);
 			
-			//if(Logger::OutputFunction)
 			Logger::OutputFunction(ss.str(), LogSeverity::Error);
 			
 			ss.clear();
@@ -60,8 +79,11 @@ namespace core {
 			if(!Logger::AllowVerbose)
 				return;
 			
+			if(!Logger::OutputFunction)
+				return;
+
 			std::ostringstream ss;
-			ss << "[" << group_name << "] " << Stringify(value, args...);
+			ss << "[" << channel_name << "] " << Stringify(value, args...);
 			
 			//if(Logger::OutputFunction)
 			Logger::OutputFunction(ss.str(), LogSeverity::Verbose);
@@ -75,9 +97,12 @@ namespace core {
 		}
 
 		inline Logger(Logger&& c) {
-			this->group_name = c.group_name;
+			this->channel_name = c.channel_name;
 		}
 
+// remove if 0 if this should be used
+// keeping because it's useful
+#if 0
 		static std::string TimestampString() {
 			std::chrono::time_point<std::chrono::system_clock> p = std::chrono::system_clock::now();
 
@@ -90,6 +115,7 @@ namespace core {
 
 			return ts;
 		}
+#endif
 
 		template<typename Head, typename... Tail>
 		static std::string Stringify(Head h, Tail... t) {
@@ -113,7 +139,10 @@ namespace core {
 			string += str;
 		}
 
-		std::string group_name;
+		/**
+		 * The channle name that the logger will use.
+		 */
+		std::string channel_name;
 	};
 
 }

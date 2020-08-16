@@ -68,7 +68,7 @@ namespace core {
 
 	private:
 
-		Logger logger = Logger::GetLogger("ModelSerializer");
+		Logger logger = Logger::CreateChannel("ModelSerializer");
 	};
 }
 }

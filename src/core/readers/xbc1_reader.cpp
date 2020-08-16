@@ -42,12 +42,15 @@ namespace core {
 
 		if(result != Z_OK) {
 			logger.error("ZLib uncompress() returned ", result);
+			// return zlib error state
+			opts.Result = xbc1ReaderStatus::ZlibError;
 			return xbc;
 		}
 		
 		logger.verbose("Uncompressed XBC1 file data");
 
-		// if the user wants to save raw files
+		// if the user wants to dump raw files
+		// let them
 		if(opts.save) {
 			fs::path path(opts.output_dir);
 			path = path / std::string("file_" + std::to_string(xbc.offset));

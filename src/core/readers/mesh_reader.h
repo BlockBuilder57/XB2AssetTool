@@ -61,7 +61,7 @@ namespace core {
 		 */
 		mesh::mesh Read(meshReaderOptions& opts);
 		
-		Logger logger = Logger::GetLogger("MeshReader");
+		Logger logger = Logger::CreateChannel("MeshReader");
 	};
 
 
