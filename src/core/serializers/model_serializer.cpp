@@ -30,9 +30,16 @@ namespace core {
 		uint32 accessorIndex;
 	};
 
-	struct node {
-		skel::node& node;
-		glm::mat4x4 transform;
+	struct xenoblade_node {
+		uint16 nodeIndex;
+		gltf::Node gltfNode;
+		glm::mat4x4 localTransform;
+		glm::mat4x4 globalTransform;
+
+		inline xenoblade_node(uint16 nodeIndex)
+		  : nodeIndex(nodeIndex) {
+
+		}
 	};
 
 	template <typename T>
@@ -261,7 +268,8 @@ namespace core {
 						}
 
 						morphBuffer.byteLength = (uint32)morphBuffer.data.size();
-						morphBuffer.SetEmbeddedResource();
+						if (options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field."
+							morphBuffer.SetEmbeddedResource();
 
 						// insert into document
 						doc.buffers.push_back(morphBuffer);
@@ -326,30 +334,63 @@ namespace core {
 				bonesNodeOffset = doc.nodes.size();
 				logger.info("Starting to add SKEL to glTF, bonesNodeOffset == ", bonesNodeOffset);
 
-				gltf::Skin skin;
-				for (int k = 0; k < skelData.nodes.size(); ++k)
-					skin.joints.push_back(k + bonesNodeOffset);
-				doc.skins.push_back(skin);
+				std::vector<xenoblade_node> xbnodes;
+				std::vector<float> globalMatricies;
 
 				for (int k = 0; k < skelData.nodes.size(); ++k) {
 					gltf::Node node;
 					node.name = skelData.nodes[k].name;
 					if (skelData.nodeParents[k] != Max<uint16>::value) {
+						xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
 						doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
-						// TODO translate to new logger
-						//VARARGS_LOG(LogSeverity::Info, "Node " << skelData.nodes[k].name << " with SKEL Parent of " << skelData.nodeParents[k] << " with a theoritical glTF parent of " << skelData.nodeParents[k] + bonesNodeOffset << " (name: " << doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].name << " at skelData.nodes[" << skelData.nodeParents[k] << "])")
 					}
-					memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
-					memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
-					memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
 
-					// unused until it isn't just to avoid a warning here
-					CORE_UNUSED glm::mat4x4 test = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+					xenoblade_node xbnode(k);
+					xbnode.gltfNode = node;
+					xbnode.localTransform = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
 
-					doc.nodes.push_back(node);
+					glm::mat4x4 global = xbnode.localTransform;
+					if (skelData.nodeParents[k] == Max<uint16>::value) {
+						xbnode.globalTransform = global;
+					} else {
+						xbnode.globalTransform = global * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
+					}
+
+					glm::mat4x4 inverse = glm::inverse(xbnode.globalTransform);
+					for (byte mx = 0; mx < inverse.length()-1; ++mx)
+						for (byte my = 0; my < inverse[mx].length()-1; ++my)
+							globalMatricies.push_back(inverse[mx][my]);
+
+					//memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
+					//memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
+					//memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
+					memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
+
+					xbnodes.push_back(xbnode);
+					doc.nodes.push_back(xbnode.gltfNode);
 					if (skelData.nodeParents[k] == Max<uint16>::value)
 						scene.nodes.push_back((int32)doc.nodes.size() - 1);
 				}
+
+				gltf::Skin skin;
+
+				gltf::Buffer inverseBindBuffer{};
+				uint64 inverseBindBufferTally = 0;
+
+				uint32 buffersCount = (uint32)doc.buffers.size();
+				gltf_defintion defInverseBind = AddElement(doc, globalMatricies, inverseBindBuffer, inverseBindBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Mat4, false);
+
+				for (int k = 0; k < skelData.nodes.size(); ++k)
+					skin.joints.push_back(k + bonesNodeOffset);
+				skin.inverseBindMatrices = defInverseBind.accessorIndex;
+
+				inverseBindBuffer.byteLength = (uint32)inverseBindBuffer.data.size();
+				inverseBindBuffer.SetEmbeddedResource();
+
+				// insert into document
+				doc.buffers.push_back(inverseBindBuffer);
+
+				doc.skins.push_back(skin);
 
 				doc.scenes.push_back(scene);
 				doc.scene = i;
