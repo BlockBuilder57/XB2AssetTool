@@ -16,7 +16,7 @@ popd
 
 pushd out\install\x64-debug
 	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\..\..\XB2AssetTool_x64_Debug.7z * ..\..\..\README.md
-	copy ..\out\build\x64-debug\src\ui\xb2at.pdb .
+	copy ..\..\build\x64-debug\src\ui\xb2at.pdb .
 	"C:\Program Files\7-Zip\7z" a -mx9 -myx7 -mf=on -mtc=on -mta=on -mmt8 -bb3 ..\..\..\XB2AssetTool_x64_Debug_SymsIncluded.7z * ..\..\..\README.md
 	del xb2at.pdb
 popd
