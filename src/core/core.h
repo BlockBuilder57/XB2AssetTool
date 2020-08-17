@@ -58,6 +58,11 @@ namespace core {
 
 	typedef std::int64_t int64;
 	typedef std::uint64_t uint64;
+
+	/**
+	 * A bool that is not sizeof(int) bytes.
+	 */
+	typedef byte bytebool;
 	
 	/**
 	 * constant shorthand for numeric_limits<T>::min()

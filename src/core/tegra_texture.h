@@ -1,5 +1,6 @@
 #pragma once
 #include <core.h>
+#include <Logger.h>
 
 namespace xb2at {
 namespace core {
@@ -40,32 +41,46 @@ namespace core {
 	};
 
 
-	struct TegraTexture {
+	struct TegraX1SwizzledTexture {
 
-		inline TegraTexture() {
+		inline TegraX1SwizzledTexture() {
 
 		}
 
-		inline TegraTexture(std::vector<byte>& TextureData, TextureFormat TexFormat, uint32 width, uint32 height, uint32 depth) 
+		inline TegraX1SwizzledTexture(std::vector<byte>& SwizzledData, TextureFormat TexFormat, uint32 width, uint32 height) 
 			: Format(TexFormat),
 			width(width), 
-			height(height),
-			depth(depth) {
+			height(height) {
 
-			Data.resize(TextureData.size());
-			memcpy(&Data[0], &TextureData[0], TextureData.size() * sizeof(byte));
+			Data.resize(SwizzledData.size());
+			memcpy(&Data[0], &SwizzledData[0], SwizzledData.size() * sizeof(byte));
 
 		}
+
+		int32 GetBpp();
+		int32 GetBlockWidth();
+		int32 GetBlockHeight();
+		int32 GetBlockDepth();
+
 
 		std::vector<byte> Data;
 		TextureFormat Format;
 		
 		uint32 width;
 		uint32 height;
-		uint32 depth;
 
-		// In-place deswizzle this texture into raw format
-		bool Deswizzle();
+		/**
+		 * true if texture was deswizzled successfully. 
+		 */
+		bool deswizzled = false;
+
+		void Deswizzle();
+
+	private:
+
+
+		// just in case
+		Logger logger = Logger::CreateChannel("TegraTexture");
 	};
 
 
