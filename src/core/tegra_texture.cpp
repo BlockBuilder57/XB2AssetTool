@@ -154,6 +154,10 @@ namespace core {
 		constexpr uint32 blockDepth = 1;
 	}
 
+	void GetImageData(const SwizzleData& swizzledata, std::vector<byte>& data) {
+	
+	}
+
 
 	void TegraX1SwizzledTexture::Deswizzle() {
 
@@ -164,15 +168,16 @@ namespace core {
 			height, 
 			GetBpp(),
 			GetBlockWidth(),
-			GetRealBlockHeight(GetBlockHeight())
-			-1 /* block height log2, i'll have to see how to do this right (AKA. NOT WITH A STUPID HACK :VVVVVVVVVVVVVVVVVV) */
+			GetRealBlockHeight(GetBlockHeight()),
+
+			std::log2(GetRealBlockHeight(GetBlockHeight()))
 		};
 
 		// Create a copy of the texture data that we will work with.
 		// Once we are done, we will move this data *back* to the main texture data.
 		std::vector<byte> dataCopy = std::vector<byte>(Data.begin(), Data.end());
 
-		DeSwizzle(info, dataCopy);
+		GetImageData(info, dataCopy);
 
 		// if it worked, then we will move the data copy back..
 

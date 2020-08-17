@@ -3,7 +3,6 @@
 namespace xb2at {
 namespace ui {
 
-
 	void ExtractionWorker::MakeDirectoryIfNotExists(fs::path& root, const std::string& directoryName) {
 		if(directoryName.empty()) {
 			// If the directory name is empty
@@ -169,9 +168,9 @@ namespace ui {
 				Done();
 				return;
 			}
-
-			// Close the wismt file and set the extension
-			// in preparation of reading the wimdo/MXMD
+			
+			// TODO(lily): 
+			// The for and switch here is ok i guess but all reading functions should be somewhere else..
 
 			for(int i = 0; i < msrd.files.size(); ++i) {
 
@@ -210,9 +209,14 @@ namespace ui {
 						if(lbimoptions.Result != lbimReaderStatus::Success) {
 							logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
 						} else {
+							// NOTE: Do we actually need to keep a texture copy,
+							// or could we just serialize then instead have a vector or map of fs::path (or strings honestly)'s
+							// where textures are on disk? That would reduce memory consumption a lot and still allow us to reference textures
+							// however in some cases we may need the textures in this form
 							msrd.textures.push_back(texture);
 							logger.info("LBIM ", i, " successfully read.");
 						}
+						
 					} break;
 
 					case msrd::data_item_type::CachedTextures: {
@@ -231,6 +235,7 @@ namespace ui {
 							if(lbimoptions.Result != lbimReaderStatus::Success) {
 								logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
 							} else {
+								// NOTE: Read the previous note
 								msrd.textures.push_back(texture);
 								logger.info("Cached LBIM ", j, " successfully read.");
 							}
@@ -243,7 +248,7 @@ namespace ui {
 				}
 			}
 
-			// Bit of a memory saving
+			// Bit of a memory saving if they aren't needed anymore
 			//msrd.files.clear();
 			//msrd.textureNames.clear();
 
@@ -251,9 +256,6 @@ namespace ui {
 			if(!ReadSKEL(path, skel)) {
 				logger.warn("Continuing without skeletons");
 			}
-				
-			//path.replace_extension(".wimdo");
-
 
 			mxmdReaderOptions mxmdoptions{};
 			
@@ -262,6 +264,9 @@ namespace ui {
 				Done();
 				return;
 			}
+
+			// TODO(lily):
+			// This should be split into a serialize function
 
 			modelSerializerOptions msoptions { 
 				options.modelFormat, 
