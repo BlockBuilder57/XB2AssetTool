@@ -40,7 +40,9 @@ namespace core {
 		ASTC_8x8_UNORM = 0x3401
 	};
 
-
+	/**
+	 * A Tegra X1 texture, that can be deswizzled.
+	 */
 	struct TegraX1SwizzledTexture {
 
 		inline TegraX1SwizzledTexture() {
@@ -57,10 +59,10 @@ namespace core {
 
 		}
 
-		int32 GetBpp();
-		int32 GetBlockWidth();
-		int32 GetBlockHeight();
-		int32 GetBlockDepth();
+
+		uint32 GetBpp();
+		uint32 GetBlockWidth();
+		uint32 GetBlockHeight();
 
 
 		std::vector<byte> Data;

@@ -26,17 +26,26 @@
 namespace xb2at {
 namespace core {
 
-	// CORE_UNUSED:
-	// marks a variable as unused so clang doesn't screech
+	
+	/**
+	 * \defgroup Macros Core Library Macro Definitions
+	 * @{
+	 */
+
 #if defined(__clang__) || defined(__GNUC__)
+	/**
+	 * Marks a value as unused so that with tighter warning settings it doesn't emit warnings.
+	 */
 	#define CORE_UNUSED __attribute__((unused))
 #else
 	// no-op for compilers that are looser about it
 	#define CORE_UNUSED
 #endif
 
+	/** @} */
+
 	/**
-	 * \defgroup Types Types
+	 * \defgroup Types Core Library Types
 	 * @{
 	 */
 	
@@ -132,7 +141,9 @@ namespace core {
 	struct CompileTimeMap {
 		
 		/**
-		 * Find a value in the map. 
+		 * Find a value in the map.
+		 * This search can be done during compile time,
+		 * and if so, the value will actually be replaced with just the applicable 
 		 */
 		[[nodiscard]]
 		constexpr Value at(const Key& key) const {
@@ -140,7 +151,7 @@ namespace core {
 				return v.first == key;
 			});
 
-			if (it != std::end(values))
+			if(it != std::end(values))
 				return it->second;
 
 			throw std::range_error("not found");
@@ -151,6 +162,9 @@ namespace core {
 	
 	/** @} */
 
+	// TODO(lily): Due to C++17 copy elision,
+	// most of the functions here that return non-void but modify a reference 
+	// should be just fine returning T{}.
 
 	/**
 	 * Normalize a Vector3.
@@ -158,7 +172,7 @@ namespace core {
 	 * \param[in] vector Vector to normalize.
 	 */
 	inline void NormalizeVector3(vector3& vector) {
-		double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
+		const double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
 		vector.x = vector.x / (float)mag;
 		vector.y = vector.y / (float)mag;
 		vector.z = vector.z / (float)mag;
@@ -171,19 +185,14 @@ namespace core {
 	 * \param[in] rot Rotation of the object.
 	 * \param[in] scale Scale of the object.
 	 */
-	inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale)
-	{
-		matrix4x4 m;
-
-		glm::mat4 position = glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z));
-		glm::mat4 rotation = glm::toMat4(glm::quat(rot.w, rot.x, rot.y, rot.z));
-		glm::mat4 matscale = glm::translate(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
-
-		return position * rotation * matscale;
+	inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale) {
+		return glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z)) *   // position
+			glm::toMat4(glm::quat(rot.w, rot.x, rot.y, rot.z)) *                   // rotation 
+			glm::translate(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z)); // matrix scale
 	}
 
 	/**
-	 * \defgroup FunTempls Function Templates
+	 * \defgroup FunTempls Core Library Function Templates
 	 * @{
 	 */
 
@@ -330,20 +339,9 @@ namespace core {
 	}
 
 	/** @} */
-	
-	/**
-	 * Log reporting serverity.
-	 * Stuck here cause it's very common
-	 */
-	enum LogSeverity : int16 {
-		Verbose,
-		Info,
-		Warning,
-		Error
-	};
 
 	/**
-	 * Namespace alias of the filesystem library.
+	 * Namespace alias of the filesystem library, for shortening usage.
 	 */
 	namespace fs = std::filesystem;
 }

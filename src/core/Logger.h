@@ -4,6 +4,36 @@
 namespace xb2at {
 namespace core {
 
+	/**
+	 * Log reporting serverity.
+	 */
+	enum class LogSeverity : int16 {
+		/**
+		 * A verbose message. Should only be emitted
+		 * if Logger::AllowVerbose == true.
+		 */
+		Verbose,
+		/**
+		 * An informational message. This can be used to report information to the user.
+		 */
+		Info,
+		
+		/**
+		 * An message that can be used to warn the user of a condition that may be wrong.
+		 */
+		Warning,
+		
+		/**
+		 * An message that can be used to warn the user of a condition that is definitely wrong.
+		 */
+		Error
+	};
+
+	/**
+	 * The Core Library Logger.
+	 * 
+	 * Designed for a mix of usability and performance.
+	 */
 	struct Logger {
 
 		/**
@@ -29,6 +59,7 @@ namespace core {
 
 
 		static std::function<void(const std::string, LogSeverity)> OutputFunction;
+
 		static bool AllowVerbose;
 
 		// Logging functions
@@ -145,8 +176,10 @@ namespace core {
 		std::string channel_name;
 	};
 
-	// use this macro to construct a logger statement
-	// that has file and line marked. Useful for if you want to trace stuff.
+	/**
+	 * This macro can be used to create a logger statement marked
+	 * with the source file and line it was emitted from.
+	 */
 #define LOGGER_MARKED " (" , __FILE__, " line " , __LINE__, ")"
 
 }

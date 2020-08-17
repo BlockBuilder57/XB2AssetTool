@@ -17,12 +17,6 @@ namespace core {
 
 		uint32 blockheight;
 
-		// TODO(lily): This is always 1 for *EVERY* format that we care about.
-		// Is it really a problem if we just assume it'll always be 1
-		// with a constexpr uint32 inside of the deswizzle function
-		// and then remove it from this structure?
-
-		uint32 blockdepth = 1;
 	};
 
 	/**
@@ -70,33 +64,25 @@ namespace core {
 
 	// If you want a idea of how these functions work you can look at the CompileTimeMap template
 
-	int32 TegraX1SwizzledTexture::GetBpp() {
+	uint32 TegraX1SwizzledTexture::GetBpp() {
 		constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
 		auto format = map.at(Format);
 
 		return format.bitsPerPixel;
 	}
 
-	int32 TegraX1SwizzledTexture::GetBlockWidth() {
+	uint32 TegraX1SwizzledTexture::GetBlockWidth() {
 		constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
 		auto format = map.at(Format);
 
 		return format.blockwidth;
 	}
 
-	int32 TegraX1SwizzledTexture::GetBlockHeight() {
+	uint32 TegraX1SwizzledTexture::GetBlockHeight() {
 		constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
 		auto format = map.at(Format);
 
 		return format.blockheight;
-	}
-
-
-	int32 TegraX1SwizzledTexture::GetBlockDepth() {
-		constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()>{{SupportedFormatData}};
-		auto format = map.at(Format);
-
-		return format.blockdepth;
 	}
 
 	// Ported from SwitchToolbox
@@ -153,10 +139,8 @@ namespace core {
 		uint32 height; 
 		uint32 bpp;
 
-		uint32 depth;
 		uint32 blockWidth;
 		uint32 blockHeight32;
-		uint32 blockDepth;
 		uint32 roundPitch;
 		uint32 blockHeightLog2;
 
@@ -167,7 +151,9 @@ namespace core {
 	};
 	
 	void DeSwizzle(const SwizzleData& swizzledata, std::vector<byte>& data) {
-	
+		// NOTE: The block depth for every format we care about is one,
+		// so this is perfectly safe to assume.
+		constexpr uint32 blockDepth = 1;
 	}
 
 
@@ -180,8 +166,7 @@ namespace core {
 			height, 
 			GetBpp(),
 			GetBlockWidth(),
-			GetRealBlockHeight(GetBlockHeight()),
-			GetBlockDepth(),
+			GetRealBlockHeight(GetBlockHeight())
 			-1 /* block height log2, i'll have to see how to do this right (AKA. NOT WITH A STUPID HACK :VVVVVVVVVVVVVVVVVV) */
 		};
 

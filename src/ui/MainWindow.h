@@ -5,6 +5,7 @@
 #include <QThread>
 
 #include <core.h>
+#include <Logger.h>
 
 #include "ui_xb2at.h"
 
