@@ -22,7 +22,7 @@ namespace core {
 			return data;
 		}
 
-		logger.verbose("MSRD version: ", data.version, " (0x", std::hex, data.version, ")");
+		logger.verbose("MSRD version: ", data.version);
 		
 		if(data.dataitemsOffset != 0) {
 			stream.seekg(data.offset + data.dataitemsOffset, std::istream::beg);

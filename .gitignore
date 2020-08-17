@@ -8,7 +8,8 @@
 # Visual Studio 2015/2017/2019/... cache/options directory
 .vs/*
 
-# but keep launch.vs.json
+# but keep launch.vs.json in the repository so people can
+# just select the debug config (provided they've installed the project) and then it's all ready to go
 !.vs/launch.vs.json
 
 # Since the VS CMake tools just use this directory, this is the only rule we *need* to have.
@@ -17,8 +18,9 @@
 # .. But we also ignore /build as many people use that as their directory for out-of-tree CMake building.
 /build
 
-# Ignore raw release trees.
-# /out/install/TARGET is used now, so we don't need this anymore
+# Doxygen output so that VS file watcher doesn't go completely crazy
+/html
+
 
 # As well as their compressed equlivants.
 /**/*.7z

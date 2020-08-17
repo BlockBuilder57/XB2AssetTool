@@ -12,24 +12,22 @@ namespace core {
 	 */
 	struct TexFormatInfo {
 		uint32 bitsPerPixel;
-		
 		uint32 blockwidth;
-
 		uint32 blockheight;
-
 	};
 
 	/**
 	 * Constexpr array of all pairs of supported format in the layout of
 	 *	{ ID, { INFO } }
 	 * 
-	 * The idea is if this table ends up going in the binary it will be fairly packed since it's an array of pairs
-	 * which means it will be smaller then the map repressentation, and then we can use
-	 * our constexpr map for smaller code size while still maintaining a performance increase
-	 * (because the search will be most likely faster since this is a small dataset.)
+	 * The idea is if this table ends up going in the binary it will be fairly packed
+	 * since it's an array of pairs,
+	 * meaning it will be smaller than the map repressentation (especially since none of the map code will exist), 
+	 * and then we can use our constexpr map for smaller code size 
+	 * while still maintaining a performance increase.
 	 */
 	constexpr static std::array<std::pair<TextureFormat, TexFormatInfo>, 30> SupportedFormatData {{
-		// format id, bpp, block width, block height, block depth
+		// Format ID                           bpp  bw  bh
 		{ TextureFormat::R8_UNORM,             {1,  1,  1} },
 		{ TextureFormat::R5G5B5A1_UNORM,       {2,  1,  1} },
 		{ TextureFormat::B5G6R5_UNORM,         {2,  1,  1} },
