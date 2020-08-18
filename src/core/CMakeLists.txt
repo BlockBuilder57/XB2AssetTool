@@ -4,7 +4,7 @@
 # they trigger a rebuild of xb2core source files
 set(XB2CORE_SOURCES
 
-	# Core library things
+# Core library nitty-gritty things
 	core.h
 	endian_swap.h
 	streamhelper.h
@@ -13,7 +13,8 @@ set(XB2CORE_SOURCES
 	Logger.h
 	Logger.cpp
 
-	# Data structs
+# Data structs
+
 	structs.h
 	structs/xbc1.h
 	structs/msrd.h
@@ -23,7 +24,7 @@ set(XB2CORE_SOURCES
 	structs/sar1.h
 	structs/skel.h
 
-	# Readers
+# Readers
 
 	readers/base_reader.h
 
@@ -48,13 +49,14 @@ set(XB2CORE_SOURCES
 	readers/skel_reader.h
 	readers/skel_reader.cpp
 	
-	# Serializers
+# Serializers
 
 	serializers/base_serializer.h
 
 	serializers/model_serializer.h
 	serializers/model_serializer.cpp
 	
+# Texture stuff.
 	tegra_texture.h
 	tegra_texture.cpp
 )
@@ -72,10 +74,12 @@ target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf gl
 
 # Link additional libraries required for using the 
 # filesystem library with libc++ and libstdc++.
-if(XB2AT_STDLIB STREQUAL "libc++")
+# As a bonus, if this project is linked with a CMake project
+# this will automatically be linked into the project depending on us.
+if(XB2AT_STDLIB STREQUAL "llvm")
 	message(STATUS "Linking c++fs library")
 	target_link_libraries(xb2core c++fs)
-elseif(XB2AT_STDLIB STREQUAL "libstdc++")
+elseif(XB2AT_STDLIB STREQUAL "gnu")
 	message(STATUS "Linking stdc++fs library")
 	target_link_libraries(xb2core stdc++fs)
 endif()

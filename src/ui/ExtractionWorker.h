@@ -54,15 +54,63 @@ namespace ui {
 
 		// read seperation functions
 
+
+		/**
+		 * Read MSRD file and output a structure.
+		 * Returns true on success, false otherwise.
+		 * 
+		 * \param[in] path Path to MSRD file.
+		 * \param[in] msrdtoReadTo The core MSRD structure to read to
+		 * \param[in] options Options to pass to the reader.
+		 */
 		bool ReadMSRD(fs::path& path, msrd::msrd& msrdToReadTo, msrdReaderOptions& options);
 
+		/**
+		 * Read MXMD file and output a structure.
+		 * Returns true on success, false otherwise.
+		 * 
+		 * \param[in] path Path to MXMD file.
+		 * \param[in] mxmdtoReadTo The core MXMD structure to read to
+		 * \param[in] options Options to pass to the reader.
+		 */
 		bool ReadMXMD(fs::path& path, mxmd::mxmd& mxmdToReadTo, mxmdReaderOptions& options);
 
+		/**
+		 * Read SAR1 file and output a structure.
+		 * Returns true on success, false otherwise.
+		 * 
+		 * \param[in] path Path to SAR1 file.
+		 * \param[in] sar1toReadTo The core SAR1 structure to read to
+		 * \param[in] options Options to pass to the reader.
+		 */
 		bool ReadSAR1(fs::path& path, const std::string& extension, sar1::sar1& sar1ToReadTo, sar1ReaderOptions& options);
 
+		/**
+		 * Read SKEL file and output a structure.
+		 * Returns true on success, false otherwise.
+		 * 
+		 * \param[in] path Path to SKEL file.
+		 * \param[in] skeltoReadTo The core SKEL structure to read to
+		 * \param[in] options Options to pass to the reader.
+		 */
 		bool ReadSKEL(fs::path& path, skel::skel& skelToReadto);
 		
+		// MSRD read functions
 
+		bool ReadMesh(mesh::mesh& mesh, meshReaderOptions& options);
+		
+		bool ReadLBIM(lbim::texture& texture, lbimReaderOptions& options);
+
+		// TODO(lily): we'll probably have to give this texture access too
+		void SerializeMesh(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
+
+		/**
+		 * Perform complete extraction of assets.
+		 *
+		 * \param[in] filename Base filename to use
+		 * \param[in] outputPath the output path to use
+		 * \param[in] options optioms to use
+		 */
 		void DoIt(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options);
 
 		/**

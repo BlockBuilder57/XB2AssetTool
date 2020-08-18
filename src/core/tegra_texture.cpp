@@ -170,7 +170,7 @@ namespace core {
 			GetBlockWidth(),
 			GetRealBlockHeight(GetBlockHeight()),
 
-			std::log2(GetRealBlockHeight(GetBlockHeight()))
+			(uint32)std::log2(GetRealBlockHeight(GetBlockHeight()))
 		};
 
 		// Create a copy of the texture data that we will work with.

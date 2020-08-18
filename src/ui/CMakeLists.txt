@@ -27,13 +27,17 @@ add_executable(xb2at WIN32 ${XB2AT_UI_SOURCES})
 
 add_dependencies(xb2at __xb2at_gittag)
 target_include_directories(xb2at PRIVATE ${PROJECT_BINARY_DIR})
+# fixes clang screaming about microsoft include rules
+target_include_directories(xb2at PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_property(TARGET xb2at PROPERTY CXX_STANDARD 17)
 set_property(TARGET xb2at PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(xb2at xb2core Qt5::Widgets)
 
 # PCH our big headers for nyoom speed max
-target_precompile_headers(xb2at PRIVATE MainWindow.h ExtractionWorker.h)
+# Actually, this seems to hurt us a bit, so we turn it off. core.h is the only thing
+# that needs PCH'd and it already is.
+#target_precompile_headers(xb2at PRIVATE MainWindow.h ExtractionWorker.h)
 
 
 # Install xb2at in the install root
@@ -43,7 +47,7 @@ install(TARGETS xb2at
 
 if(WIN32)
 # Install the Qt libraries into the installation prefix.
-
+message(STATUS "Adding install code to deploy Qt libraries into install prefix.")
 get_target_property(_qmake_executable Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
 find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")

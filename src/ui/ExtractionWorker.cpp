@@ -59,23 +59,23 @@ namespace ui {
 	}
 
 	bool ExtractionWorker::ReadSAR1(fs::path& path, const std::string& extension, sar1::sar1& sar1ToReadTo, sar1ReaderOptions& options) {
-			path.replace_extension(extension);
+		path.replace_extension(extension);
 
-			if(!fs::exists(path)) {
-				logger.error(path.string(), " doesn't exist... (Possibly not a issue though)");
-				return false;
-			}
+		if(!fs::exists(path)) {
+			logger.error(path.string(), " doesn't exist... (Possibly not a issue though)");
+			return false;
+		}
 
-			std::ifstream stream(path.string(), std::ifstream::binary);
-			sar1Reader sar1reader(stream);
+		std::ifstream stream(path.string(), std::ifstream::binary);
+		sar1Reader sar1reader(stream);
 
-			sar1ToReadTo = sar1reader.Read(options);
+		sar1ToReadTo = sar1reader.Read(options);
 
 
-			if(options.Result != sar1ReaderStatus::Success)
-				return false;
+		if(options.Result != sar1ReaderStatus::Success)
+			return false;
 
-			return true;
+		return true;
 	}
 
 	bool ExtractionWorker::ReadSKEL(fs::path& path, skel::skel& skelToReadto) {
@@ -122,7 +122,32 @@ namespace ui {
 		}
 
 		return true;
-			
+	}
+
+	bool ExtractionWorker::ReadMesh(mesh::mesh& mesh, meshReaderOptions& options) {
+		meshReader meshreader;
+		mesh = meshreader.Read(options);
+
+		if(options.Result != meshReaderStatus::Success)
+			return false;
+
+		return true;
+	}
+
+	
+	bool ExtractionWorker::ReadLBIM(lbim::texture& texture, lbimReaderOptions& options) {
+		lbimReader lbimreader;
+		texture = lbimreader.Read(options);
+
+		if(options.Result != lbimReaderStatus::Success)
+			return false;
+
+		return true;
+	}
+
+	void ExtractionWorker::SerializeMesh(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options) {
+		modelSerializer ms;
+		ms.Serialize(meshesToDump, mxmdData, skelData, options);
 	}
 
 	void ExtractionWorker::DoIt(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options) {
@@ -177,36 +202,32 @@ namespace ui {
 				switch(msrd.dataItems[i].type) {
 
 					case msrd::data_item_type::Model: {
-						meshReader meshreader;
-						meshReaderOptions meshoptions(msrd.files[i].data);
-						
 						logger.verbose("MSRD file ", i, " is a mesh");
-							
 						logger.verbose("Reading mesh ", i, "...");
-						mesh = meshreader.Read(meshoptions);
 
-						if(meshoptions.Result == meshReaderStatus::Success) {
-							msrd.meshes.push_back(mesh);
-						} else {
+						meshReaderOptions meshoptions(msrd.files[i].data);
+
+						if(!ReadMesh(mesh, meshoptions)) {
 							logger.error("Error reading mesh from MSRD file ", i, ": ", meshReaderStatusToString(meshoptions.Result));
 							Done();
 							return;
 						}
+
+						msrd.meshes.push_back(mesh);
 					} break;
 
 					case msrd::data_item_type::Texture: {
-						lbimReader lbimreader;
+						logger.verbose("MSRD file ", i, " is a texture");
+
+						lbim::texture texture;
 						lbimReaderOptions lbimoptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex == 0 ? 0 : msrd.dataItems[i].tocIndex - 1].data);
 
 						lbimoptions.offset = msrd.dataItems[i].offset;
 						lbimoptions.size = msrd.dataItems[i].size;
 
-						logger.verbose("MSRD file ", i, " is a texture");
-
-						lbim::texture texture = lbimreader.Read(lbimoptions);
 						texture.filename = msrd.textureNames[i - 2];
 
-						if(lbimoptions.Result != lbimReaderStatus::Success) {
+						if(!ReadLBIM(texture, lbimoptions)) {
 							logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
 						} else {
 							// NOTE: Do we actually need to keep a texture copy,
@@ -220,7 +241,6 @@ namespace ui {
 					} break;
 
 					case msrd::data_item_type::CachedTextures: {
-						lbimReader lbimreader;
 						lbimReaderOptions lbimoptions(msrd.files[0].data, nullptr);
 
 						for (int j = 0; j < msrd.textureCount; ++j) {
@@ -229,10 +249,10 @@ namespace ui {
 
 							logger.verbose("MSRD texture ", j, " has a CachedTexture");
 
-							lbim::texture texture = lbimreader.Read(lbimoptions);
+							lbim::texture texture;
 							texture.filename = msrd.textureNames[j];
 
-							if(lbimoptions.Result != lbimReaderStatus::Success) {
+							if(!ReadLBIM(texture, lbimoptions)) {
 								logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
 							} else {
 								// NOTE: Read the previous note
@@ -248,10 +268,7 @@ namespace ui {
 				}
 			}
 
-			// Bit of a memory saving if they aren't needed anymore
 			//msrd.files.clear();
-			//msrd.textureNames.clear();
-
 
 			if(!ReadSKEL(path, skel)) {
 				logger.warn("Continuing without skeletons");
@@ -265,9 +282,6 @@ namespace ui {
 				return;
 			}
 
-			// TODO(lily):
-			// This should be split into a serialize function
-
 			modelSerializerOptions msoptions { 
 				options.modelFormat, 
 				outputPath, 
@@ -277,9 +291,10 @@ namespace ui {
 				options.saveOutlines 
 			};
 
-			modelSerializer ms;
-			ms.Serialize(msrd.meshes, mxmd, skel, msoptions);
+			SerializeMesh(msrd.meshes, mxmd, skel, msoptions);
 			
+			// After this point, everything is now unused,
+			// so we can clear it all.
 			msrd.meshes.clear();
 			msrd.textures.clear();
 			msrd.dataItems.clear();
