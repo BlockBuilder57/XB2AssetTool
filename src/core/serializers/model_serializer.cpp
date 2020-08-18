@@ -158,7 +158,7 @@ namespace core {
 					std::vector<vec3> normals(vertTbl.dataCount);
 					for (int k = 0; k < vertTbl.dataCount; ++k) {
 						memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
-						NormalizeVector3(normals[k]);
+						normals[k] = NormalizeVector3(normals[k]);
 					}
 
 					std::vector<color> vertexColors = vertTbl.vertexColor;

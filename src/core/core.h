@@ -144,6 +144,7 @@ namespace core {
 		 * Find a value in the map.
 		 * This search can be done during compile time,
 		 * and if so, the value will actually be replaced with just the applicable 
+		 * value *at* compile time!
 		 */
 		[[nodiscard]]
 		constexpr Value at(const Key& key) const {
@@ -163,7 +164,7 @@ namespace core {
 	/** @} */
 
 	// TODO(lily): Due to C++17 copy elision,
-	// most of the functions here that return non-void but modify a reference 
+	// most of the functions here that return void but modify a reference to T
 	// should be just fine returning T{}.
 
 	/**
@@ -171,11 +172,13 @@ namespace core {
 	 *
 	 * \param[in] vector Vector to normalize.
 	 */
-	inline void NormalizeVector3(vector3& vector) {
+	inline vector3 NormalizeVector3(vector3 vector) {
 		const double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
-		vector.x = vector.x / (float)mag;
-		vector.y = vector.y / (float)mag;
-		vector.z = vector.z / (float)mag;
+		return { 
+			vector.x / (float)mag, 
+			vector.y / (float)mag,
+			vector.z / (float)mag 
+		};
 	}
 
 	/**
