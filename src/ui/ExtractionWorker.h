@@ -97,11 +97,31 @@ namespace ui {
 		
 		// MSRD read functions
 
+		/**
+		 * Reads a mesh
+		 *
+		 * \param[in] mesh Reference to mesh to read into
+		 * \param[in] options Options to pass to reader
+		 */
 		bool ReadMesh(mesh::mesh& mesh, meshReaderOptions& options);
 		
+		/**
+		 * Reads a LBIM texture
+		 *
+		 * \param[in] texture Reference to texture to read into
+		 * \param[in] options Options to pass to reader
+		 */
 		bool ReadLBIM(lbim::texture& texture, lbimReaderOptions& options);
 
 		// TODO(lily): we'll probably have to give this texture access too
+		/**
+		 * Serializes meshes.
+		 *
+		 * \param[in] meshesToDump Vector of meshes to convert
+		 * \param[in] mxmdData MXMD data
+		 * \param[in] skelData SKEL data
+		 * \param[in] options Options to pass to model serializer
+		 */
 		void SerializeMesh(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
 
 		/**
@@ -111,10 +131,10 @@ namespace ui {
 		 * \param[in] outputPath the output path to use
 		 * \param[in] options optioms to use
 		 */
-		void DoIt(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options);
+		void ExtractAll(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options);
 
 		/**
-		 * This is a very bad hack to avoid memory leaking.
+		 * This is a very, very very, VERY bad hack to avoid memory leaking.
 		 * We delete ourselves when we're done with a secondary purpose of also emitting the finished signal.
 		 */
 		inline void Done() {

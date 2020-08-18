@@ -159,7 +159,7 @@ namespace ui {
 		fs::path outputPath(ui.outputDir->text().toStdString());
 
 		// then do it!
-		et->DoIt(filename, outputPath, options);
+		et->ExtractAll(filename, outputPath, options);
 	}
 
 	void MainWindow::Finished() {

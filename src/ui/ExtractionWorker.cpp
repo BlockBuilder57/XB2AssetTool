@@ -150,7 +150,7 @@ namespace ui {
 		ms.Serialize(meshesToDump, mxmdData, skelData, options);
 	}
 
-	void ExtractionWorker::DoIt(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options) {
+	void ExtractionWorker::ExtractAll(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options) {
 			using namespace std::placeholders;
 
 			// We can't only set it once because we rely on a non-static wrapper. 
@@ -158,15 +158,16 @@ namespace ui {
 			// Sucks, I know.
 			Logger::OutputFunction = std::bind(&ExtractionWorker::LogCallback, this, _1, _2);
 			
+			// Output some information about what our input is and where we'll put it.
 			logger.info("Input: ", filename);
 			logger.info("Output path: ", outputPath.string());
 
-			
+			// These are globals used througout the extraction process
+
 			fs::path path(filename);
 			std::string filenameOnly = path.stem().string();
 
 			msrd::msrd msrd;
-			mesh::mesh mesh;
 			mxmd::mxmd mxmd;
 			skel::skel skel;
 
@@ -205,6 +206,7 @@ namespace ui {
 						logger.verbose("MSRD file ", i, " is a mesh");
 						logger.verbose("Reading mesh ", i, "...");
 
+						mesh::mesh mesh;
 						meshReaderOptions meshoptions(msrd.files[i].data);
 
 						if(!ReadMesh(mesh, meshoptions)) {
