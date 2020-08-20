@@ -2,7 +2,7 @@
 #include <core.h>
 #include <Logger.h>
 
-#include <structs/lbim.h>
+#include <structs/mibl.h>
 
 namespace xb2at {
 	namespace core {
@@ -48,24 +48,24 @@ namespace xb2at {
 		 * A Tegra X1 texture, that can be deswizzled.
 		 */
 		struct TegraX1SwizzledTexture {
-			inline TegraX1SwizzledTexture(lbim::texture& tex)
+			inline TegraX1SwizzledTexture(mibl::texture& tex)
 				: texture(tex) {
-				// Convert from LBIM (nvn) format to DirectX format
+				// Convert from MIBL (nvn) format to DirectX format
 				// since that's what we use
 				switch(tex.type) {
-					case lbim::LbimTextureFormat::R8G8B8A8_UNORM:
+					case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
 						Format = TextureFormat::R8G8B8A8_UNORM;
 						break;
-					case lbim::LbimTextureFormat::BC1_UNORM:
+					case mibl::MiblTextureFormat::BC1_UNORM:
 						Format = TextureFormat::BC1_UNORM;
 						break;
-					case lbim::LbimTextureFormat::BC3_UNORM:
+					case mibl::MiblTextureFormat::BC3_UNORM:
 						Format = TextureFormat::BC3_UNORM;
 						break;
-					case lbim::LbimTextureFormat::BC4_UNORM:
+					case mibl::MiblTextureFormat::BC4_UNORM:
 						Format = TextureFormat::BC4_UNORM;
 						break;
-					case lbim::LbimTextureFormat::BC5_UNORM:
+					case mibl::MiblTextureFormat::BC5_UNORM:
 						Format = TextureFormat::BC5_UNORM;
 						break;
 
@@ -80,7 +80,7 @@ namespace xb2at {
 			uint32 GetBlockHeight();
 
 			TextureFormat Format;
-			lbim::texture& texture;
+			mibl::texture& texture;
 
 			void Deswizzle();
 

@@ -133,17 +133,17 @@ namespace xb2at {
 			return true;
 		}
 
-		bool ExtractionWorker::ReadLBIM(lbim::texture& texture, lbimReaderOptions& options) {
-			lbimReader lbimreader;
-			texture = lbimreader.Read(options);
+		bool ExtractionWorker::ReadMIBL(mibl::texture& texture, miblReaderOptions& options) {
+			miblReader miblreader;
+			texture = miblreader.Read(options);
 
-			if(options.Result != lbimReaderStatus::Success)
+			if(options.Result != miblReaderStatus::Success)
 				return false;
 
 			return true;
 		}
 
-		bool ExtractionWorker::SerializeLBIM(fs::path& outputPath, lbim::texture& texture) {
+		bool ExtractionWorker::SerializeMIBL(fs::path& outputPath, mibl::texture& texture) {
 			TegraX1SwizzledTexture teg(texture);
 			auto path = outputPath / texture.filename;
 			path.replace_extension(".deswiz");
@@ -239,17 +239,17 @@ namespace xb2at {
 
 						//if(msrd.dataItems[i].tocIndex != 0)
 
-						lbim::texture texture;
-						lbimReaderOptions lbimoptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex == 0 ? 0 : msrd.dataItems[i].tocIndex - 1].data);
+						mibl::texture texture;
+						miblReaderOptions mibloptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex == 0 ? 0 : msrd.dataItems[i].tocIndex - 1].data);
 
-						lbimoptions.offset = msrd.dataItems[i].offset;
-						lbimoptions.size = msrd.dataItems[i].size;
+						mibloptions.offset = msrd.dataItems[i].offset;
+						mibloptions.size = msrd.dataItems[i].size;
 
-						texture.offset = lbimoptions.offset;
-						texture.size = lbimoptions.size;
+						texture.offset = mibloptions.offset;
+						texture.size = mibloptions.size;
 
-						if(!ReadLBIM(texture, lbimoptions)) {
-							logger.error("Error reading LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
+						if(!ReadMIBL(texture, mibloptions)) {
+							logger.error("Error reading LBIM: ", miblReaderStatusToString(mibloptions.Result));
 						} else {
 							texture.filename = msrd.textureNames[i - 3];
 							msrd.textures.push_back(texture);
@@ -260,22 +260,22 @@ namespace xb2at {
 					} break;
 
 					case msrd::data_item_type::CachedTextures: {
-						lbimReaderOptions lbimoptions(msrd.files[0].data, nullptr);
+						miblReaderOptions mibloptions(msrd.files[0].data, nullptr);
 
 						for(int j = 0; j < msrd.textureCount; ++j) {
-							lbimoptions.offset = msrd.dataItems[i].offset + msrd.textureInfo[j].offset;
-							lbimoptions.size = msrd.textureInfo[j].size;
+							mibloptions.offset = msrd.dataItems[i].offset + msrd.textureInfo[j].offset;
+							mibloptions.size = msrd.textureInfo[j].size;
 
 							logger.verbose("MSRD texture ", j, " has a CachedTexture");
 
-							lbim::texture texture;
+							mibl::texture texture;
 							texture.filename = msrd.textureNames[j];
 
-							texture.offset = lbimoptions.offset;
-							texture.size = lbimoptions.size;
+							texture.offset = mibloptions.offset;
+							texture.size = mibloptions.size;
 
-							if(!ReadLBIM(texture, lbimoptions)) {
-								logger.error("Error reading Cached LBIM: ", lbimReaderStatusToString(lbimoptions.Result));
+							if(!ReadMIBL(texture, mibloptions)) {
+								logger.error("Error reading Cached LBIM: ", miblReaderStatusToString(mibloptions.Result));
 							} else {
 								// NOTE: Read the previous note
 								msrd.textures.push_back(texture);
@@ -294,7 +294,7 @@ namespace xb2at {
 
 			for(auto it = msrd.textures.begin(); it != msrd.textures.end(); ++it) {
 				auto out = outputPath / "Textures";
-				SerializeLBIM(out, *it);
+				SerializeMIBL(out, *it);
 			}
 
 			//msrd.files.clear();

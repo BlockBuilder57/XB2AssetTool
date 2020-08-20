@@ -1,6 +1,6 @@
 /**
  * \file
- * LBIM (texture) structures.
+ * MIBL (Multi IBL Texture) structures
  */
 #pragma once
 #include <core.h>
@@ -9,18 +9,18 @@ namespace xb2at {
 namespace core {
 
 	// NOTE(lily): RE of XBDE has possibly confirmed the name 
-	// is not "LBIM" like ordered here, but MIBL (Multi IBL?)
-	// possible name changes here that may break code
+	// is not "LBIM" like previously thought, but MIBL (Multi IBL?)
+	// Core is using the correct name from now on to be as correct as possible
 
 	/**
-	 * LBIM (texture) structures
+	 * MIBL (Multi IBL Texture) structures
 	 */
-	namespace lbim {
+	namespace mibl {
 
 		/**
-		 * LBIM texture format
+		 * MIBL texture format
 		 */
-		enum class LbimTextureFormat : int32 {
+		enum class MiblTextureFormat : int32 {
 			R8G8B8A8_UNORM = 37,
 			
 			/**
@@ -33,12 +33,12 @@ namespace core {
 		};
 
 		/**
-		 * LBIM magic value.
+		 * MIBL magic value.
 		 */
 		constexpr int32 magic = 0x4D49424C;
 
 		/**
-		 * LBIM file header.
+		 * MIBL file header.
 		 * This is intentionally stored backwards
 		 * due to the fact we one-shot read for optimization purposes.
 		 */
@@ -62,7 +62,7 @@ namespace core {
 			/**
 			 * texture format in NVN format
 			 */
-			LbimTextureFormat type;
+			MiblTextureFormat type;
 
 			int32 unknown0;
 
@@ -80,7 +80,7 @@ namespace core {
 		};
 
 		/**
-		 * Wrapper over the LBIM texture header
+		 * Wrapper over the MIBL texture header
 		 * allowing us to store data and such
 		 */
 		struct texture : public header {

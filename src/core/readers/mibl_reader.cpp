@@ -1,5 +1,5 @@
 #include "streamhelper.h"
-#include "lbim_reader.h"
+#include "mibl_reader.h"
 
 #include "ivstream.h"
 #include <algorithm>
@@ -7,10 +7,10 @@
 namespace xb2at {
 	namespace core {
 
-		lbim::texture lbimReader::Read(lbimReaderOptions& opts) {
-			ivstream lbimstream(opts.lbimFile);
-			StreamHelper lbimreader(lbimstream);
-			lbim::texture texture;
+		mibl::texture miblReader::Read(lbimReaderOptions& opts) {
+			ivstream stream(opts.lbimFile);
+			StreamHelper reader(stream);
+			mibl::texture texture;
 
 			if(opts.file != nullptr) {
 				texture.cached = false;
@@ -18,19 +18,19 @@ namespace xb2at {
 				texture.cached = true;
 			}
 
-			lbimstream.seekg(opts.offset + opts.size - sizeof(lbim::header), std::istream::beg);
-			if(!lbimreader.ReadType<lbim::header>(texture)) {
+			stream.seekg(opts.offset + opts.size - sizeof(mibl::header), std::istream::beg);
+			if(!reader.ReadType<mibl::header>(texture)) {
 				opts.Result = lbimReaderStatus::ErrorReadingHeader;
 				return texture;
 			}
 
-			if(texture.magic != lbim::magic && texture.version != 0x2711) {
-				opts.Result = lbimReaderStatus::NotLBIM;
+			if(texture.magic != mibl::magic && texture.version != 0x2711) {
+				opts.Result = lbimReaderStatus::NotMIBL;
 				return texture;
 			}
 
 #ifdef _DEBUG
-			logger.info("LBIM type ", (int)texture.type);
+			logger.info("MIBL type ", (int)texture.type);
 #endif
 
 			texture.data.resize(opts.size);
@@ -46,8 +46,8 @@ namespace xb2at {
 				texture.height *= 2;
 			} else {
 				// this is a CachedTexture, use the LBIM stream itself
-				lbimstream.seekg(opts.offset, std::istream::beg);
-				lbimstream.read(texture.data.data(), opts.size);
+				stream.seekg(opts.offset, std::istream::beg);
+				stream.read(texture.data.data(), opts.size);
 			}
 
 			opts.Result = lbimReaderStatus::Success;

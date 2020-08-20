@@ -6,35 +6,35 @@
 namespace xb2at {
 namespace core {
 
-		enum class lbimReaderStatus {
+		enum class miblReaderStatus {
 			Success,
 			ErrorReadingHeader,
-			NotLBIM
+			NotMIBL
 		};
 
-		inline std::string lbimReaderStatusToString(lbimReaderStatus status) {
+		inline std::string miblReaderStatusToString(miblReaderStatus status) {
 			// avoiding magic const by using constexpr
 			constexpr static const char* status_str[] = {
 				"Success",
-				"Error reading the LBIM header",
-				"File is not a LBIM file, or the version is invalid"
+				"Error reading the MIBL header",
+				"File is not a MIBL file, or the version is invalid"
 			};
 
 			return status_str[(int)status];
 		}
 
 		/**
-		 * Options to pass to the lbimReader.
+		 * Options to pass to the miblReader.
 		 */
-		struct lbimReaderOptions {
+		struct miblReaderOptions {
 
-			lbimReaderOptions(std::vector<char>& lbimFileData, std::vector<char>* fileData)
+			miblReaderOptions(std::vector<char>& lbimFileData, std::vector<char>* fileData)
 				: lbimFile(lbimFileData) {
 				file = fileData;
 			}
 
 			/**
-			 * Decompressed file data from XBC1 containing every LBIM for the MSRD textures.
+			 * Decompressed file data from XBC1 containing every MIBL for the MSRD textures.
 			 * Is always index 1 of the MSRD files.
 			 */
 			std::vector<char>& lbimFile;
@@ -56,23 +56,23 @@ namespace core {
 
 			/**
 			 * The result of the read operation.
-			 * Will be lbimReaderStatus::Success if the read was successful.
+			 * Will be miblReaderStatus::Success if the read was successful.
 			 */
-			lbimReaderStatus Result;
+			miblReaderStatus Result;
 		};
 
 		/**
-		 * Reads meshes.
+		 * Reads MIBL textures.
 		 */
-		struct lbimReader : public base_reader {
+		struct miblReader : public base_reader {
 
 			/**
-			 * Read a LBIM and output the texture data.
+			 * Read a MIBL and output the texture data.
 			 * This function does not decompress/unswizzle any data.
 			 *
 			 * \param[in] opts Reference to options to pass to the reader.
 			 */
-			lbim::texture Read(lbimReaderOptions& opts);
+			mibl::texture Read(miblReaderOptions& opts);
 
 		private:
 

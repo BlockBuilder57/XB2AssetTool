@@ -16,12 +16,11 @@ set(XB2CORE_SOURCES
 
 # Data structures
 
-	structs.h
 	structs/xbc1.h
 	structs/msrd.h
 	structs/mesh.h
 	structs/mxmd.h
-	structs/lbim.h
+	structs/mibl.h
 	structs/sar1.h
 	structs/skel.h
 
@@ -41,8 +40,8 @@ set(XB2CORE_SOURCES
 	readers/mxmd_reader.h
 	readers/mxmd_reader.cpp
 
-	readers/lbim_reader.h
-	readers/lbim_reader.cpp
+	readers/mibl_reader.h
+	readers/mibl_reader.cpp
 
 	readers/sar1_reader.h
 	readers/sar1_reader.cpp
@@ -66,7 +65,7 @@ set(XB2CORE_SOURCES
 # easy mode api is optional, 
 # turned off by default since UI doesn't need it at all (it has its own mechanism)
 if(XB2AT_XB2CORE_EASYMODE)
-	message(STATUS "[xb2core] Including Easymode")
+	message(STATUS "[xb2core] Including Easymode API surface")
 	#set(XB2CORE_SOURCES
 	#	${XB2CORE_SOURCES}
 	#	easyapi/file.h

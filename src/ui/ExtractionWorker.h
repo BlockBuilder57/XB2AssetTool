@@ -7,7 +7,7 @@
 #include <readers/msrd_reader.h>
 #include <readers/mesh_reader.h>
 #include <readers/mxmd_reader.h>
-#include <readers/lbim_reader.h>
+#include <readers/mibl_reader.h>
 #include <readers/sar1_reader.h>
 #include <readers/skel_reader.h>
 #include <serializers/model_serializer.h>
@@ -107,14 +107,14 @@ namespace xb2at {
 			bool ReadMesh(mesh::mesh& mesh, meshReaderOptions& options);
 
 			/**
-			 * Reads a LBIM texture
+			 * Reads a MIBL texture
 			 *
 			 * \param[in] texture Reference to texture to read into
 			 * \param[in] options Options to pass to reader
 			 */
-			bool ReadLBIM(lbim::texture& texture, lbimReaderOptions& options);
+			bool ReadMIBL(mibl::texture& texture, miblReaderOptions& options);
 
-			bool SerializeLBIM(fs::path& outputPath, lbim::texture& texture);
+			bool SerializeMIBL(fs::path& outputPath, mibl::texture& texture);
 
 			// TODO(lily): we'll probably have to give this texture access too
 			/**

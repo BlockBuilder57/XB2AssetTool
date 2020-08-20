@@ -195,20 +195,20 @@ namespace xb2at {
 		void TegraX1SwizzledTexture::Deswizzle() {
 			// Call the deswizzle internal routine
 			switch(texture.type) {
-				case lbim::LbimTextureFormat::R8G8B8A8_UNORM:
+				case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
 					// Not quite sure how to deal with this so..
 					logger.warn("Not handled yet, but NOTE: this is DE's most common format.");
 					break;
-				case lbim::LbimTextureFormat::BC1_UNORM:
+				case mibl::MiblTextureFormat::BC1_UNORM:
 					SwizzleInternal(*this, 3, logger);
 					break;
-				case lbim::LbimTextureFormat::BC3_UNORM:
+				case mibl::MiblTextureFormat::BC3_UNORM:
 					SwizzleInternal(*this, 4, logger);
 					break;
-				case lbim::LbimTextureFormat::BC4_UNORM:
+				case mibl::MiblTextureFormat::BC4_UNORM:
 					SwizzleInternal(*this, 3, logger);
 					break;
-				case lbim::LbimTextureFormat::BC5_UNORM:
+				case mibl::MiblTextureFormat::BC5_UNORM:
 					SwizzleInternal(*this, 4, logger);
 					break;
 

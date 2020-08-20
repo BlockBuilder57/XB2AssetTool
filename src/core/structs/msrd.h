@@ -168,7 +168,7 @@ namespace xb2at {
 				/**
 				 * List of textures
 				 */
-				std::vector<lbim::texture> textures;
+				std::vector<mibl::texture> textures;
 			};
 
 		} // namespace msrd
