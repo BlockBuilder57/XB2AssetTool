@@ -145,11 +145,15 @@ namespace xb2at {
 
 		bool ExtractionWorker::SerializeMIBL(fs::path& outputPath, mibl::texture& texture) {
 			TegraX1SwizzledTexture teg(texture);
+			teg.Deswizzle();
+
 			auto path = outputPath / texture.filename;
+
+			// This is very temporary
 			path.replace_extension(".deswiz");
 			std::ofstream ofs(path.string(), std::ofstream::binary);
 
-			teg.Deswizzle();
+
 
 			ofs.write(&texture.data[0], texture.data.size());
 
