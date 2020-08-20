@@ -1,4 +1,4 @@
-# xb2core library
+# xb2core CMakeLists.txt
 
 # we have header files here so that when they're changed
 # they trigger a rebuild of xb2core source files
@@ -6,14 +6,15 @@ set(XB2CORE_SOURCES
 
 # Core library nitty-gritty things
 	core.h
-	endian_swap.h
+	lowlevelmath.h
 	streamhelper.h
 	ivstream.h
 	
+# Cross-platform/cross-environment logging utility
 	Logger.h
 	Logger.cpp
 
-# Data structs
+# Data structures
 
 	structs.h
 	structs/xbc1.h
@@ -24,7 +25,7 @@ set(XB2CORE_SOURCES
 	structs/sar1.h
 	structs/skel.h
 
-# Readers
+# File Readers
 
 	readers/base_reader.h
 
@@ -57,9 +58,21 @@ set(XB2CORE_SOURCES
 	serializers/model_serializer.cpp
 	
 # Texture stuff.
+# TODO move to serializers
 	tegra_texture.h
 	tegra_texture.cpp
 )
+
+# easy mode api is optional, 
+# turned off by default since UI doesn't need it at all (it has its own mechanism)
+if(XB2AT_XB2CORE_EASYMODE)
+	message(STATUS "[xb2core] Including Easymode")
+	#set(XB2CORE_SOURCES
+	#	${XB2CORE_SOURCES}
+	#	easyapi/file.h
+	#	easyapi/file.cpp
+	#)
+endif()
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
 set_property(TARGET xb2core PROPERTY CXX_STANDARD 17)
@@ -72,10 +85,10 @@ target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
 target_include_directories(xb2core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf glm::glm)
 
-# Link additional libraries required for using the 
-# filesystem library with libc++ and libstdc++.
+# Link additional libraries required for using the filesystem library with libc++ and libstdc++.
+#
 # As a bonus, if this project is linked with a CMake project
-# this will automatically be linked into the project depending on us.
+# this will automatically be linked into the project depending on xb2core!
 if(XB2AT_STDLIB STREQUAL "llvm")
 	message(STATUS "Linking c++fs library")
 	target_link_libraries(xb2core c++fs)
@@ -86,9 +99,8 @@ endif()
 
 target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
 
-
+# We use the version tag so depend on it and add a private include path to where it's generated
 add_dependencies(xb2core __xb2at_gittag)
-
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR})
 
 # precompile core.h

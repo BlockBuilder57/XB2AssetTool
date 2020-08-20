@@ -14,7 +14,8 @@ namespace core {
 	};
 
 	inline std::string sar1ReaderStatusToString(sar1ReaderStatus status) {
-		static const char* status_str[] = {
+		// avoiding magic const by using constexpr
+		constexpr static const char* status_str[] = {
 			"Success",
 			"Error reading SAR1 header",
 			"Error reading BC header",

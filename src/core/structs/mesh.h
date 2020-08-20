@@ -6,170 +6,168 @@
 #include <core.h>
 
 namespace xb2at {
-namespace core {
+	namespace core {
 
-namespace mesh {
+		namespace mesh {
 
-	enum vertex_descriptor_type : int16 {
-		Position,
-		Weight32,
-		BoneID,
-		WeightID,
-		UV1 = 5,
-		UV2,
-		UV3,
-		Unknown8 = 8,
-		Unknown14 = 14,
-		Normal32 = 15,
-		Tangent16,
-		VertexColor,
-		Normal = 28,
-		Tangent,
-		Normal2 = 32,
-		Reflection,
-		Weight16 = 41,
-		BoneID2,
-		MorphNormal,
-		MorphVertexID
-	};
+			enum vertex_descriptor_type : int16 {
+				Position,
+				Weight32,
+				BoneID,
+				WeightID,
+				UV1 = 5,
+				UV2,
+				UV3,
+				Unknown8 = 8,
+				Unknown14 = 14,
+				Normal32 = 15,
+				Tangent16,
+				VertexColor,
+				Normal = 28,
+				Tangent,
+				Normal2 = 32,
+				Reflection,
+				Weight16 = 41,
+				BoneID2,
+				MorphNormal,
+				MorphVertexID
+			};
 
-	struct face_table_header {
-		int32 offset;
-		int32 vertCount;
+			struct face_table_header {
+				int32 offset;
+				int32 vertCount;
 
-		byte unknown[0xC];
-	};
+				byte unknown[0xC];
+			};
 
-	struct face_table : public face_table_header {
-		std::vector<uint16> vertices;
-	};
+			struct face_table : public face_table_header {
+				std::vector<uint16> vertices;
+			};
 
-	struct vertex_descriptor {
-		vertex_descriptor_type type;
-		int16 size;
-	};
+			struct vertex_descriptor {
+				vertex_descriptor_type type;
+				int16 size;
+			};
 
-	struct weight_manager {
-		int32 unknown1;
-		int32 offset;
-		int32 count;
-	
-		char unknown2[0x11];
-		byte lod;
-		char unknown3[0xA];
-	};
+			struct weight_manager {
+				int32 unknown1;
+				int32 offset;
+				int32 count;
 
-	struct weight_data_header {
-		int32 managerCount;
-		int32 managerOffset;
+				char unknown2[0x11];
+				byte lod;
+				char unknown3[0xA];
+			};
 
-		int16 vertexIndex;
-		int16 unknown;
+			struct weight_data_header {
+				int32 managerCount;
+				int32 managerOffset;
 
-		int32 offset2;
-	};
+				int16 vertexIndex;
+				int16 unknown;
 
-	struct weight_data : public weight_data_header {
-		std::vector<weight_manager> weightManagers;
-	};
+				int32 offset2;
+			};
 
-	struct morph_data_header {
-		int32 morphDescriptorCount;		
-		int32 morphDescriptorOffset;
-		int32 morphTargetCount;
-		int32 morphTargetOffset;
-	};
+			struct weight_data : public weight_data_header {
+				std::vector<weight_manager> weightManagers;
+			};
 
-	struct morph_descriptor_header {
-		int32 bufferId;
+			struct morph_data_header {
+				int32 morphDescriptorCount;
+				int32 morphDescriptorOffset;
+				int32 morphTargetCount;
+				int32 morphTargetOffset;
+			};
 
-		int32 targetIndex;
-		int32 targetCounts;
-		int32 targetIdOffsets;
+			struct morph_descriptor_header {
+				int32 bufferId;
 
-		int32 unknown1;
-	};
+				int32 targetIndex;
+				int32 targetCounts;
+				int32 targetIdOffsets;
 
-	struct morph_descriptor : public morph_descriptor_header {
-		std::vector<int16> targetIds;
-	};
+				int32 unknown1;
+			};
 
-	struct morph_target_header {
-		int32 bufferOffset;
-		int32 vertCount;
-		int32 blockSize;
+			struct morph_descriptor : public morph_descriptor_header {
+				std::vector<int16> targetIds;
+			};
 
-		int16 unknown1;
-		int16 type;
-	};
+			struct morph_target_header {
+				int32 bufferOffset;
+				int32 vertCount;
+				int32 blockSize;
 
-	struct morph_target : public morph_target_header {
-		std::vector<vector3> vertices;
-		std::vector<quaternion> normals;
-	};
+				int16 unknown1;
+				int16 type;
+			};
 
-	struct morph_data : public morph_data_header {
-		std::vector<morph_descriptor> morphDescriptors;
-		std::vector<morph_target> morphTargets;
-	};
+			struct morph_target : public morph_target_header {
+				std::vector<vector3> vertices;
+				std::vector<quaternion> normals;
+			};
 
+			struct morph_data : public morph_data_header {
+				std::vector<morph_descriptor> morphDescriptors;
+				std::vector<morph_target> morphTargets;
+			};
 
-	struct vertex_table_header {
-		int32 dataOffset;
-		int32 dataCount;
-		int32 blockSize;
+			struct vertex_table_header {
+				int32 dataOffset;
+				int32 dataCount;
+				int32 blockSize;
 
-		int32 descriptorOffset;
-		int32 descriptorCount;
+				int32 descriptorOffset;
+				int32 descriptorCount;
 
-		char unknown1[0xC];
-	};
+				char unknown1[0xC];
+			};
 
-	struct vertex_table : public vertex_table_header {
-		std::vector<vertex_descriptor> vertexDescriptors;
+			struct vertex_table : public vertex_table_header {
+				std::vector<vertex_descriptor> vertexDescriptors;
 
-		// not in order but i'll fix it later
-		std::vector<vector3> vertices;
-		std::vector<int32> weightTableIndex;
-		std::vector<std::vector<vector2>> uvPos;
-		int32 uvLayerCount;
-		std::vector<color> vertexColor;
-		std::vector<quaternion> normals;
-		std::vector<quaternion> weightStrengths;
-		std::vector<std::vector<byte>> weightIds;
-	};
+				// not in order but i'll fix it later
+				std::vector<vector3> vertices;
+				std::vector<int32> weightTableIndex;
+				std::vector<std::vector<vector2>> uvPos;
+				int32 uvLayerCount;
+				std::vector<color> vertexColor;
+				std::vector<quaternion> normals;
+				std::vector<quaternion> weightStrengths;
+				std::vector<std::vector<byte>> weightIds;
+			};
 
-	struct mesh_header {
-		int32 vertexTableOffset;
-		int32 vertexTableCount;
-		int32 faceTableOffset;
-		int32 faceTableCount;
+			struct mesh_header {
+				int32 vertexTableOffset;
+				int32 vertexTableCount;
+				int32 faceTableOffset;
+				int32 faceTableCount;
 
-		char unknown1[0xC];
+				char unknown1[0xC];
 
-		int32 unkOffset1;
-		int32 unkOffset2;
-		int32 unkOffset2Count;
+				int32 unkOffset1;
+				int32 unkOffset2;
+				int32 unkOffset2Count;
 
-		int32 morphDataOffset;
-		int32 dataSize;
-		int32 dataOffset;
-		int32 weightDataSize;
-		int32 weightDataOffset;
+				int32 morphDataOffset;
+				int32 dataSize;
+				int32 dataOffset;
+				int32 weightDataSize;
+				int32 weightDataOffset;
 
-		char unknown2[0x14];
-	};
+				char unknown2[0x14];
+			};
 
-	struct mesh : public mesh_header {
-		std::vector<vertex_table> vertexTables;
-		std::vector<face_table> faceTables;
-		
-		weight_data weightData;
-		morph_data morphData;
-	};
+			struct mesh : public mesh_header {
+				std::vector<vertex_table> vertexTables;
+				std::vector<face_table> faceTables;
 
+				weight_data weightData;
+				morph_data morphData;
+			};
 
-}
+		} // namespace mesh
 
-}
-}
+	} // namespace core
+} // namespace xb2at

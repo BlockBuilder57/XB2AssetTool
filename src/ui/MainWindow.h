@@ -10,96 +10,94 @@
 #include "ui_xb2at.h"
 
 namespace xb2at {
-namespace ui {
-	
-	using namespace xb2at::core;
+	namespace ui {
 
-	class MainWindow : public QMainWindow {
-		Q_OBJECT
+		using namespace xb2at::core;
 
-	public:
-		MainWindow(QWidget *parent = nullptr);
+		class MainWindow : public QMainWindow {
+			Q_OBJECT
 
-		~MainWindow();
+		   public:
+			MainWindow(QWidget* parent = nullptr);
 
-	private slots:
+			~MainWindow();
 
-		/**
-		 * Fired when the Browse button for the input file is clicked.
-		 *
-		 * Used to bring up a selection dialog for the user to select the input file.
-		 */
-		void InputBrowseButtonClicked();
+		   private slots:
 
-		/**
-		 * Fired when the Browse button for the output folder is clicked.
-		 *
-		 * Used to bring up a selection dialog for the user to select the output directory.
-		 */
-		void OutputBrowseButtonClicked();
+			/**
+			 * Fired when the Browse button for the input file is clicked.
+			 *
+			 * Used to bring up a selection dialog for the user to select the input file.
+			 */
+			void InputBrowseButtonClicked();
 
-		/**
-		 * Fired when the input or output text boxes are modified.
-		 *
-		 * Used to responsively disable or enable the Extract button.
-		 */
-		void TextChanged();
+			/**
+			 * Fired when the Browse button for the output folder is clicked.
+			 *
+			 * Used to bring up a selection dialog for the user to select the output directory.
+			 */
+			void OutputBrowseButtonClicked();
 
-		/**
-		 * Fired when the Extract button is clicked.
-		 *
-		 * Starts the extraction procedure.
-		 */
-		void ExtractButtonClicked();
+			/**
+			 * Fired when the input or output text boxes are modified.
+			 *
+			 * Used to responsively disable or enable the Extract button.
+			 */
+			void TextChanged();
 
-		/**
-		 * Fired when the "Clear Log" button in the Log tab is clicked.
-		 *
-		 * Simply clears the console buffer..
-		 */
-		void ClearLogButtonClicked();
+			/**
+			 * Fired when the Extract button is clicked.
+			 *
+			 * Starts the extraction procedure.
+			 */
+			void ExtractButtonClicked();
 
-		/**
-		 * Fired when the "Save Log" button in the Log tab is clicked.
-		 *
-		 * Brings up a file selector to select filename and location of the log to save,
-		 * and then saves the log in a plain text form, ready for anyone to look at.
-		 */
-		void SaveLogButtonClicked();
-		
-		/**
-		 * Fired when the "About Qt..." button is clicked in the About tab.
-		 *
-		 * Brings up the About Qt dialog.
-		 */
-		void AboutButtonClicked();
+			/**
+			 * Fired when the "Clear Log" button in the Log tab is clicked.
+			 *
+			 * Simply clears the console buffer..
+			 */
+			void ClearLogButtonClicked();
 
-		// Slots other people connect to.
-	public slots:
+			/**
+			 * Fired when the "Save Log" button in the Log tab is clicked.
+			 *
+			 * Brings up a file selector to select filename and location of the log to save,
+			 * and then saves the log in a plain text form, ready for anyone to look at.
+			 */
+			void SaveLogButtonClicked();
 
-		/**
-		 * Logs a message to the "Log" tab in the User Interface when fired.
-		 *
-		 * \param[in] message The message to log.
-		 * \param[in] type The type/serverity of the message.
-		 */
-		void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
+			/**
+			 * Fired when the "About Qt..." button is clicked in the About tab.
+			 *
+			 * Brings up the About Qt dialog.
+			 */
+			void AboutButtonClicked();
 
-		/**
-		 * When fired, anything needed to be called when extraction is called.
-		 */
-		void Finished();
+			// Slots other people connect to.
+		   public slots:
 
-	private:
+			/**
+			 * Logs a message to the "Log" tab in the User Interface when fired.
+			 *
+			 * \param[in] message The message to log.
+			 * \param[in] type The type/serverity of the message.
+			 */
+			void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
 
-		/**
-		 * Extraction thread.
-		 */
-		QThread* extraction_thread;
+			/**
+			 * When fired, anything needed to be called when extraction is called.
+			 */
+			void Finished();
 
-		Ui::mainWindow ui;
+		   private:
+			/**
+			 * Extraction thread.
+			 */
+			QThread* extraction_thread;
 
-	};
+			Ui::mainWindow ui;
+		};
 
-}
-}
+	} // namespace ui
+} // namespace xb2at

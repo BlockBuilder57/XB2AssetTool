@@ -13,7 +13,8 @@ namespace core {
 	};
 
 	inline std::string xbc1ReaderStatusToString(xbc1ReaderStatus status) {
-		static const char* status_str[] = {
+		// using constexpr to avoid magic const overhead
+		constexpr static const char* status_str[] = {
 			"Success",
 			"Error reading XBC1 header",
 			"File is not XBC1",

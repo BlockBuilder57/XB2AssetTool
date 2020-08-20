@@ -12,7 +12,8 @@ namespace core {
 	};
 
 	inline std::string skelReaderStatusToString(skelReaderStatus status) {
-		static const char* status_str[] = {
+		// avoiding magic const by using constexpr
+		constexpr static const char* status_str[] = {
 			"Success",
 			"Error reading SKEL header",
 			"File is not SKEL"

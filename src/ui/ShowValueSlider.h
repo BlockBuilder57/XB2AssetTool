@@ -2,37 +2,33 @@
 #include <QEvent>
 #include <QSlider>
 
-
 namespace xb2at {
-namespace ui {
+	namespace ui {
 
-	class ShowValueSlider : public QSlider {
+		class ShowValueSlider : public QSlider {
+			Q_OBJECT
 
-		Q_OBJECT
+		   public:
+			explicit ShowValueSlider(QWidget* parent = nullptr);
+			explicit ShowValueSlider(Qt::Orientation orientation, QWidget* parent = nullptr);
 
-	public:
+		   protected:
+			/**
+			 * Fired on slider change.
+			 */
+			virtual void sliderChange(SliderChange change);
 
-		explicit ShowValueSlider(QWidget* parent = nullptr);
-		explicit ShowValueSlider(Qt::Orientation orientation, QWidget* parent = nullptr);
+			/**
+			 * Override of QSlider::event() so we can capture hover events
+			 */
+			virtual bool event(QEvent* event);
 
-	protected:
-		/**
-		 * Fired on slider change.
-		 */
-		virtual void sliderChange(SliderChange change);
+		   private:
+			/**
+			 * Show the value by creating a tooltip.
+			 */
+			void ShowValue();
+		};
 
-		/**
-		 * Override of QSlider::event() so we can capture hover events
-		 */
-		virtual bool event(QEvent* event);
-
-	private:
-
-		/**
-		 * Show the value by creating a tooltip
-		 */
-		void ShowValue();
-	};
-
-}
-}
+	} // namespace ui
+} // namespace xb2at

@@ -12,6 +12,14 @@ cross platform compatibility, and code reuse.
 * Dump all textures from files (including mesh textures/main chunk textures)
 * Dumps uncompressed raw files and animations for research
 
+### Thanks to
+
+PredatorCZ/Lukas Cone - [3DSMax Xenoblade Import Tools](https://lukascone.wordpress.com/2018/05/06/xenoblade-chronicles-import-tool/)
+
+Thealexbarney - [XbTool](https://github.com/Thealexbarney/XbTool) (Texture swizzling)
+
+Turk645 - Map format & ideas
+
 ### Running
 
 Simply run the executable, and pick an input file. An output folder will be created in the path you choose your file(s) in, but you can override this by picking a output folder manually. Each file will have its own folder in the output folder. Then, configure your output settings at the bottom and hit Extract. The file should export to the output path in the format you chose.
@@ -31,6 +39,8 @@ they make this process so much less of a pain for other people.
 Include the XB2AssetTool source code in your project like so, so that you only get xb2core.
 ```cmake
 set(XB2AT_XB2CORE_ONLY ON)
+# Optional if you want to use the Easymode API:
+#set(XB2AT_XB2CORE_EASYMODE ON)
 add_subdirectory(path/to/3rdparty/XB2AssetTool)
 ```
 

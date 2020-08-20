@@ -16,7 +16,8 @@ namespace core {
 	};
 
 	inline std::string meshReaderStatusToString(meshReaderStatus status) {
-		static const char* status_str[] = {
+		// avoiding magic const by using constexpr
+		constexpr static const char* status_str[] = {
 			"Success",
 			"Error reading mesh header",
 			"Error reading vertex data",

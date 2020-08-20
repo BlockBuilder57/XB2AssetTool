@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <structs.h>
+#include <structs/msrd.h>
 #include "base_reader.h"
 
 namespace xb2at {
@@ -13,7 +13,8 @@ namespace core {
 	};
 
 	inline std::string msrdReaderStatusToString(msrdReaderStatus status) {
-		static const char* status_str[] = {
+		// avoiding magic const by using constexpr
+		constexpr static const char* status_str[] = {
 			"Success",
 			"Error reading MSRD header",
 			"File is not a MSRD file"

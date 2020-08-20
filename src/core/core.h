@@ -33,19 +33,19 @@ namespace core {
 	 */
 
 #if defined(__clang__) || defined(__GNUC__)
-	/**
-	 * Marks a value as unused so that with tighter warning settings it doesn't emit warnings.
-	 */
 	#define CORE_UNUSED __attribute__((unused))
 #else
 	// no-op for compilers that are looser about it
+	/**
+	 * Marks a value as unused so that with tighter warning settings it doesn't emit warnings.
+	 */
 	#define CORE_UNUSED
 #endif
 
 	/** @} */
 
 	/**
-	 * \defgroup Types Core Library Types
+	 * \defgroup Types Core Library Types & Class Templates
 	 * @{
 	 */
 	
@@ -69,18 +69,19 @@ namespace core {
 	typedef std::uint64_t uint64;
 
 	/**
-	 * A bool that is not sizeof(int) bytes.
+	 * A bool value that is not sizeof(int) bytes. Useful for if you don't want
+	 * to expand lots of structures just by adding a single bool
 	 */
 	typedef byte bytebool;
 	
 	/**
-	 * constant shorthand for numeric_limits<T>::min()
+	 * constexpr shorthand for numeric_limits<T>::min()
 	 */
 	template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 	struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
 
 	/**
-	 * constant shorthand for numeric_limits<T>::max()
+	 * constexpr shorthand for numeric_limits<T>::max()
 	 */
 	template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 	struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
@@ -120,6 +121,9 @@ namespace core {
 		uint16 w;
 	};
 
+	/**
+	 * RGBA color
+	 */
 	struct color {
 		byte r;
 		byte g;
@@ -135,7 +139,7 @@ namespace core {
 	};
 
 	/**
-	 * Like std::map<Key, Value> but in compile time! 
+	 * Like std::map<Key, Value> but compile time compatiable! 
 	 */
 	template<class Key, class Value, std::size_t Size>
 	struct CompileTimeMap {
@@ -162,10 +166,11 @@ namespace core {
 	};
 	
 	/** @} */
-
-	// TODO(lily): Due to C++17 copy elision,
-	// most of the functions here that return void but modify a reference to T
-	// should be just fine returning T{}.
+	
+	/**
+	 * \defgroup InlineFun Core Library Inline Functions
+	 * @{
+	 */
 
 	/**
 	 * Normalize a Vector3.
@@ -194,10 +199,16 @@ namespace core {
 			glm::translate(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z)); // matrix scale
 	}
 
+	/** @} */
+
 	/**
 	 * \defgroup FunTempls Core Library Function Templates
 	 * @{
 	 */
+
+	// NOTE(lily): A lot of these are (ab)using 
+	// constexpr also being able to be used as a "try harder to inline/optimize me" signal to the compiler
+	// (which actually works suprisingly well!).
 
 	/**
 	 * Resize a multi-dimensional vector of elements of type T.
@@ -209,7 +220,7 @@ namespace core {
 	 * \param[in] dim2 Second dimension
 	 */
 	template<class T>
-	inline void ResizeMultiDimVec(std::vector<std::vector<T>>& vec, int dim1, int dim2) {
+	constexpr void ResizeMultiDimVec(std::vector<std::vector<T>>& vec, int dim1, int dim2) {
 		vec.resize(dim1);
 
 		for(std::vector<T>& v : vec)
@@ -225,7 +236,7 @@ namespace core {
 	 * \param[in] RValue Right value.
 	 */
 	template<typename T>
-	inline bool DefaultMin(const T& LValue, const T& RValue) {
+	constexpr bool DefaultMin(const T& LValue, const T& RValue) {
 		return std::min(LValue, RValue) == RValue;
 	}
 
@@ -238,7 +249,7 @@ namespace core {
 	 * \param[in] RValue Right value.
 	 */
 	template<typename T>
-	inline bool DefaultMax(const T& LValue, const T& RValue) {
+	constexpr bool DefaultMax(const T& LValue, const T& RValue) {
 		return std::max(LValue, RValue) == RValue;
 	}
 	
@@ -252,7 +263,7 @@ namespace core {
 	 * \param[in] Max Max function to use. Refer to the documentation of the MaxFun template parameter.
 	 */
 	template<class RevIterContainer, class MaxFun>
-	inline typename RevIterContainer::value_type GetMaxElement(const RevIterContainer& container, MaxFun& Max = DefaultMax<typename RevIterContainer::value_type>) {
+	constexpr typename RevIterContainer::value_type GetMaxElement(const RevIterContainer& container, MaxFun& Max = DefaultMax<typename RevIterContainer::value_type>) {
 		typedef typename RevIterContainer::value_type T;
 
 		auto it = std::max_element(container.begin(), container.end(), [&](const T& L, const T& R) {
@@ -273,10 +284,10 @@ namespace core {
 	 * \param[in] Min Min function to use. Refer to the documentation of the MinFun template parameter.
 	 */
 	template<class RevIterContainer, class MinFun>
-	inline typename RevIterContainer::value_type GetMinElement(const RevIterContainer& container, MinFun& Min = DefaultMin<typename RevIterContainer::value_type>) {
+	constexpr typename RevIterContainer::value_type GetMinElement(const RevIterContainer& container, MinFun& Min = DefaultMin<typename RevIterContainer::value_type>) {
 		typedef typename RevIterContainer::value_type T;
 
-		auto it = std::min_element(vec.begin(), vec.end(), [&](const T& L, const T& R) {
+		auto it = std::min_element(container.begin(), container.end(), [&](const T& L, const T& R) {
 			return Min(L, R);
 		});
 
@@ -293,7 +304,7 @@ namespace core {
 	 * \param[in] Max Maximum value.
 	 */
 	template<typename T>
-	inline T Clamp(T Expression, const T Min, const T Max) {
+	constexpr T Clamp(T Expression, const T Min, const T Max) {
 		return (Expression > Max) ? Max :
 			(Expression < Min) ? Min : Expression;
 	}
@@ -312,7 +323,7 @@ namespace core {
 	 * \param[in] evalulator Evalulator function. Refer to the documentation of the WhereFun template parameter.
 	 */
 	template<class RevIterContainer, class WhereFun>
-	inline typename RevIterContainer::iterator Where(RevIterContainer& vec, WhereFun evalulator) {
+	constexpr typename RevIterContainer::iterator Where(RevIterContainer& vec, WhereFun evalulator) {
 		auto it = vec.begin();
 
 		// return end iterator if container has no allocated elements

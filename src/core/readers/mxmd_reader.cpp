@@ -1,6 +1,5 @@
 #include "mxmd_reader.h"
 #include "streamhelper.h"
-#include "endian_swap.h"
 
 namespace xb2at {
 	namespace core {

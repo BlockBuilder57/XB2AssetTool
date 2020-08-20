@@ -7,6 +7,9 @@ find_package(Threads)
 # For people who want to import xb2core
 option(XB2AT_XB2CORE_ONLY "Only build/include xb2core" OFF)
 
+# defaulted to off
+option(XB2AT_XB2CORE_EASYMODE "Include the Easymode API with xb2core" OFF)
+
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
@@ -18,7 +21,7 @@ endif()
 
 # clang-cl optimizations
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND MSVC)
-	if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	if("${CMAKE_BUILD_TYPE}" MATCHES "Release")
 		# use /clang: to pass in options from godbolt analysis
 		set(CMAKE_CXX_FLAGS_RELEASE "/MD /Oi /DNDEBUG /clang:-O3 /clang:-ffast-math")
 		set(CMAKE_C_FLAGS_RELEASE "/MD /Oi /DNDEBUG /clang:-O3 /clang:-ffast-math")

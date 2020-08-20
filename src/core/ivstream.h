@@ -6,15 +6,14 @@ namespace xb2at {
 namespace core {
 
 	/**
-	 * A istream allowing a vector<char> to be used as a data buffer without copying the data multiple times 
-	 * (speeding things up slightly and greatly lowering memory usage).
-	 * Essentially, like a .NET MemoryStream, but with less memory copying.
+	 * A istream overload allowing a vector<char> to be used as a data buffer for the stream.
+	 * Essentially, like .NET's MemoryStream, but with some zero copy guarantees.
 	 */
 	struct ivstream : public std::istream {
 
 		class vector_streambuf : public std::streambuf {
 			typedef std::vector<char>::size_type size_type;
-
+			
 			size_type read_pos;
 		public:
 			std::vector<char>& buffer;
@@ -22,6 +21,7 @@ namespace core {
 			vector_streambuf(std::vector<char>& buffer_) 
 				: read_pos(0),
 				buffer(buffer_) {
+				// code worked fine without this but I'm doing it here for correctness
 				setg(&buffer_[0], &buffer_[1], &buffer_[0] + buffer_.size());
 			}
 
@@ -80,6 +80,11 @@ namespace core {
 
 		};
 
+		/**
+		 * Constructor 
+		 * 
+		 * \param[in] buffer Reference to buffer to use for this ivstream
+		 */
 		ivstream(std::vector<char>& buffer) 
 			: std::istream(&buf),
 			buf(buffer) {

@@ -13,10 +13,11 @@ namespace core {
 		};
 
 		inline std::string lbimReaderStatusToString(lbimReaderStatus status) {
-			static const char* status_str[] = {
+			// avoiding magic const by using constexpr
+			constexpr static const char* status_str[] = {
 				"Success",
 				"Error reading the LBIM header",
-				"File is not a LBIM"
+				"File is not a LBIM file, or the version is invalid"
 			};
 
 			return status_str[(int)status];
@@ -73,6 +74,9 @@ namespace core {
 			 */
 			lbim::texture Read(lbimReaderOptions& opts);
 
+		private:
+
+			Logger logger = Logger::CreateChannel("LBIMReader");
 		};
 
 

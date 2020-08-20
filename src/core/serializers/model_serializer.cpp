@@ -11,407 +11,399 @@ namespace gltf = fx::gltf;
 using vec3 = xb2at::core::vector3;
 
 namespace xb2at {
-namespace core {
+	namespace core {
 
-	template <typename T>
-	inline uint32 FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, uint64& offset) {
-		uint32 bytesToSerialize = sizeof(T) * (uint32)from.size();
+		template<typename T>
+		inline uint32 FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, uint64& offset) {
+			uint32 bytesToSerialize = sizeof(T) * (uint32)from.size();
 
-		to.resize(to.size() + bytesToSerialize);
-		std::memcpy(&to[offset], &from[0], bytesToSerialize);
+			to.resize(to.size() + bytesToSerialize);
+			std::memcpy(&to[offset], &from[0], bytesToSerialize);
 
-		offset += bytesToSerialize;
-		return bytesToSerialize;
-	}
-
-	struct gltf_defintion {
-		uint32 sizeInBuffer;
-		uint32 bufferViewIndex;
-		uint32 accessorIndex;
-	};
-
-	struct xenoblade_node {
-		uint16 nodeIndex;
-		gltf::Node gltfNode;
-		glm::mat4x4 localTransform;
-		glm::mat4x4 globalTransform;
-
-		inline xenoblade_node(uint16 nodeIndex)
-		  : nodeIndex(nodeIndex) {
-
+			offset += bytesToSerialize;
+			return bytesToSerialize;
 		}
-	};
 
-	template <typename T>
-	inline gltf_defintion AddElement(gltf::Document& doc, std::vector<T>& data, gltf::Buffer& buffer, uint64& bufferTally, int32 bufferIndex, gltf::Accessor::ComponentType accessorComponentType, gltf::Accessor::Type accessorType, bool accessorNormalized, std::string accessorName = "") {
-		gltf_defintion def;
-		
-		def.sizeInBuffer = FlattenSerialize(data, buffer.data, bufferTally);
+		struct gltf_defintion {
+			uint32 sizeInBuffer;
+			uint32 bufferViewIndex;
+			uint32 accessorIndex;
+		};
 
-		gltf::BufferView bufferView{};
-		bufferView.buffer = bufferIndex;
-		bufferView.byteLength = def.sizeInBuffer;
-		bufferView.byteOffset = (uint32)bufferTally - def.sizeInBuffer;
+		struct xenoblade_node {
+			uint16 nodeIndex;
+			gltf::Node gltfNode;
+			glm::mat4x4 localTransform;
+			glm::mat4x4 globalTransform;
 
-		doc.bufferViews.push_back(bufferView);
-		def.bufferViewIndex = (uint32)doc.bufferViews.size() - 1;
+			inline xenoblade_node(uint16 nodeIndex)
+				: nodeIndex(nodeIndex) {
+			}
+		};
 
-		gltf::Accessor accessor{};
-		accessor.bufferView = def.bufferViewIndex;
-		accessor.componentType = accessorComponentType;
-		accessor.normalized = accessorNormalized;
-		accessor.count = (uint32)data.size();
-		accessor.type = accessorType;
-		if (!accessorName.empty())
-			accessor.name = accessorName;
+		template<typename T>
+		inline gltf_defintion AddElement(gltf::Document& doc, std::vector<T>& data, gltf::Buffer& buffer, uint64& bufferTally, int32 bufferIndex, gltf::Accessor::ComponentType accessorComponentType, gltf::Accessor::Type accessorType, bool accessorNormalized, std::string accessorName = "") {
+			gltf_defintion def;
 
-		doc.accessors.push_back(accessor);
-		def.accessorIndex = (uint32)doc.accessors.size() - 1;
+			def.sizeInBuffer = FlattenSerialize(data, buffer.data, bufferTally);
 
-		return def;
-	}
+			gltf::BufferView bufferView {};
+			bufferView.buffer = bufferIndex;
+			bufferView.byteLength = def.sizeInBuffer;
+			bufferView.byteOffset = (uint32)bufferTally - def.sizeInBuffer;
 
-	void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options) {
-		fs::path outPath(options.outputDir);
-		
-		outPath = outPath / options.filename;
+			doc.bufferViews.push_back(bufferView);
+			def.bufferViewIndex = (uint32)doc.bufferViews.size() - 1;
 
-		if(options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) {
-			outPath.replace_extension(".glb");
-		} else if (options.OutputFormat == modelSerializerOptions::Format::GLTFText) {
-			outPath.replace_extension(".gltf");
+			gltf::Accessor accessor {};
+			accessor.bufferView = def.bufferViewIndex;
+			accessor.componentType = accessorComponentType;
+			accessor.normalized = accessorNormalized;
+			accessor.count = (uint32)data.size();
+			accessor.type = accessorType;
+			if(!accessorName.empty())
+				accessor.name = accessorName;
+
+			doc.accessors.push_back(accessor);
+			def.accessorIndex = (uint32)doc.accessors.size() - 1;
+
+			return def;
 		}
-		
-		std::ofstream ofs(outPath.string(), (options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? std::ofstream::binary : std::ostream::out);
 
-		if (options.OutputFormat == modelSerializerOptions::Format::GLTFBinary || options.OutputFormat == modelSerializerOptions::Format::GLTFText) {
-			// do gltf things
+		void modelSerializer::Serialize(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options) {
+			fs::path outPath(options.outputDir);
 
-			gltf::Document doc{};
-			doc.asset.generator = "XB2AssetTool " + std::string(version::tag);
-			doc.asset.version = "2.0"; // glTF version, not generator version!
+			outPath = outPath / options.filename;
 
-			for (mxmd::material mxmdMat : mxmdData.Materials.Materials) {
-				gltf::Material material;
-				material.name = mxmdMat.name;
-				doc.materials.push_back(material);
+			if(options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) {
+				outPath.replace_extension(".glb");
+			} else if(options.OutputFormat == modelSerializerOptions::Format::GLTFText) {
+				outPath.replace_extension(".gltf");
 			}
 
-			for (int i = 0; i < mxmdData.Model.meshesCount; ++i) {
-				gltf::Scene scene{};
+			std::ofstream ofs(outPath.string(), (options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? std::ofstream::binary : std::ostream::out);
 
-				logger.info("Converting mesh ", i, " (", i, '/', mxmdData.Model.meshesCount, ')');
+			if(options.OutputFormat == modelSerializerOptions::Format::GLTFBinary || options.OutputFormat == modelSerializerOptions::Format::GLTFText) {
+				// do gltf things
 
-				int32 bonesNodeOffset = doc.nodes.size();
+				gltf::Document doc {};
+				doc.asset.generator = "XB2AssetTool " + std::string(version::tag);
+				doc.asset.version = "2.0"; // glTF version, not generator version!
 
-				std::map<std::string, int> SKELNameToNodeIndex;
-				for (int k = 0; k < skelData.nodes.size(); ++k) 
-					SKELNameToNodeIndex[skelData.nodes[k].name] = k + bonesNodeOffset;
-
-				mesh::mesh& meshToDump = meshesToDump[i];
-
-				mesh::vertex_table weightTbl = meshToDump.vertexTables.back();
-
-				if (options.lod != -1) {
-					int lowestLOD = 3;
-					int highestLOD = 0;
-					for (int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
-						if (mxmdData.Model.Meshes[i].descriptors[j].lod <= lowestLOD)
-							lowestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
-						else if (mxmdData.Model.Meshes[i].descriptors[j].lod >= highestLOD)
-							highestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
-					}
-					if (Clamp(options.lod, lowestLOD, highestLOD) != options.lod) {
-						options.lod = Clamp(options.lod, lowestLOD, highestLOD);
-						logger.warn("No meshes at chosen LOD level, setting LOD to ", options.lod);
-					}
+				for(mxmd::material mxmdMat : mxmdData.Materials.Materials) {
+					gltf::Material material;
+					material.name = mxmdMat.name;
+					doc.materials.push_back(material);
 				}
 
-				for (int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
-					mxmd::mesh_descriptor desc = mxmdData.Model.Meshes[i].descriptors[j];
+				for(int i = 0; i < mxmdData.Model.meshesCount; ++i) {
+					gltf::Scene scene {};
 
-					if (!options.saveOutlines && mxmdData.Materials.Materials[desc.materialID].name.find("outline") != std::string::npos) 
-						continue;
+					logger.info("Converting mesh ", i, " (", i, '/', mxmdData.Model.meshesCount, ')');
 
-					if (options.lod != -1 && desc.lod != options.lod)
-						continue;
+					int32 bonesNodeOffset = doc.nodes.size();
 
-					mesh::vertex_table& vertTbl = meshToDump.vertexTables[desc.vertTableIndex];
-					mesh::face_table& faceTbl = meshToDump.faceTables[desc.faceTableIndex];
+					std::map<std::string, int> SKELNameToNodeIndex;
+					for(int k = 0; k < skelData.nodes.size(); ++k)
+						SKELNameToNodeIndex[skelData.nodes[k].name] = k + bonesNodeOffset;
 
-					mesh::morph_descriptor* morphDesc = nullptr;
-					
-					auto it = Where(meshToDump.morphData.morphDescriptors, [&](mesh::morph_descriptor& meshMorphDesc) {
-						return meshMorphDesc.bufferId == desc.vertTableIndex;
-					});
+					mesh::mesh& meshToDump = meshesToDump[i];
 
-					if (it != meshToDump.morphData.morphDescriptors.end()) {
-						morphDesc = &(*it);
+					mesh::vertex_table weightTbl = meshToDump.vertexTables.back();
+
+					if(options.lod != -1) {
+						int lowestLOD = 3;
+						int highestLOD = 0;
+						for(int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
+							if(mxmdData.Model.Meshes[i].descriptors[j].lod <= lowestLOD)
+								lowestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
+							else if(mxmdData.Model.Meshes[i].descriptors[j].lod >= highestLOD)
+								highestLOD = mxmdData.Model.Meshes[i].descriptors[j].lod;
+						}
+						if(Clamp(options.lod, lowestLOD, highestLOD) != options.lod) {
+							options.lod = Clamp(options.lod, lowestLOD, highestLOD);
+							logger.warn("No meshes at chosen LOD level, setting LOD to ", options.lod);
+						}
 					}
 
-					//model buffers
-					std::vector<uint16_t> indices = faceTbl.vertices;
+					for(int j = 0; j < mxmdData.Model.Meshes[i].tableCount; ++j) {
+						mxmd::mesh_descriptor desc = mxmdData.Model.Meshes[i].descriptors[j];
 
-					std::vector<vec3> positions(vertTbl.vertices.size());
-					memcpy(&positions[0], &vertTbl.vertices[0], vertTbl.vertices.size() * sizeof(vec3));
+						if(!options.saveOutlines && mxmdData.Materials.Materials[desc.materialID].name.find("outline") != std::string::npos)
+							continue;
 
-					std::vector<vec3> normals(vertTbl.dataCount);
-					for (int k = 0; k < vertTbl.dataCount; ++k) {
-						memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
-						normals[k] = NormalizeVector3(normals[k]);
-					}
+						if(options.lod != -1 && desc.lod != options.lod)
+							continue;
 
-					std::vector<color> vertexColors = vertTbl.vertexColor;
+						mesh::vertex_table& vertTbl = meshToDump.vertexTables[desc.vertTableIndex];
+						mesh::face_table& faceTbl = meshToDump.faceTables[desc.faceTableIndex];
 
-					std::vector<vector2> uv0 = vertTbl.uvPos[0];
-					std::vector<vector2> uv1 = vertTbl.uvPos[1];
-					std::vector<vector2> uv2 = vertTbl.uvPos[2];
-					std::vector<vector2> uv3 = vertTbl.uvPos[3];
+						mesh::morph_descriptor* morphDesc = nullptr;
 
-					std::vector<u16_quaternion> joints(vertTbl.dataCount);
-					for (int k = 0; k < vertTbl.dataCount; ++k) {
-						joints[k].x = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[0][vertTbl.weightTableIndex[k]]].name];
-						joints[k].y = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[1][vertTbl.weightTableIndex[k]]].name];
-						joints[k].z = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[2][vertTbl.weightTableIndex[k]]].name];
-						joints[k].w = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[3][vertTbl.weightTableIndex[k]]].name];
-					}
+						auto it = Where(meshToDump.morphData.morphDescriptors, [&](mesh::morph_descriptor& meshMorphDesc) {
+							return meshMorphDesc.bufferId == desc.vertTableIndex;
+						});
 
-					std::vector<quaternion> weights(vertTbl.dataCount);
-					for (int k = 0; k < vertTbl.dataCount; ++k) {
-						weights[k] = weightTbl.weightStrengths[vertTbl.weightTableIndex[k]];
-					}
-
-					// toss all vectors into a buffer
-					// model buffer format: indices, positions, normals, vertexColors, uv0, uv1, uv2, uv3
-					gltf::Buffer modelBuffer{};
-					uint64 modelBufferTally = 0;
-
-					uint32 buffersCount = (uint32)doc.buffers.size();
-					gltf_defintion defIndices =      AddElement(doc, indices,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Scalar, false);
-					gltf_defintion defPositions =    AddElement(doc, positions,    modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
-					gltf_defintion defNormals =      AddElement(doc, normals,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec3,   false);
-					gltf_defintion defVertexColors = AddElement(doc, vertexColors, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedByte,  gltf::Accessor::Type::Vec4,   true);
-					gltf_defintion defUV0 =          AddElement(doc, uv0,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltf_defintion defUV1 =          AddElement(doc, uv1,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltf_defintion defUV2 =          AddElement(doc, uv2,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltf_defintion defUV3 =          AddElement(doc, uv3,          modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec2,   false);
-					gltf_defintion defJoints =       AddElement(doc, joints,       modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Vec4,   false);
-					gltf_defintion defWeights =      AddElement(doc, weights,      modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float,         gltf::Accessor::Type::Vec4,   false);
-
-					modelBuffer.byteLength = (uint32)modelBuffer.data.size();
-					if (options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
-						modelBuffer.SetEmbeddedResource();
-
-					// insert into document
-					doc.buffers.push_back(modelBuffer);
-
-					// viewer requires this
-					// indexAccessor.min = { (float)*std::min_element(indices.begin(), indices.end()) };
-					// indexAccessor.max = { (float)*std::max_element(indices.begin(), indices.end()) };
-					doc.accessors[defIndices.accessorIndex].min = { (float)*std::min_element(indices.begin(), indices.end()) };
-					doc.accessors[defIndices.accessorIndex].max = { (float)*std::max_element(indices.begin(), indices.end()) };
-					//FIXME ADDME FIXME ADDME FIXME ADDME (eventually)
-					//positionAccessor.min = { -0.40553078055381775f, -0.010357379913330078f, -0.43219080567359924f };
-					//positionAccessor.max = { -0.24855375289916992f, 0.010233467444777489f, -0.30006110668182373f };
-					//normalAccessor.min = { 0, 1, 0 };
-					//normalAccessor.max = { 0, 1, 0 };
-
-
-					// toss all morphs into a buffer
-					// morph buffer format: morph0pos, morph0norm, morph1pos, morph1norm, etc.
-					gltf::Buffer morphBuffer{};
-					uint64 morphBufferTally = 0;
-					buffersCount = (uint32)doc.buffers.size();
-
-					std::vector<gltf_defintion> morphPositionDefs;
-					std::vector<gltf_defintion> morphNormalDefs;
-
-					// cleanup the buffers we've already commited and don't need at this point
-					indices.clear();
-					positions.clear();
-					normals.clear();
-					vertexColors.clear();
-					uv0.clear();
-					uv1.clear();
-					uv2.clear();
-					uv3.clear();
-
-					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
-					{
-						for (int k = 2; k < meshToDump.morphData.morphTargetCount; ++k)
-						{
-							int morphId = morphDesc->targetIds[k-2];
-							mesh::morph_target& morphTarget = meshToDump.morphData.morphTargets[morphDesc->targetIndex + k];
-
-							std::vector<vec3> morphPositions(vertTbl.vertices.size());
-							for (int l = 0; l < vertTbl.vertices.size(); ++l) {
-								morphPositions[l].x = morphTarget.vertices[l].x;
-								morphPositions[l].y = morphTarget.vertices[l].y;
-								morphPositions[l].z = morphTarget.vertices[l].z;
-							}
-
-							gltf_defintion defMorphPositions = AddElement(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
-							morphPositions.clear();
-
-							std::vector<vec3> morphNormals(vertTbl.vertices.size());
-							for (int l = 0; l < vertTbl.vertices.size(); ++l) {
-								morphNormals[l].x = morphTarget.normals[l].x;
-								morphNormals[l].y = morphTarget.normals[l].y;
-								morphNormals[l].z = morphTarget.normals[l].z;
-							}
-
-							gltf_defintion defMorphNormals =   AddElement(doc, morphNormals,   morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
-							morphNormals.clear();
-
-							morphPositionDefs.push_back(defMorphPositions);
-							morphNormalDefs.push_back(defMorphNormals);
+						if(it != meshToDump.morphData.morphDescriptors.end()) {
+							morphDesc = &(*it);
 						}
 
-						morphBuffer.byteLength = (uint32)morphBuffer.data.size();
-						if (options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field."
-							morphBuffer.SetEmbeddedResource();
+						//model buffers
+						std::vector<uint16_t> indices = faceTbl.vertices;
+
+						std::vector<vec3> positions(vertTbl.vertices.size());
+						memcpy(&positions[0], &vertTbl.vertices[0], vertTbl.vertices.size() * sizeof(vec3));
+
+						std::vector<vec3> normals(vertTbl.dataCount);
+						for(int k = 0; k < vertTbl.dataCount; ++k) {
+							memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
+							normals[k] = NormalizeVector3(normals[k]);
+						}
+
+						std::vector<color> vertexColors = vertTbl.vertexColor;
+
+						std::vector<vector2> uv0 = vertTbl.uvPos[0];
+						std::vector<vector2> uv1 = vertTbl.uvPos[1];
+						std::vector<vector2> uv2 = vertTbl.uvPos[2];
+						std::vector<vector2> uv3 = vertTbl.uvPos[3];
+
+						std::vector<u16_quaternion> joints(vertTbl.dataCount);
+						for(int k = 0; k < vertTbl.dataCount; ++k) {
+							joints[k].x = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[0][vertTbl.weightTableIndex[k]]].name];
+							joints[k].y = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[1][vertTbl.weightTableIndex[k]]].name];
+							joints[k].z = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[2][vertTbl.weightTableIndex[k]]].name];
+							joints[k].w = SKELNameToNodeIndex[mxmdData.Model.Skeleton.nodes[weightTbl.weightIds[3][vertTbl.weightTableIndex[k]]].name];
+						}
+
+						std::vector<quaternion> weights(vertTbl.dataCount);
+						for(int k = 0; k < vertTbl.dataCount; ++k) {
+							weights[k] = weightTbl.weightStrengths[vertTbl.weightTableIndex[k]];
+						}
+
+						// toss all vectors into a buffer
+						// model buffer format: indices, positions, normals, vertexColors, uv0, uv1, uv2, uv3
+						gltf::Buffer modelBuffer {};
+						uint64 modelBufferTally = 0;
+
+						uint32 buffersCount = (uint32)doc.buffers.size();
+						gltf_defintion defIndices = AddElement(doc, indices, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Scalar, false);
+						gltf_defintion defPositions = AddElement(doc, positions, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false);
+						gltf_defintion defNormals = AddElement(doc, normals, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false);
+						gltf_defintion defVertexColors = AddElement(doc, vertexColors, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedByte, gltf::Accessor::Type::Vec4, true);
+						gltf_defintion defUV0 = AddElement(doc, uv0, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec2, false);
+						gltf_defintion defUV1 = AddElement(doc, uv1, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec2, false);
+						gltf_defintion defUV2 = AddElement(doc, uv2, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec2, false);
+						gltf_defintion defUV3 = AddElement(doc, uv3, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec2, false);
+						gltf_defintion defJoints = AddElement(doc, joints, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Vec4, false);
+						gltf_defintion defWeights = AddElement(doc, weights, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec4, false);
+
+						modelBuffer.byteLength = (uint32)modelBuffer.data.size();
+						if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
+							modelBuffer.SetEmbeddedResource();
 
 						// insert into document
-						doc.buffers.push_back(morphBuffer);
-					}
-					
+						doc.buffers.push_back(modelBuffer);
 
-					std::string meshName = "mesh" + std::to_string(i) + "_desc" + std::to_string(j);
-					if (desc.lod != options.lod)
-						meshName += "_LOD" + std::to_string(desc.lod);
+						// viewer requires this
+						// indexAccessor.min = { (float)*std::min_element(indices.begin(), indices.end()) };
+						// indexAccessor.max = { (float)*std::max_element(indices.begin(), indices.end()) };
+						doc.accessors[defIndices.accessorIndex].min = { (float)*std::min_element(indices.begin(), indices.end()) };
+						doc.accessors[defIndices.accessorIndex].max = { (float)*std::max_element(indices.begin(), indices.end()) };
+						//FIXME ADDME FIXME ADDME FIXME ADDME (eventually)
+						//positionAccessor.min = { -0.40553078055381775f, -0.010357379913330078f, -0.43219080567359924f };
+						//positionAccessor.max = { -0.24855375289916992f, 0.010233467444777489f, -0.30006110668182373f };
+						//normalAccessor.min = { 0, 1, 0 };
+						//normalAccessor.max = { 0, 1, 0 };
 
-					gltf::Mesh gltfMesh{};
-					gltf::Primitive gltfPrimitive{};
+						// toss all morphs into a buffer
+						// morph buffer format: morph0pos, morph0norm, morph1pos, morph1norm, etc.
+						gltf::Buffer morphBuffer {};
+						uint64 morphBufferTally = 0;
+						buffersCount = (uint32)doc.buffers.size();
 
-					gltfMesh.name = meshName;
+						std::vector<gltf_defintion> morphPositionDefs;
+						std::vector<gltf_defintion> morphNormalDefs;
 
-					gltfPrimitive.material = desc.materialID;
-					gltfPrimitive.indices = defIndices.accessorIndex;
-					gltfPrimitive.attributes["POSITION"] = defPositions.accessorIndex;
-					gltfPrimitive.attributes["NORMAL"] = defNormals.accessorIndex;
-					gltfPrimitive.attributes["COLOR_0"] = defVertexColors.accessorIndex;
+						// cleanup the buffers we've already commited and don't need at this point
+						indices.clear();
+						positions.clear();
+						normals.clear();
+						vertexColors.clear();
+						uv0.clear();
+						uv1.clear();
+						uv2.clear();
+						uv3.clear();
 
-					if (vertTbl.uvLayerCount > 0) // there's probably a better way to do this
-						gltfPrimitive.attributes["TEXCOORD_0"] = defUV0.accessorIndex;
-					if (vertTbl.uvLayerCount > 1)
-						gltfPrimitive.attributes["TEXCOORD_1"] = defUV1.accessorIndex;
-					if (vertTbl.uvLayerCount > 2)
-						gltfPrimitive.attributes["TEXCOORD_2"] = defUV2.accessorIndex;
-					if (vertTbl.uvLayerCount > 3)
-						gltfPrimitive.attributes["TEXCOORD_3"] = defUV3.accessorIndex;
+						if(options.saveMorphs && morphDesc && morphDesc->targetCounts > 0) {
+							for(int k = 2; k < meshToDump.morphData.morphTargetCount; ++k) {
+								int morphId = morphDesc->targetIds[k - 2];
+								mesh::morph_target& morphTarget = meshToDump.morphData.morphTargets[morphDesc->targetIndex + k];
 
-					gltfPrimitive.attributes["JOINTS_0"] = defJoints.accessorIndex;
-					gltfPrimitive.attributes["WEIGHTS_0"] = defWeights.accessorIndex;
+								std::vector<vec3> morphPositions(vertTbl.vertices.size());
+								for(int l = 0; l < vertTbl.vertices.size(); ++l) {
+									morphPositions[l].x = morphTarget.vertices[l].x;
+									morphPositions[l].y = morphTarget.vertices[l].y;
+									morphPositions[l].z = morphTarget.vertices[l].z;
+								}
 
-					if (options.saveMorphs && morphDesc && morphDesc->targetCounts > 0)
-					{
-						gltfPrimitive.targets.resize(morphPositionDefs.size());
+								gltf_defintion defMorphPositions = AddElement(doc, morphPositions, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
+								morphPositions.clear();
 
-						for (int k = 0; k < morphPositionDefs.size(); ++k)
-						{
-							gltf::Attributes& morphAttributes = gltfPrimitive.targets[k];
-							morphAttributes["POSITION"] = morphPositionDefs[k].accessorIndex;
-							morphAttributes["NORMAL"] = morphNormalDefs[k].accessorIndex;
+								std::vector<vec3> morphNormals(vertTbl.vertices.size());
+								for(int l = 0; l < vertTbl.vertices.size(); ++l) {
+									morphNormals[l].x = morphTarget.normals[l].x;
+									morphNormals[l].y = morphTarget.normals[l].y;
+									morphNormals[l].z = morphTarget.normals[l].z;
+								}
+
+								gltf_defintion defMorphNormals = AddElement(doc, morphNormals, morphBuffer, morphBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false, mxmdData.Model.morphControllers.controls[morphId].name);
+								morphNormals.clear();
+
+								morphPositionDefs.push_back(defMorphPositions);
+								morphNormalDefs.push_back(defMorphNormals);
+							}
+
+							morphBuffer.byteLength = (uint32)morphBuffer.data.size();
+							if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field."
+								morphBuffer.SetEmbeddedResource();
+
+							// insert into document
+							doc.buffers.push_back(morphBuffer);
 						}
-						
-						// clear defs
-						morphPositionDefs.clear();
-						morphNormalDefs.clear();
-					}
 
-					gltfMesh.primitives.push_back(gltfPrimitive);
+						std::string meshName = "mesh" + std::to_string(i) + "_desc" + std::to_string(j);
+						if(desc.lod != options.lod)
+							meshName += "_LOD" + std::to_string(desc.lod);
 
-					doc.meshes.push_back(gltfMesh);
+						gltf::Mesh gltfMesh {};
+						gltf::Primitive gltfPrimitive {};
 
-					gltf::Node node{};
-					node.mesh = (int32)doc.meshes.size() - 1;
-					node.skin = (int32)doc.skins.size(); //not size - 1 as we create the skin later
+						gltfMesh.name = meshName;
 
-					doc.nodes.push_back(node);
-					scene.nodes.push_back((int32)doc.nodes.size() - 1);
-				}
+						gltfPrimitive.material = desc.materialID;
+						gltfPrimitive.indices = defIndices.accessorIndex;
+						gltfPrimitive.attributes["POSITION"] = defPositions.accessorIndex;
+						gltfPrimitive.attributes["NORMAL"] = defNormals.accessorIndex;
+						gltfPrimitive.attributes["COLOR_0"] = defVertexColors.accessorIndex;
 
-				bonesNodeOffset = doc.nodes.size();
-				logger.info("Starting to add SKEL to glTF, bonesNodeOffset == ", bonesNodeOffset);
+						if(vertTbl.uvLayerCount > 0) // there's probably a better way to do this
+							gltfPrimitive.attributes["TEXCOORD_0"] = defUV0.accessorIndex;
+						if(vertTbl.uvLayerCount > 1)
+							gltfPrimitive.attributes["TEXCOORD_1"] = defUV1.accessorIndex;
+						if(vertTbl.uvLayerCount > 2)
+							gltfPrimitive.attributes["TEXCOORD_2"] = defUV2.accessorIndex;
+						if(vertTbl.uvLayerCount > 3)
+							gltfPrimitive.attributes["TEXCOORD_3"] = defUV3.accessorIndex;
 
-				std::vector<xenoblade_node> xbnodes;
-				std::vector<float> globalMatricies;
+						gltfPrimitive.attributes["JOINTS_0"] = defJoints.accessorIndex;
+						gltfPrimitive.attributes["WEIGHTS_0"] = defWeights.accessorIndex;
 
-				for (int k = 0; k < skelData.nodes.size(); ++k) {
-					gltf::Node node;
-					node.name = skelData.nodes[k].name;
-					if (skelData.nodeParents[k] != Max<uint16>::value) {
-						xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
-						doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
-					}
+						if(options.saveMorphs && morphDesc && morphDesc->targetCounts > 0) {
+							gltfPrimitive.targets.resize(morphPositionDefs.size());
 
-					xenoblade_node xbnode(k);
-					xbnode.gltfNode = node;
-					xbnode.localTransform = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+							for(int k = 0; k < morphPositionDefs.size(); ++k) {
+								gltf::Attributes& morphAttributes = gltfPrimitive.targets[k];
+								morphAttributes["POSITION"] = morphPositionDefs[k].accessorIndex;
+								morphAttributes["NORMAL"] = morphNormalDefs[k].accessorIndex;
+							}
 
-					glm::mat4x4 global = xbnode.localTransform;
-					if (skelData.nodeParents[k] == Max<uint16>::value) {
-						xbnode.globalTransform = global;
-					} else {
-						xbnode.globalTransform = global * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
-					}
+							// clear defs
+							morphPositionDefs.clear();
+							morphNormalDefs.clear();
+						}
 
-					glm::mat4x4 inverse = glm::inverse(xbnode.globalTransform);
-					for (byte mx = 0; mx < inverse.length()-1; ++mx)
-						for (byte my = 0; my < inverse[mx].length()-1; ++my)
-							globalMatricies.push_back(inverse[mx][my]);
+						gltfMesh.primitives.push_back(gltfPrimitive);
 
-					//memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
-					//memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
-					//memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
-					memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
+						doc.meshes.push_back(gltfMesh);
 
-					xbnodes.push_back(xbnode);
-					doc.nodes.push_back(xbnode.gltfNode);
-					if (skelData.nodeParents[k] == Max<uint16>::value)
+						gltf::Node node {};
+						node.mesh = (int32)doc.meshes.size() - 1;
+						node.skin = (int32)doc.skins.size(); //not size - 1 as we create the skin later
+
+						doc.nodes.push_back(node);
 						scene.nodes.push_back((int32)doc.nodes.size() - 1);
+					}
+
+					bonesNodeOffset = doc.nodes.size();
+					logger.info("Starting to add SKEL to glTF, bonesNodeOffset == ", bonesNodeOffset);
+
+					std::vector<xenoblade_node> xbnodes;
+					std::vector<float> globalMatricies;
+
+					for(int k = 0; k < skelData.nodes.size(); ++k) {
+						gltf::Node node;
+						node.name = skelData.nodes[k].name;
+						if(skelData.nodeParents[k] != Max<uint16>::value) {
+							xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
+							doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
+						}
+
+						xenoblade_node xbnode(k);
+						xbnode.gltfNode = node;
+						xbnode.localTransform = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+
+						glm::mat4x4 global = xbnode.localTransform;
+						if(skelData.nodeParents[k] == Max<uint16>::value) {
+							xbnode.globalTransform = global;
+						} else {
+							xbnode.globalTransform = global * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
+						}
+
+						glm::mat4x4 inverse = glm::inverse(xbnode.globalTransform);
+						for(byte mx = 0; mx < inverse.length() - 1; ++mx)
+							for(byte my = 0; my < inverse[mx].length() - 1; ++my)
+								globalMatricies.push_back(inverse[mx][my]);
+
+						//memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
+						//memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
+						//memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
+						memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
+
+						xbnodes.push_back(xbnode);
+						doc.nodes.push_back(xbnode.gltfNode);
+						if(skelData.nodeParents[k] == Max<uint16>::value)
+							scene.nodes.push_back((int32)doc.nodes.size() - 1);
+					}
+
+					gltf::Skin skin;
+
+					gltf::Buffer inverseBindBuffer {};
+					uint64 inverseBindBufferTally = 0;
+
+					uint32 buffersCount = (uint32)doc.buffers.size();
+					gltf_defintion defInverseBind = AddElement(doc, globalMatricies, inverseBindBuffer, inverseBindBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Mat4, false);
+
+					for(int k = 0; k < skelData.nodes.size(); ++k)
+						skin.joints.push_back(k + bonesNodeOffset);
+					skin.inverseBindMatrices = defInverseBind.accessorIndex;
+
+					inverseBindBuffer.byteLength = (uint32)inverseBindBuffer.data.size();
+					inverseBindBuffer.SetEmbeddedResource();
+
+					// insert into document
+					doc.buffers.push_back(inverseBindBuffer);
+
+					doc.skins.push_back(skin);
+
+					doc.scenes.push_back(scene);
+					doc.scene = i;
+
+					logger.info("Writing ", ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text"), " glTF file to ", outPath.string());
+
+					try {
+						gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
+					} catch(gltf::invalid_gltf_document ex) {
+						logger.error("fx-glTF exception: ", ex.what());
+					}
+
+					// clear document explicitly
+					doc.scenes.clear();
+					doc.meshes.clear();
+					doc.buffers.clear();
 				}
-
-				gltf::Skin skin;
-
-				gltf::Buffer inverseBindBuffer{};
-				uint64 inverseBindBufferTally = 0;
-
-				uint32 buffersCount = (uint32)doc.buffers.size();
-				gltf_defintion defInverseBind = AddElement(doc, globalMatricies, inverseBindBuffer, inverseBindBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Mat4, false);
-
-				for (int k = 0; k < skelData.nodes.size(); ++k)
-					skin.joints.push_back(k + bonesNodeOffset);
-				skin.inverseBindMatrices = defInverseBind.accessorIndex;
-
-				inverseBindBuffer.byteLength = (uint32)inverseBindBuffer.data.size();
-				inverseBindBuffer.SetEmbeddedResource();
-
-				// insert into document
-				doc.buffers.push_back(inverseBindBuffer);
-
-				doc.skins.push_back(skin);
-
-				doc.scenes.push_back(scene);
-				doc.scene = i;
-
-				logger.info("Writing ", ((options.OutputFormat == modelSerializerOptions::Format::GLTFBinary) ? "Binary" : "Text"), " glTF file to ", outPath.string());
-
-				try {
-					gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
-				} catch (gltf::invalid_gltf_document ex) {
-					logger.error("fx-glTF exception: ", ex.what());
-				} 
-
-				// clear document explicitly
-				doc.scenes.clear();
-				doc.meshes.clear();
-				doc.buffers.clear();
 			}
-
+			ofs.close();
 		}
-		ofs.close();
-	}
 
-}
-}
+	} // namespace core
+} // namespace xb2at

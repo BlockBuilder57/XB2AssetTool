@@ -3,12 +3,12 @@
 #include <Logger.h>
 
 namespace xb2at {
-namespace core {
+	namespace core {
 
-	/**
-	 * Basic reader class.
-	 */
-	struct base_reader {};
+		/**
+		 * Basic reader class.
+		 */
+		struct base_reader {};
 
-}
-}
+	} // namespace core
+} // namespace xb2at

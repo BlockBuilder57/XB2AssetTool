@@ -13,7 +13,8 @@ namespace core {
 		};
 
 		inline std::string mxmdReaderStatusToString(mxmdReaderStatus status) {
-			static const char* status_str[] = {
+			// avoiding magic const by using constexpr
+			constexpr static const char* status_str[] = {
 				"Success",
 				"Error reading MXMD header",
 				"File is not a MXMD file"

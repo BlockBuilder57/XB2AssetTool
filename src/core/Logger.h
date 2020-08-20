@@ -2,134 +2,130 @@
 #include <core.h>
 
 namespace xb2at {
-namespace core {
-
-	/**
-	 * Log reporting serverity.
-	 */
-	enum class LogSeverity : int16 {
-		/**
-		 * A verbose message. Should only be emitted
-		 * if Logger::AllowVerbose == true.
-		 */
-		Verbose,
-		/**
-		 * An informational message. This can be used to report information to the user.
-		 */
-		Info,
-		
-		/**
-		 * An message that can be used to warn the user of a condition that may be wrong.
-		 */
-		Warning,
-		
-		/**
-		 * An message that can be used to warn the user of a condition that is definitely wrong.
-		 */
-		Error
-	};
-
-	/**
-	 * The Core Library Logger.
-	 * 
-	 * Designed for a mix of usability and performance.
-	 */
-	struct Logger {
+	namespace core {
 
 		/**
-		 * Get a logger with a user-specified channel name.
+		 * Log reporting serverity.
+		 */
+		enum class LogSeverity : int16 {
+			/**
+			 * A verbose message. Should only be emitted
+			 * if Logger::AllowVerbose == true.
+			 */
+			Verbose,
+			/**
+			 * An informational message. This can be used to report information to the user.
+			 */
+			Info,
+
+			/**
+			 * An message that can be used to warn the user of a condition that may be wrong.
+			 */
+			Warning,
+
+			/**
+			 * An message that can be used to warn the user of a condition that is definitely wrong.
+			 */
+			Error
+		};
+
+		/**
+		 * The Core Library Logger.
 		 * 
-		 * \param[in] channel_name The channel name to use. Can be anything.
+		 * Designed for a mix of usability and performance.
 		 */
-		static Logger CreateChannel(std::string channel_name) {
-			Logger l;
+		struct Logger {
+			/**
+			 * Get a logger with a user-specified channel name.
+			 * 
+			 * \param[in] channel_name The channel name to use. Can be anything.
+			 */
+			static Logger CreateChannel(std::string channel_name) {
+				Logger l;
 
-			if(channel_name.empty()) {
-				// group every single empty channel name into a global channel
-				// this is techinically an error, so we probably should complain.
-				// However, this works for now.
-				l.channel_name = "Global_Channel";
+				if(channel_name.empty()) {
+					// group every single empty channel name into a global channel
+					// this is techinically an error, so we probably should complain.
+					// However, this works for now.
+					l.channel_name = "Global_Channel";
+					return l;
+				}
+
+				l.channel_name = channel_name;
 				return l;
 			}
 
+			static std::function<void(const std::string, LogSeverity)> OutputFunction;
 
-			l.channel_name = channel_name;
-			return l;
-		}
+			static bool AllowVerbose;
 
+			// Logging functions
 
-		static std::function<void(const std::string, LogSeverity)> OutputFunction;
+			template<typename T, typename... Args>
+			inline void info(const T value, Args... args) {
+				if(!Logger::OutputFunction)
+					return;
 
-		static bool AllowVerbose;
+				std::ostringstream ss;
 
-		// Logging functions
+				//ss << TimestampString() << "[" << channel_name << "] " << Stringify(value, args...);
+				ss << "[" << channel_name << "] " << Stringify(value, args...);
 
-		template<typename T, typename ...Args>
-		inline void info(const T value, Args... args) {
-			if(!Logger::OutputFunction)
-				return;
+				Logger::OutputFunction(ss.str(), LogSeverity::Info);
 
-			std::ostringstream ss;
+				ss.clear();
+			}
 
-			//ss << TimestampString() << "[" << channel_name << "] " << Stringify(value, args...);
-			ss << "[" << channel_name << "] " << Stringify(value, args...);
-			
-			Logger::OutputFunction(ss.str(), LogSeverity::Info);
-			
-			ss.clear();
-		}		
-		
-		template<typename T, typename ...Args>
-		inline void warn(const T value, Args... args) {
-			if(!Logger::OutputFunction)
-				return;
+			template<typename T, typename... Args>
+			inline void warn(const T value, Args... args) {
+				if(!Logger::OutputFunction)
+					return;
 
-			std::ostringstream ss;
-			ss << "[" << channel_name << "] " << Stringify(value, args...);
-			
-			Logger::OutputFunction(ss.str(), LogSeverity::Warning);
-			
-			ss.clear();
-		}	
+				std::ostringstream ss;
+				ss << "[" << channel_name << "] " << Stringify(value, args...);
 
-		template<typename T, typename ...Args>
-		inline void error(const T value, Args... args) {
-			if(!Logger::OutputFunction)
-				return;
+				Logger::OutputFunction(ss.str(), LogSeverity::Warning);
 
-			std::ostringstream ss;
-			ss << "[" << channel_name << "] " << Stringify(value, args...);
-			
-			Logger::OutputFunction(ss.str(), LogSeverity::Error);
-			
-			ss.clear();
-		}
-		
-		template<typename T, typename ...Args>
-		inline void verbose(const T value, Args... args) {
-			if(!Logger::AllowVerbose)
-				return;
-			
-			if(!Logger::OutputFunction)
-				return;
+				ss.clear();
+			}
 
-			std::ostringstream ss;
-			ss << "[" << channel_name << "] " << Stringify(value, args...);
-			
-			//if(Logger::OutputFunction)
-			Logger::OutputFunction(ss.str(), LogSeverity::Verbose);
-			
-			ss.clear();
-		}
+			template<typename T, typename... Args>
+			inline void error(const T value, Args... args) {
+				if(!Logger::OutputFunction)
+					return;
 
-	private:
+				std::ostringstream ss;
+				ss << "[" << channel_name << "] " << Stringify(value, args...);
 
-		inline Logger() {
-		}
+				Logger::OutputFunction(ss.str(), LogSeverity::Error);
 
-		inline Logger(Logger&& c) {
-			this->channel_name = c.channel_name;
-		}
+				ss.clear();
+			}
+
+			template<typename T, typename... Args>
+			inline void verbose(const T value, Args... args) {
+				if(!Logger::AllowVerbose)
+					return;
+
+				if(!Logger::OutputFunction)
+					return;
+
+				std::ostringstream ss;
+				ss << "[" << channel_name << "] " << Stringify(value, args...);
+
+				//if(Logger::OutputFunction)
+				Logger::OutputFunction(ss.str(), LogSeverity::Verbose);
+
+				ss.clear();
+			}
+
+		   private:
+			inline Logger() {
+			}
+
+			inline Logger(Logger&& c) {
+				this->channel_name = c.channel_name;
+			}
 
 // remove if 0 if this should be used
 // keeping because it's useful
@@ -148,39 +144,39 @@ namespace core {
 		}
 #endif
 
-		template<typename Head, typename... Tail>
-		static std::string Stringify(Head h, Tail... t) {
-			std::string s;
-			StringifyImpl(s, h, t...);
-			return s;
-		}
+			template<typename Head, typename... Tail>
+			static std::string Stringify(Head h, Tail... t) {
+				std::string s;
+				StringifyImpl(s, h, t...);
+				return s;
+			}
 
-		template<typename Head, typename...Tail>
-		static void StringifyImpl(std::string& string, Head h, Tail... t) {
-			StringifyImpl(string, h);
-			StringifyImpl(string, t...);
-		}
+			template<typename Head, typename... Tail>
+			static void StringifyImpl(std::string& string, Head h, Tail... t) {
+				StringifyImpl(string, h);
+				StringifyImpl(string, t...);
+			}
 
-		template<typename T>
-		static void StringifyImpl(std::string& string, T item) {
-			std::ostringstream ss;
-			ss << item;
-			const std::string str = ss.str();
+			template<typename T>
+			static void StringifyImpl(std::string& string, T item) {
+				std::ostringstream ss;
+				ss << item;
+				const std::string str = ss.str();
 
-			string += str;
-		}
+				string += str;
+			}
+
+			/**
+			 * The channel name that the logger will use.
+			 */
+			std::string channel_name;
+		};
 
 		/**
-		 * The channel name that the logger will use.
+		 * This macro can be used to create a logger statement marked
+		 * with the source file and line it was emitted from.
 		 */
-		std::string channel_name;
-	};
+#define LOGGER_MARKED " (", __FILE__, " line ", __LINE__, ")"
 
-	/**
-	 * This macro can be used to create a logger statement marked
-	 * with the source file and line it was emitted from.
-	 */
-#define LOGGER_MARKED " (" , __FILE__, " line " , __LINE__, ")"
-
-}
-}
+	} // namespace core
+} // namespace xb2at

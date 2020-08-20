@@ -1,74 +1,74 @@
 #pragma once
 #include <core.h>
-#include <structs.h>
+#include <structs/mesh.h>
+#include <structs/mxmd.h>
+#include <structs/lbim.h>
+#include <structs/skel.h>
 #include <serializers/base_serializer.h>
 
 namespace xb2at {
-namespace core {
-
-	/**
-	 * options to pass to modelSerializer::Serialize()
-	 */
-	struct modelSerializerOptions {
+	namespace core {
 
 		/**
-		 * Output format.
+		 * options to pass to modelSerializer::Serialize()
 		 */
-		enum class Format : byte {
+		struct modelSerializerOptions {
 			/**
-			 * binary glTF format
+			 * Output format.
 			 */
-			GLTFBinary,
+			enum class Format : byte {
+				/**
+				 * Binary glTF format.
+				 */
+				GLTFBinary,
+
+				/**
+				 * Text glTF format.
+				 */
+				GLTFText
+			} OutputFormat;
 
 			/**
-			 * text glTF format
+			 * Output directory.
 			 */
-			 GLTFText
-		} OutputFormat;
+			const fs::path& outputDir;
+
+			/**
+			 * Output filename of the model.
+			 */
+			const std::string& filename;
+
+			/**
+			 * The level of detail at which we should export meshes.
+			 */
+			int32 lod;
+
+			/**
+			 * Save morphs to the model?
+			 */
+			bool saveMorphs;
+
+			/**
+			 * Save outlines to the model?
+			 */
+			bool saveOutlines;
+		};
 
 		/**
-		 * Output directory.
+		 * Model serializer.
+		 * Serializes model to a file.
 		 */
-		const fs::path& outputDir;
+		struct modelSerializer : public base_serializer {
+			/**
+			 * Serialize a mesh with the provided options,
+			 *
+			 * \param[in] meshesToDump The meshes to dump.
+			 * \param[in] options Options.
+			 */
+			void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
 
-		/**
-		 * Output filename of the model.
-		 */
-		const std::string& filename;
-
-		/**
-		 * The level of detail at which we should export meshes.
-		 */
-		int32 lod;
-
-		/**
-		 * Save morphs to the model?
-		 */
-		bool saveMorphs;
-
-		/**
-		 * Save outlines to the model?
-		 */
-		bool saveOutlines;
-	};
-
-	/**
-	 * Model serializer.
-	 * Serializes model to a file.
-	 */
-	struct modelSerializer : public base_serializer {
-
-		/**
-		 * Serialize a mesh with the provided options,
-		 *
-		 * \param[in] meshesToDump The meshes to dump.
-		 * \param[in] options Options.
-		 */
-		void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
-
-	private:
-
-		Logger logger = Logger::CreateChannel("ModelSerializer");
-	};
-}
-}
+		   private:
+			Logger logger = Logger::CreateChannel("ModelSerializer");
+		};
+	} // namespace core
+} // namespace xb2at
