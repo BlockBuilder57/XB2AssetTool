@@ -7,8 +7,8 @@
 namespace xb2at {
 	namespace core {
 
-		mibl::texture miblReader::Read(lbimReaderOptions& opts) {
-			ivstream stream(opts.lbimFile);
+		mibl::texture miblReader::Read(miblReaderOptions& opts) {
+			ivstream stream(opts.miblFile);
 			StreamHelper reader(stream);
 			mibl::texture texture;
 
@@ -20,12 +20,12 @@ namespace xb2at {
 
 			stream.seekg(opts.offset + opts.size - sizeof(mibl::header), std::istream::beg);
 			if(!reader.ReadType<mibl::header>(texture)) {
-				opts.Result = lbimReaderStatus::ErrorReadingHeader;
+				opts.Result = miblReaderStatus::ErrorReadingHeader;
 				return texture;
 			}
 
 			if(texture.magic != mibl::magic && texture.version != 0x2711) {
-				opts.Result = lbimReaderStatus::NotMIBL;
+				opts.Result = miblReaderStatus::NotMIBL;
 				return texture;
 			}
 
@@ -50,7 +50,7 @@ namespace xb2at {
 				stream.read(texture.data.data(), opts.size);
 			}
 
-			opts.Result = lbimReaderStatus::Success;
+			opts.Result = miblReaderStatus::Success;
 			return texture;
 		}
 

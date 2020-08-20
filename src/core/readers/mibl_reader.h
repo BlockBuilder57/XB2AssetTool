@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <structs/lbim.h>
+#include <structs/mibl.h>
 #include "base_reader.h"
 
 namespace xb2at {
@@ -28,8 +28,8 @@ namespace core {
 		 */
 		struct miblReaderOptions {
 
-			miblReaderOptions(std::vector<char>& lbimFileData, std::vector<char>* fileData)
-				: lbimFile(lbimFileData) {
+			miblReaderOptions(std::vector<char>& miblFileData, std::vector<char>* fileData)
+				: miblFile(miblFileData) {
 				file = fileData;
 			}
 
@@ -37,7 +37,7 @@ namespace core {
 			 * Decompressed file data from XBC1 containing every MIBL for the MSRD textures.
 			 * Is always index 1 of the MSRD files.
 			 */
-			std::vector<char>& lbimFile;
+			std::vector<char>&miblFile;
 
 			/**
 			 * Decompressed texture data from XBC1.

@@ -7,7 +7,7 @@
 #include <core.h>
 #include "xbc1.h"
 #include "mesh.h"
-#include "lbim.h"
+#include "mibl.h"
 
 namespace xb2at {
 	namespace core {
