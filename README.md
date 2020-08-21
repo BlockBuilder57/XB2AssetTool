@@ -16,7 +16,7 @@ cross platform compatibility, and code reuse (by way of moving all of the logic 
 
 PredatorCZ/Lukas Cone - [3DSMax Xenoblade Import Tools](https://lukascone.wordpress.com/2018/05/06/xenoblade-chronicles-import-tool/)
 
-Thealexbarney - [XbTool](https://github.com/Thealexbarney/XbTool) (Texture swizzling)
+Thealexbarney - [XbTool](https://github.com/Thealexbarney/XbTool) (Texture swizzling implmentation)
 
 Turk645 - Map format & ideas
 
@@ -26,7 +26,7 @@ Simply run the executable, and pick an input file. An output folder will be crea
 
 ### Compiling
 
-Refer to [BUILDING.md](https://github.com/BlockBuilder57/XB2AssetTool/blob/master/BUILDING.md).
+Refer to [BUILDING.md](https://github.com/BlockBuilder57/XB2AssetTool/blob/master/BUILDING.md) for how to build XB2AssetTool.
 
 ### Using the xb2core library in your own projects
 
