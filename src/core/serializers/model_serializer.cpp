@@ -361,7 +361,7 @@ namespace xb2at {
 
 						xbnodes.push_back(xbnode);
 						doc.nodes.push_back(xbnode.gltfNode);
-						if(skelData.nodeParents[k] == Max<uint16>::value)
+						if(skelData.nodeParents[k] == Max_v<uint16>)
 							scene.nodes.push_back((int32)doc.nodes.size() - 1);
 					}
 

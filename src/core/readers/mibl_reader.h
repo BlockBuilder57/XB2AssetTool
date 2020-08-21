@@ -76,7 +76,7 @@ namespace core {
 
 		private:
 
-			Logger logger = Logger::CreateChannel("LBIMReader");
+			Logger logger = Logger::CreateChannel("MIBLReader");
 		};
 
 

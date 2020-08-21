@@ -1,6 +1,15 @@
 #pragma once
 #include <core.h>
 
+// TODO(lily): only have the OutputDebugStringA func def?
+#if defined(_WIN32) && defined(_DEBUG)
+	#define WIN32_LEAN_AND_MEAN
+	#define NOMINMAX // FUCKING god damn it windows
+	#include <windows.h>
+	#undef WIN32_LEAN_AND_MEAN
+	#undef NOMINMAX
+#endif
+
 namespace xb2at {
 	namespace core {
 
@@ -73,6 +82,12 @@ namespace xb2at {
 
 				Logger::OutputFunction(ss.str(), LogSeverity::Info);
 
+				// Also output the resulting string in the debugger
+#if defined(_WIN32) && defined(_DEBUG)
+				ss << '\n'; // hack
+				OutputDebugStringA(ss.str().c_str());
+#endif
+
 				ss.clear();
 			}
 
@@ -85,6 +100,12 @@ namespace xb2at {
 				ss << "[" << channel_name << "] " << Stringify(value, args...);
 
 				Logger::OutputFunction(ss.str(), LogSeverity::Warning);
+
+				// Also output the resulting string in the debugger
+#if defined(_WIN32) && defined(_DEBUG)
+				ss << '\n'; // hack
+				OutputDebugStringA(ss.str().c_str());
+#endif
 
 				ss.clear();
 			}
@@ -99,21 +120,40 @@ namespace xb2at {
 
 				Logger::OutputFunction(ss.str(), LogSeverity::Error);
 
+				// Also output the resulting string in the debugger
+#if defined(_WIN32) && defined(_DEBUG)
+				ss << '\n'; // hack
+				OutputDebugStringA(ss.str().c_str());
+#endif
+
 				ss.clear();
 			}
 
 			template<typename T, typename... Args>
 			inline void verbose(const T value, Args... args) {
-				if(!Logger::AllowVerbose)
-					return;
-
 				if(!Logger::OutputFunction)
 					return;
 
 				std::ostringstream ss;
 				ss << "[" << channel_name << "] " << Stringify(value, args...);
 
-				//if(Logger::OutputFunction)
+				// We always output verbose messages to the windows debug console
+#if defined(_WIN32) && defined(_DEBUG)
+				if(!Logger::AllowVerbose) {
+					ss << '\n'; // hack
+					OutputDebugStringA(ss.str().c_str());
+					ss.clear();
+					return;
+				} else {
+					ss << '\n';
+					OutputDebugStringA(ss.str().c_str());
+					ss.seekp(-1, std::ostringstream::cur);
+					ss << ' ';
+				}
+#else
+				if(!Logger::AllowVerbose)
+					return;
+#endif
 				Logger::OutputFunction(ss.str(), LogSeverity::Verbose);
 
 				ss.clear();

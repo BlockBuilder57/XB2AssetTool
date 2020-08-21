@@ -75,7 +75,7 @@ namespace xb2at {
 		 * \param[in] index Index/bit to access.
 		 */
 		template<typename T, typename = typename std::enable_if<std::is_trivial_v<T>, T>::type /* SFINAE to avoid non-trivial usage */>
-		constexpr byte access_bit(T& v, std::size_t index) {
+		constexpr bool access_bit(T& v, std::size_t index) {
 			return (v & (1 << index));
 		}
 
@@ -94,6 +94,7 @@ namespace xb2at {
 
 			return sizeof(T);
 		}
+
 	} // namespace core
 } // namespace xb2at
 

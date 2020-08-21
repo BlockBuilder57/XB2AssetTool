@@ -42,8 +42,8 @@ namespace xb2at {
 				filestream.read(texture.data.data(), opts.size);
 
 				// non cached means we need to *2 width and height for some reason
-				texture.width *= 2;
-				texture.height *= 2;
+				//texture.width *= 2;
+				//texture.height *= 2;
 			} else {
 				// this is a CachedTexture, use the LBIM stream itself
 				stream.seekg(opts.offset, std::istream::beg);

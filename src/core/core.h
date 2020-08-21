@@ -27,9 +27,9 @@ namespace xb2at {
 	namespace core {
 
 		/**
-	 * \defgroup Macros Core Library Macro Definitions
-	 * @{
-	 */
+		 * \defgroup Macros Core Library Macro Definitions
+		 * @{
+		 */
 
 #if defined(__clang__) || defined(__GNUC__)
 	#define CORE_UNUSED __attribute__((unused))
@@ -76,17 +76,29 @@ namespace xb2at {
 		/**
 		 * constexpr shorthand for numeric_limits<T>::min()
 		 */
-		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type /* SFINAE to stop invalid types */>
 		struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
 
 		/**
 		 * constexpr shorthand for numeric_limits<T>::max()
 		 */
-		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type /* SFINAE to stop invalid types */>
 		struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
+		
+		/**
+		 * STL-style _v alias for Min<T>
+		 */
+		template<typename T>
+		constexpr static T Min_v = Min<T>::value;
 
 		/**
-		 * Vector2 of floats.
+		 * STL-style _v alias for Max<T>
+		 */
+		template<typename T>
+		constexpr static T Max_v = Max<T>::value;
+
+		/**
+		 * Vector2 of floats, used only for reading into.
 		 */
 		struct vector2 {
 			float x;
@@ -94,7 +106,7 @@ namespace xb2at {
 		};
 
 		/**
-		 * Vector3 of floats.
+		 * Vector3 of floats, used only for reading into.
 		 */
 		struct vector3 {
 			float x;
@@ -103,7 +115,7 @@ namespace xb2at {
 		};
 
 		/**
-		 * Quaternion of floats.
+		 * Quaternion of floats, used only for reading into.
 		 */
 		struct quaternion {
 			float x;
@@ -112,6 +124,9 @@ namespace xb2at {
 			float w;
 		};
 
+		/**
+		 * Quaternion of u16's, used only for reading into.
+		 */
 		struct u16_quaternion {
 			uint16 x;
 			uint16 y;
@@ -129,7 +144,7 @@ namespace xb2at {
 			byte a;
 		};
 
-		struct [[deprecated("[xb2at.core] Prefer and use glm::mat4")]] matrix4x4 {
+		struct [[deprecated("[xb2at.core] Use glm::mat4 from now on")]] matrix4x4 {
 			float m1, m2, m3, m4;
 			float m5, m6, m7, m8;
 			float m9, m10, m11, m12;

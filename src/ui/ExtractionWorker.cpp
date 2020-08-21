@@ -247,16 +247,18 @@ namespace xb2at {
 						mibloptions.offset = msrd.dataItems[i].offset;
 						mibloptions.size = msrd.dataItems[i].size;
 
-						texture.offset = mibloptions.offset;
-						texture.size = mibloptions.size;
+						logger.info("regular MIBL name \"", msrd.textureNames[i-3],'\"');
 
 						if(!ReadMIBL(texture, mibloptions)) {
-							logger.error("Error reading LBIM: ", miblReaderStatusToString(mibloptions.Result));
+							logger.error("Error reading MIBL: ", miblReaderStatusToString(mibloptions.Result));
 						} else {
 							texture.filename = msrd.textureNames[i - 3];
+							texture.offset = mibloptions.offset;
+							texture.size = mibloptions.size;
+							
 							msrd.textures.push_back(texture);
 
-							logger.info("LBIM ", i, " successfully read.");
+							logger.info("MIBL ", i, " successfully read.");
 						}
 
 					} break;
@@ -271,17 +273,17 @@ namespace xb2at {
 							logger.verbose("MSRD texture ", j, " has a CachedTexture");
 
 							mibl::texture texture;
-							texture.filename = msrd.textureNames[j];
-
-							texture.offset = mibloptions.offset;
-							texture.size = mibloptions.size;
+							
+							logger.info("Cached MIBL name \"", msrd.textureNames[j],'\"');
 
 							if(!ReadMIBL(texture, mibloptions)) {
-								logger.error("Error reading Cached LBIM: ", miblReaderStatusToString(mibloptions.Result));
+								logger.error("Error reading Cached MIBL: ", miblReaderStatusToString(mibloptions.Result));
 							} else {
-								// NOTE: Read the previous note
+								texture.offset = mibloptions.offset;
+								texture.size = mibloptions.size;
+								texture.filename = msrd.textureNames[j];
 								msrd.textures.push_back(texture);
-								logger.info("Cached LBIM ", j, " successfully read.");
+								logger.info("Cached MIBL ", j, " successfully read.");
 							}
 						}
 					} break;
@@ -302,7 +304,7 @@ namespace xb2at {
 			mxmd::mxmd mxmd;
 			skel::skel skel;
 
-			//msrd.files.clear();
+
 
 			if(!ReadSKEL(path, skel)) {
 				logger.warn("Continuing without skeletons");
@@ -331,6 +333,7 @@ namespace xb2at {
 
 			// After this point, everything is now unused,
 			// so we can clear it all.
+			msrd.files.clear();
 			msrd.meshes.clear();
 			msrd.textures.clear();
 			msrd.dataItems.clear();

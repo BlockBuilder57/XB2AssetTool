@@ -91,7 +91,7 @@ namespace xb2at {
 			 * Returns true on success, false otherwise.
 			 * 
 			 * \param[in] path Path to SKEL file.
-			 * \param[in] skeltoReadTo The core SKEL structure to read to
+			 * \param[in] skeltoReadto The core SKEL structure to read to
 			 * \param[in] options Options to pass to the reader.
 			 */
 			bool ReadSKEL(fs::path& path, skel::skel& skelToReadto);

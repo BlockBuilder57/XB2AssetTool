@@ -145,39 +145,48 @@ namespace xb2at {
 			return address;
 		}
 
-		// TODO(lily): this is kind of pimpl idiom without any of the goodness, 
+		// TODO(lily): this is kind of pimpl idiom without any of the goodness,
 		// and we pass things around that only the object should ever have
 		// should this become a member?
 		/**
 		 * Internal function that actually performs deswizzle.
+		 * 
+		 * \param[in] texture Texture instance.
+		 * \param[in] bppPower r
+		 * \param[in] logger Logger instance
 		 */
 		void SwizzleInternal(TegraX1SwizzledTexture& texture, int bppPower, Logger& logger) {
 			auto& mibl = texture.texture;
 
-			int bpp = 1 << bppPower;
+			const int bpp = 1 << bppPower;
 
-			int len = mibl.data.size();
+			const int len = mibl.data.size();
 
-			int originWidth = (mibl.width + 3) / 4;
-			int originHeight = (mibl.height + 3) / 4;
+			const int originWidth = (mibl.width + 3) / 4;
+			const int originHeight = (mibl.height + 3) / 4;
 
-			int xb = count_zeros(Pow2RoundUp(originWidth));
+			const int xb = count_zeros(Pow2RoundUp(originWidth));
+
+			const int hh = Pow2RoundUp(originHeight) >> 1;
+
+			// TODO: figure out some way to make this const
+			// there's ZERO reason it needs to be mutable
+
 			int yb = count_zeros(Pow2RoundUp(originHeight));
 
-			int hh = Pow2RoundUp(originHeight) >> 1;
-
 			if(!IsPow2(originHeight) && originHeight <= hh + hh / 3 && yb > 3)
-				yb--;
+				--yb;
 
 			auto result = std::vector<char>(len);
 
-			int width = RoundSize(originWidth, 64 >> bppPower);
-			int xBase = 4 - bppPower;
+			const int width = RoundSize(originWidth, 64 >> bppPower);
+			const int xBase = 4 - bppPower;
+
 			int posOut = 0;
 
 			for(int y = 0; y < originHeight; y++) {
 				for(int x = 0; x < originWidth; x++) {
-					int pos = GetAddr(x, y, xb, yb, width, xBase) * bpp;
+					const int pos = GetAddr(x, y, xb, yb, width, xBase) * bpp;
 
 					// then deswizzle by memcpying the bpp block out
 					if(posOut + bpp <= len && pos + bpp <= len)
