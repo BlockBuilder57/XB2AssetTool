@@ -43,8 +43,16 @@ namespace core {
 		 * due to the fact we one-shot read for optimization purposes.
 		 */
 		struct header {
-			int32 unknown4; // this is known as "datasize" in xenolib code, may rename
-			int32 unknown3; // this is known as "headersize" in xenolib code
+
+			/**
+			 * Size of the texture. Seems to line up with MSRD dataitem size.
+			 */
+			int32 dataSize;
+
+			/**
+			 * Size of the header. Always 4096.
+			 */
+			int32 headerSize;
 
 			/**
 			 * The width of the texture. 
@@ -56,15 +64,25 @@ namespace core {
 			 */
 			int32 height;
 			
-			int32 unknown2;
-			int32 unknown1;
+			/**
+			 * Depth of texture in texels.
+			 */
+			int32 depth;
 
 			/**
-			 * texture format in NVN format
+			 * Texture target in NVN format.
+			 */
+			int32 textureTarget;
+
+			/**
+			 * Texture format in NVN format.
 			 */
 			MiblTextureFormat type;
 
-			int32 unknown0;
+			/**
+			 * Amount of mips in the buffer.
+			 */
+			int32 mipLevels;
 
 			/**
 			 * The version value.
@@ -74,7 +92,7 @@ namespace core {
 			
 			/**
 			 * The magic value.
-			 * *ALWAYS* 0x4D49424C
+			 * *ALWAYS* 0x4D49424C.
 			 */
 			int32 magic;
 		};

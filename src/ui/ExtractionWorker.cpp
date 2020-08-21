@@ -190,8 +190,6 @@ namespace xb2at {
 			std::string filenameOnly = path.stem().string();
 
 			msrd::msrd msrd;
-			mxmd::mxmd mxmd;
-			skel::skel skel;
 
 			// Make directory tree if it doesn't already exist
 
@@ -300,6 +298,9 @@ namespace xb2at {
 				auto out = outputPath / "Textures";
 				SerializeMIBL(out, *it);
 			}
+
+			mxmd::mxmd mxmd;
+			skel::skel skel;
 
 			//msrd.files.clear();
 
