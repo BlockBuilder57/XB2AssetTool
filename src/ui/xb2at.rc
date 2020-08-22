@@ -22,12 +22,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Block57"
             VALUE "FileDescription", "XB2AssetTool"
-            VALUE "FileVersion", GIT_TAG "-" GIT_BRANCH
+            VALUE "FileVersion", GIT_TAG
             VALUE "InternalName", "XB2AssetTool"
             VALUE "LegalTrademarks", ""
             VALUE "OriginalFilename", "xb2at.exe"
             VALUE "ProductName", "XB2AssetTool"
-            VALUE "ProductVersion", GIT_TAG "-" GIT_BRANCH
+            VALUE "ProductVersion", GIT_TAG
         END
     END
     BLOCK "VarFileInfo"
