@@ -1,10 +1,11 @@
 #pragma once
 #include <core.h>
+#include <Logger.h>
+
 #include <structs/mesh.h>
 #include <structs/mxmd.h>
 #include <structs/mibl.h>
 #include <structs/skel.h>
-#include <serializers/base_serializer.h>
 
 namespace xb2at {
 	namespace core {
@@ -58,7 +59,7 @@ namespace xb2at {
 		 * Model serializer.
 		 * Serializes model to a file.
 		 */
-		struct modelSerializer : public base_serializer {
+		struct modelSerializer {
 			/**
 			 * Serialize a mesh with the provided options,
 			 *

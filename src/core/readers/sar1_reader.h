@@ -1,6 +1,9 @@
+#pragma once
+
 #include <core.h>
-#include "structs/sar1.h"
-#include "base_reader.h"
+#include <Logger.h>
+
+#include <structs/sar1.h>
 
 namespace xb2at {
 namespace core {
@@ -47,7 +50,7 @@ namespace core {
 	/**
 	 * Reads and decompresses SAR1 files.
 	 */
-	struct sar1Reader : public base_reader  {
+	struct sar1Reader {
 
 		sar1Reader(std::istream& input_stream)
 			: stream(input_stream) {

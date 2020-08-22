@@ -1,7 +1,8 @@
 #pragma once
 #include <core.h>
+#include <Logger.h>
+
 #include <structs/msrd.h>
-#include "base_reader.h"
 
 namespace xb2at {
 namespace core {
@@ -46,7 +47,7 @@ namespace core {
 	/**
 	 * Reads MSRD files.
 	 */
-	struct msrdReader : public base_reader {
+	struct msrdReader {
 
 		msrdReader(std::istream& input_stream)
 			: stream(input_stream) {

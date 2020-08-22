@@ -1,7 +1,8 @@
 #pragma once
 #include <core.h>
+#include <Logger.h>
+
 #include <structs/mibl.h>
-#include "base_reader.h"
 
 namespace xb2at {
 namespace core {
@@ -64,7 +65,7 @@ namespace core {
 		/**
 		 * Reads MIBL textures.
 		 */
-		struct miblReader : public base_reader {
+		struct miblReader {
 
 			/**
 			 * Read a MIBL and output the texture data.

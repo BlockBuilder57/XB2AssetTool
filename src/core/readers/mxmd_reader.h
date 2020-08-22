@@ -1,7 +1,8 @@
 #pragma once
 #include <core.h>
+#include <Logger.h>
+
 #include <structs/mxmd.h>
-#include "base_reader.h"
 
 namespace xb2at {
 namespace core {
@@ -35,7 +36,7 @@ namespace core {
 		/**
 		 * Reads meshes.
 		 */
-		struct mxmdReader : public base_reader {
+		struct mxmdReader {
 
 			mxmdReader(std::istream& input_stream)
 				: stream(input_stream) {

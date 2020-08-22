@@ -1,14 +1,13 @@
 #pragma once
 #include <core.h>
 #include <Logger.h>
-
 #include <structs/mibl.h>
 
 namespace xb2at {
 	namespace core {
 
 		/**
-		 * All of the texture formats we need to care about in DirectX format
+		 * All of the texture formats we need to care about in DirectX format.
 		 */
 		enum class TextureFormat : uint16 {
 			R8_UNORM = 0x0201,
@@ -45,13 +44,13 @@ namespace xb2at {
 		};
 
 		/**
-		 * A Tegra X1 texture, that can be deswizzled.
+		 * A Tegra X1 deswizzler for MIBL textures.
 		 */
-		struct TegraX1SwizzledTexture {
-			inline TegraX1SwizzledTexture(mibl::texture& tex)
+		struct MIBLDeswizzler {
+			inline MIBLDeswizzler(mibl::texture& tex)
 				: texture(tex) {
 				// Convert from MIBL (nvn) format to DirectX format
-				// since that's what we use
+				// since that's what we will use when exporting
 				switch(tex.type) {
 					case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
 						Format = TextureFormat::R8G8B8A8_UNORM;
@@ -82,10 +81,19 @@ namespace xb2at {
 			TextureFormat Format;
 			mibl::texture& texture;
 
+			/**
+			 * In-place deswizzle the MIBL.
+			 */
 			void Deswizzle();
 
 		   private:
-			Logger logger = Logger::CreateChannel("TextureDeswizzler");
+
+			/**
+			 * Internal swizzling routine.
+			 */
+			void SwizzleInternal(int bppPower);
+
+			Logger logger = Logger::CreateChannel("MIBLDeswizzler");
 		};
 
 	} // namespace core

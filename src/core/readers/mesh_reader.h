@@ -1,7 +1,8 @@
 #pragma once
 #include <core.h>
+#include <Logger.h>
+
 #include <structs/mesh.h>
-#include "base_reader.h"
 
 namespace xb2at {
 namespace core {
@@ -53,7 +54,7 @@ namespace core {
 	/**
 	 * Reads meshes.
 	 */
-	struct meshReader : public base_reader {
+	struct meshReader {
 
 		/**
 		 * Read a mesh and output a deserialized structure.

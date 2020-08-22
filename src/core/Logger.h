@@ -1,13 +1,8 @@
 #pragma once
 #include <core.h>
 
-// TODO(lily): only have the OutputDebugStringA func def?
 #if defined(_WIN32) && defined(_DEBUG)
-	#define WIN32_LEAN_AND_MEAN
-	#define NOMINMAX // FUCKING god damn it windows
-	#include <windows.h>
-	#undef WIN32_LEAN_AND_MEAN
-	#undef NOMINMAX
+	extern "C" void __stdcall OutputDebugStringA(const char* message);
 #endif
 
 namespace xb2at {

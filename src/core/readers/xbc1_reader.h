@@ -1,6 +1,7 @@
 #include <core.h>
-#include "structs/xbc1.h"
-#include "base_reader.h"
+#include <Logger.h>
+
+#include <structs/xbc1.h>
 
 namespace xb2at {
 namespace core {
@@ -50,7 +51,7 @@ namespace core {
 	/**
 	 * Reads and decompresses XBC1 files.
 	 */
-	struct xbc1Reader : public base_reader  {
+	struct xbc1Reader {
 
 		xbc1Reader(std::istream& input_stream)
 			: stream(input_stream) {

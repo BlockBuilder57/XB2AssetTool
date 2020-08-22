@@ -1,6 +1,7 @@
 #include <core.h>
-#include "structs/skel.h"
-#include "base_reader.h"
+#include <Logger.h>
+
+#include <structs/skel.h>
 
 namespace xb2at {
 namespace core {
@@ -43,7 +44,7 @@ namespace core {
 	/**
 	 * Reads and decompresses SAR1 files.
 	 */
-	struct skelReader : public base_reader  {
+	struct skelReader {
 
 		/**
 		 * Read and decompress a singular SAR1 file.

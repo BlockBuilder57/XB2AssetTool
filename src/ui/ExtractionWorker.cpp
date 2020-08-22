@@ -144,12 +144,13 @@ namespace xb2at {
 		}
 
 		bool ExtractionWorker::SerializeMIBL(fs::path& outputPath, mibl::texture& texture) {
-			TegraX1SwizzledTexture teg(texture);
-			teg.Deswizzle();
+			MIBLDeswizzler deswizzler(texture);
+			deswizzler.Deswizzle();
 
 			auto path = outputPath / texture.filename;
 
 			// This is very temporary
+			// output the raw deswizzled MIBL to a file on disk
 			path.replace_extension(".deswiz");
 			std::ofstream ofs(path.string(), std::ofstream::binary);
 

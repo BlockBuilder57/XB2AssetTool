@@ -26,8 +26,6 @@ set(XB2CORE_SOURCES
 
 # File Readers
 
-	readers/base_reader.h
-
 	readers/xbc1_reader.h
 	readers/xbc1_reader.cpp
 
@@ -51,15 +49,12 @@ set(XB2CORE_SOURCES
 	
 # Serializers
 
-	serializers/base_serializer.h
-
 	serializers/model_serializer.h
 	serializers/model_serializer.cpp
-	
-# Texture stuff.
-# TODO move to serializers
-	tegra_texture.h
-	tegra_texture.cpp
+
+# Texture stuff
+	serializers/MIBLDeswizzler.h
+	serializers/MIBLDeswizzler.cpp
 )
 
 # easy mode api is optional, 

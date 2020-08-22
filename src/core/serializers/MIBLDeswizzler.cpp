@@ -1,6 +1,6 @@
 #include <core.h>
 #include <array>
-#include "tegra_texture.h"
+#include <serializers/MIBLDeswizzler.h>
 
 #include <lowlevelmath.h>
 
@@ -67,21 +67,21 @@ namespace xb2at {
 
 		// If you want a idea of how these functions work you can look at the CompileTimeMap template
 
-		uint32 TegraX1SwizzledTexture::GetBpp() {
+		uint32 MIBLDeswizzler::GetBpp() {
 			constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()> { { SupportedFormatData } };
 			auto format = map.at(Format);
 
 			return format.bitsPerPixel;
 		}
 
-		uint32 TegraX1SwizzledTexture::GetBlockWidth() {
+		uint32 MIBLDeswizzler::GetBlockWidth() {
 			constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()> { { SupportedFormatData } };
 			auto format = map.at(Format);
 
 			return format.blockwidth;
 		}
 
-		uint32 TegraX1SwizzledTexture::GetBlockHeight() {
+		uint32 MIBLDeswizzler::GetBlockHeight() {
 			constexpr static auto map = CompileTimeMap<TextureFormat, TexFormatInfo, SupportedFormatData.size()> { { SupportedFormatData } };
 			auto format = map.at(Format);
 
@@ -147,7 +147,7 @@ namespace xb2at {
 
 		// TODO(lily): this is kind of pimpl idiom without any of the goodness,
 		// and we pass things around that only the object should ever have
-		// should this become a member?
+		// should this just become a member?
 		/**
 		 * Internal function that actually performs deswizzle.
 		 * 
@@ -155,15 +155,14 @@ namespace xb2at {
 		 * \param[in] bppPower r
 		 * \param[in] logger Logger instance
 		 */
-		void SwizzleInternal(TegraX1SwizzledTexture& texture, int bppPower, Logger& logger) {
-			auto& mibl = texture.texture;
+		void MIBLDeswizzler::SwizzleInternal(int bppPower) {
 
 			const int bpp = 1 << bppPower;
 
-			const int len = mibl.data.size();
+			const int len = texture.data.size();
 
-			const int originWidth = (mibl.width + 3) / 4;
-			const int originHeight = (mibl.height + 3) / 4;
+			const int originWidth = (texture.width + 3) / 4;
+			const int originHeight = (texture.height + 3) / 4;
 
 			const int xb = count_zeros(Pow2RoundUp(originWidth));
 
@@ -190,18 +189,18 @@ namespace xb2at {
 
 					// then deswizzle by memcpying the bpp block out
 					if(posOut + bpp <= len && pos + bpp <= len)
-						memcpy(&result[posOut], &mibl.data[pos], bpp);
+						memcpy(&result[posOut], &texture.data[pos], bpp);
 
 					posOut += bpp;
 				}
 			}
 
-			mibl.data.clear();
-			mibl.data = result;
+			texture.data.clear();
+			texture.data = result;
 			logger.info("Successfully deserialized MIBL.");
 		}
 
-		void TegraX1SwizzledTexture::Deswizzle() {
+		void MIBLDeswizzler::Deswizzle() {
 			// Call the deswizzle internal routine
 			switch(texture.type) {
 				case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
@@ -209,16 +208,16 @@ namespace xb2at {
 					logger.warn("Not handled yet, but NOTE: this is DE's most common format.");
 					break;
 				case mibl::MiblTextureFormat::BC1_UNORM:
-					SwizzleInternal(*this, 3, logger);
+					SwizzleInternal(3);
 					break;
 				case mibl::MiblTextureFormat::BC3_UNORM:
-					SwizzleInternal(*this, 4, logger);
+					SwizzleInternal(4);
 					break;
 				case mibl::MiblTextureFormat::BC4_UNORM:
-					SwizzleInternal(*this, 3, logger);
+					SwizzleInternal(3);
 					break;
 				case mibl::MiblTextureFormat::BC5_UNORM:
-					SwizzleInternal(*this, 4, logger);
+					SwizzleInternal(4);
 					break;
 
 					// and then mibl types not handled Go Here

@@ -11,9 +11,7 @@
 #include <readers/sar1_reader.h>
 #include <readers/skel_reader.h>
 #include <serializers/model_serializer.h>
-
-// TODO this should prrrrobably be renamed
-#include <tegra_texture.h>
+#include <serializers/MIBLDeswizzler.h>
 
 using namespace xb2at::core;
 
