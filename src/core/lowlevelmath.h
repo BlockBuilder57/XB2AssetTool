@@ -87,12 +87,12 @@ namespace xb2at {
 		 */
 		template<typename T, typename = typename std::enable_if<std::is_trivial_v<T>, T>::type /* SFINAE to avoid non-trivial usage */>
 		constexpr int32 count_zeros(const T& v) {
-			for(std::size_t i = 0; i < sizeof(T); ++i) {
+			for(std::size_t i = 0; i < sizeof(T)*CHAR_BIT; ++i) {
 				if(access_bit(v, i) != 0)
 					return i;
 			}
 
-			return sizeof(T);
+			return sizeof(T)*CHAR_BIT;
 		}
 
 	} // namespace core

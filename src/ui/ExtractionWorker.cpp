@@ -224,7 +224,7 @@ namespace xb2at {
 			}
 
 
-			for(int i = 0; i < msrd.files.size(); ++i) {
+			for(int i = 0; i < msrd.dataItems.size(); ++i) {
 				switch(msrd.dataItems[i].type) {
 #ifndef _DEBUG
 					case msrd::data_item_type::Model: {
@@ -247,20 +247,22 @@ namespace xb2at {
 					case msrd::data_item_type::Texture: {
 						logger.verbose("MSRD file ", i, " is a regular MIBL");
 
+						std::string mibl_filename = msrd.textureNames[msrd.textures.size() < msrd.textureInfo.size() ? msrd.textures.size() : msrd.textureIds[msrd.textures.size() % msrd.textureInfo.size()]];
+
 						mibl::texture texture;
-						miblReaderOptions mibloptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex == 0 ? 0 : msrd.dataItems[i].tocIndex - 1].data);
+						miblReaderOptions mibloptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex - 1]);
 
 						mibloptions.offset = msrd.dataItems[i].offset;
 						mibloptions.size = msrd.dataItems[i].size;
 
 #ifdef _DEBUG
-						logger.info("regular MIBL name \"", msrd.textureNames[i-3],'\"');
+						logger.info("regular MIBL name \"", mibl_filename,'\"');
 #endif
 
 						if(!ReadMIBL(texture, mibloptions)) {
 							logger.error("Error reading MIBL: ", miblReaderStatusToString(mibloptions.Result));
 						} else {
-							texture.filename = msrd.textureNames[i - 3];
+							texture.filename = mibl_filename;
 							texture.offset = mibloptions.offset;
 							texture.size = mibloptions.size;
 							

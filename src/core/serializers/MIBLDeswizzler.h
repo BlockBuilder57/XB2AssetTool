@@ -68,6 +68,10 @@ namespace xb2at {
 						Format = TextureFormat::BC5_UNORM;
 						break;
 
+					case mibl::MiblTextureFormat::BC7_UNORM:
+						Format = TextureFormat::BC7_UNORM;
+						break;
+
 					default:
 						logger.error("Unknown/Unhandled LBIM type ", (int)tex.type, "!");
 						break;
@@ -88,10 +92,7 @@ namespace xb2at {
 
 		   private:
 
-			/**
-			 * Internal swizzling routine.
-			 */
-			void SwizzleInternal(int bppPower);
+			void SwizzleInternal(int bppPower, int swizzleSize = 4);
 
 			Logger logger = Logger::CreateChannel("MIBLDeswizzler");
 		};

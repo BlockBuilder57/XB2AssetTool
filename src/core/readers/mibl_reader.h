@@ -3,6 +3,7 @@
 #include <Logger.h>
 
 #include <structs/mibl.h>
+#include <structs/xbc1.h>
 
 namespace xb2at {
 namespace core {
@@ -29,7 +30,9 @@ namespace core {
 		 */
 		struct miblReaderOptions {
 
-			miblReaderOptions(std::vector<char>& miblFileData, std::vector<char>* fileData)
+			// TODO(lily): rename some of these members so they're not as confusing
+
+			miblReaderOptions(std::vector<char>& miblFileData, xbc1::xbc1* fileData)
 				: miblFile(miblFileData) {
 				file = fileData;
 			}
@@ -38,12 +41,12 @@ namespace core {
 			 * Decompressed file data from XBC1 containing every MIBL for the MSRD textures.
 			 * Is always index 1 of the MSRD files.
 			 */
-			std::vector<char>&miblFile;
+			std::vector<char>& miblFile;
 
 			/**
-			 * Decompressed texture data from XBC1.
+			 * Decompressed texture data as an XBC1 file.
 			 */
-			std::vector<char>* file;
+			xbc1::xbc1* file;
 
 			/**
 			 * Start offset of the texture.
@@ -57,7 +60,8 @@ namespace core {
 
 			/**
 			 * The result of the read operation.
-			 * Will be miblReaderStatus::Success if the read was successful.
+			 * Will be miblReaderStatus::Success if the read was successful, any other
+			 * value to indicate a varying error state.
 			 */
 			miblReaderStatus Result;
 		};

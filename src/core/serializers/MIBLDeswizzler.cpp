@@ -152,7 +152,7 @@ namespace xb2at {
 		 * \param[in] bppPower r
 		 * \param[in] logger Logger instance
 		 */
-		void MIBLDeswizzler::SwizzleInternal(int bppPower) {
+		void MIBLDeswizzler::SwizzleInternal(int bppPower, int swizzleSize) {
 
 			const int bpp = 1 << bppPower;
 
@@ -202,6 +202,7 @@ namespace xb2at {
 				case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
 					// Not quite sure how to deal with this so..
 					logger.warn("Not handled yet, but NOTE: this is DE's most common format.");
+					SwizzleInternal(4, 1);
 					break;
 				case mibl::MiblTextureFormat::BC1_UNORM:
 					SwizzleInternal(3);
@@ -213,6 +214,9 @@ namespace xb2at {
 					SwizzleInternal(3);
 					break;
 				case mibl::MiblTextureFormat::BC5_UNORM:
+					SwizzleInternal(4);
+					break;
+				case mibl::MiblTextureFormat::BC7_UNORM:
 					SwizzleInternal(4);
 					break;
 

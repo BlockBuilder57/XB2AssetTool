@@ -28,6 +28,7 @@ namespace detail {
 namespace xb2at {
 	namespace core {
 
+		// TODO/LATER(lily): rename to like, BinaryStreamReader or something less dumb?
 		/**
 		 * A helper object to read datatypes from a stream.
 		 * Attempts to be optimized by not copying data as much.
