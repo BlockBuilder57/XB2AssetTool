@@ -5,7 +5,7 @@ include(CheckCXXSourceCompiles)
 find_package(Threads)
 
 # For people who want to import xb2core
-option(XB2AT_XB2CORE_ONLY "Only build/include xb2core" OFF)
+option(XB2AT_XB2CORE_ONLY "Only include the xb2core library. For 3rd-party projects using xb2core." OFF)
 
 # defaulted to off
 option(XB2AT_XB2CORE_EASYMODE "Include the Easymode API with xb2core" OFF)
@@ -19,12 +19,22 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /D_CRT_SECURE_NO_WARNINGS")
 endif()
 
-# clang-cl optimizations
+# clang-cl & gcc optimizations
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND MSVC)
 	if("${CMAKE_BUILD_TYPE}" MATCHES "Release")
 		# use /clang: to pass in options from godbolt analysis
 		set(CMAKE_CXX_FLAGS_RELEASE "/MD /Oi /DNDEBUG /clang:-O3 /clang:-ffast-math")
 		set(CMAKE_C_FLAGS_RELEASE "/MD /Oi /DNDEBUG /clang:-O3 /clang:-ffast-math")
+	endif()
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+	if("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+		set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
+		set(CMAKE_C_FLAGS_RELEASE "-O3 -ffast-math")
+	endif()
+elseif(MSVC)
+	if(NOT DEFINED CACHE{_XB2AT_MSVC_WARNING})
+		set(_XB2AT_MSVC_WARNING "shown" CACHE STRING "")
+		message(WARNING "MSVC builds may perform worse than Clang-cl ones.")
 	endif()
 endif()
 

@@ -34,12 +34,6 @@ set_property(TARGET xb2at PROPERTY CXX_STANDARD 17)
 set_property(TARGET xb2at PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(xb2at xb2core Qt5::Widgets)
 
-# PCH our big headers for nyoom speed max
-# Actually, this seems to hurt us a bit, so we turn it off. core.h is the only thing
-# that needs PCH'd and it already is.
-#target_precompile_headers(xb2at PRIVATE MainWindow.h ExtractionWorker.h)
-
-
 # Install xb2at in the install root
 install(TARGETS xb2at 
  RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
@@ -47,6 +41,7 @@ install(TARGETS xb2at
 
 if(WIN32)
 # Install the Qt libraries into the installation prefix.
+
 message(STATUS "Adding install code to deploy Qt libraries into install prefix.")
 get_target_property(_qmake_executable Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
@@ -83,5 +78,7 @@ install(CODE
 		)
 		list(REMOVE_AT _files 0 1)
 	endwhile()
-	")
+	"
+)
+
 endif()

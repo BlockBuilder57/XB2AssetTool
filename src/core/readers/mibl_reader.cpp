@@ -8,46 +8,59 @@ namespace xb2at {
 	namespace core {
 
 		mibl::texture miblReader::Read(miblReaderOptions& opts) {
-			ivstream stream(opts.miblFile);
-			StreamHelper reader(stream);
+			std::shared_ptr<ivstream> stream;
 			mibl::texture texture;
 
 			if(opts.file != nullptr) {
 				texture.cached = false;
+				stream = std::make_shared<ivstream>(opts.file->data);
 			} else {
 				texture.cached = true;
+				stream = std::make_shared<ivstream>(opts.miblFile);
 			}
 
-			stream.seekg(opts.offset + opts.size - sizeof(mibl::header), std::istream::beg);
-			if(!reader.ReadType<mibl::header>(texture)) {
-				opts.Result = miblReaderStatus::ErrorReadingHeader;
-				return texture;
+			// initiate a new scope here cause these objects are only ever used once
+			{
+				ivstream miblStream(opts.miblFile);
+				StreamHelper reader(miblStream);
+
+				miblStream.seekg(opts.offset + opts.size - sizeof(mibl::header), std::istream::beg);
+
+				if(!reader.ReadType<mibl::header>(texture)) {
+					opts.Result = miblReaderStatus::ErrorReadingHeader;
+					return texture;
+				}
+
+				if(texture.magic != mibl::magic && texture.version != 0x2711) {
+					opts.Result = miblReaderStatus::NotMIBL;
+					return texture;
+				}
 			}
 
-			if(texture.magic != mibl::magic && texture.version != 0x2711) {
-				opts.Result = miblReaderStatus::NotMIBL;
-				return texture;
-			}
-
+			// TEMP
 #ifdef _DEBUG
 			logger.info("MIBL type ", (int)texture.type);
 #endif
 
-			texture.data.resize(opts.size);
+			// resize to the appropriate size depending on if the texture
+			// is a CachedTexture or not
+			if(!texture.cached)
+				texture.data.resize(opts.file->decompressedSize);
+			else
+				texture.data.resize(opts.size);
 
 			if(!texture.cached) {
-				// Use file for texture data as it's actually got it
-				ivstream filestream(*opts.file);
-				filestream.seekg(opts.offset, std::istream::beg);
-				filestream.read(texture.data.data(), opts.size);
+				// non cached textures use the passed-in xbc1
+
+				stream->read(texture.data.data(), opts.file->decompressedSize);
 
 				// non cached means we need to *2 width and height for some reason
-				//texture.width *= 2;
-				//texture.height *= 2;
+				texture.width *= 2;
+				texture.height *= 2;
 			} else {
-				// this is a CachedTexture, use the LBIM stream itself
-				stream.seekg(opts.offset, std::istream::beg);
-				stream.read(texture.data.data(), opts.size);
+				// CachedTextures use the LBIM stream itself
+				stream->seekg(opts.offset, std::istream::beg);
+				stream->read(texture.data.data(), opts.size);
 			}
 
 			opts.Result = miblReaderStatus::Success;

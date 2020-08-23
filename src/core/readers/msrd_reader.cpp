@@ -70,7 +70,7 @@ namespace xb2at {
 				reader.ReadType<msrd::toc_entry>(data.toc[i]);
 
 				// display some information about the MSRD file when verbose logging
-				logger.verbose("MSRD file ", i, ':');
+				logger.verbose("MSRD TOC file ", i, ':');
 				logger.verbose(".. is at offset (decimal) ", data.toc[i].offset);
 				logger.verbose(".. is ", data.toc[i].compressedSize, " bytes compressed");
 				logger.verbose(".. is ", data.toc[i].fileSize, " bytes uncompressed");

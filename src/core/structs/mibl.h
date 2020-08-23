@@ -29,7 +29,8 @@ namespace core {
 			BC1_UNORM = 66,
 			BC3_UNORM = 68,
 			BC4_UNORM = 73,
-			BC5_UNORM = 75
+			BC5_UNORM = 75,
+			BC7_UNORM = 77
 		};
 
 		/**

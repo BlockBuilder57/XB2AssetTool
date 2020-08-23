@@ -29,10 +29,10 @@ namespace xb2at {
 		 */
 		// clang-format off
 
-		constexpr static std::array<std::pair<TextureFormat, TexFormatInfo>, 30> SupportedFormatData {{ 
+		constexpr static std::array<std::pair<TextureFormat, TexFormatInfo>, 26> SupportedFormatData {{ 
 				// Format ID                           bpp  bw  bh
 				{ TextureFormat::R8_UNORM, { 1, 1, 1 } },
-				{ TextureFormat::R5G5B5A1_UNORM, { 2, 1, 1 } },
+				//{ TextureFormat::R5G5B5A1_UNORM, { 2, 1, 1 } },
 				{ TextureFormat::B5G6R5_UNORM, { 2, 1, 1 } },
 				{ TextureFormat::R16_UNORM, { 2, 1, 1 } },
 				{ TextureFormat::R8G8B8A8_UNORM, { 4, 1, 1 } },
@@ -58,9 +58,9 @@ namespace xb2at {
 				{ TextureFormat::BC6H_UF16, { 16, 4, 4 } },
 				{ TextureFormat::BC7_UNORM, { 16, 4, 4 } },
 				{ TextureFormat::BC7_UNORM_SRGB, { 16, 4, 4 } },
-				{ TextureFormat::ASTC_4x4_UNORM, { 16, 4, 4 } },
-				{ TextureFormat::ASTC_5x5_UNORM, { 16, 5, 5 } },
-				{ TextureFormat::ASTC_8x8_UNORM, { 16, 8, 8 } }
+				//{ TextureFormat::ASTC_4x4_UNORM, { 16, 4, 4 } },
+				//{ TextureFormat::ASTC_5x5_UNORM, { 16, 5, 5 } },
+				//{ TextureFormat::ASTC_8x8_UNORM, { 16, 8, 8 } }
 		}};
 
 		// clang-format on
@@ -145,9 +145,6 @@ namespace xb2at {
 			return address;
 		}
 
-		// TODO(lily): this is kind of pimpl idiom without any of the goodness,
-		// and we pass things around that only the object should ever have
-		// should this just become a member?
 		/**
 		 * Internal function that actually performs deswizzle.
 		 * 
@@ -155,7 +152,7 @@ namespace xb2at {
 		 * \param[in] bppPower r
 		 * \param[in] logger Logger instance
 		 */
-		void MIBLDeswizzler::SwizzleInternal(int bppPower) {
+		void MIBLDeswizzler::SwizzleInternal(int bppPower, int swizzleSize) {
 
 			const int bpp = 1 << bppPower;
 
@@ -168,8 +165,9 @@ namespace xb2at {
 
 			const int hh = Pow2RoundUp(originHeight) >> 1;
 
-			// TODO: figure out some way to make this const
-			// there's ZERO reason it needs to be mutable
+			// TODO(lily): figure out some way to make this const
+			// there's ZERO reason it needs to be mutable at any point
+			// and it could easily be made immutable
 
 			int yb = count_zeros(Pow2RoundUp(originHeight));
 
@@ -195,9 +193,7 @@ namespace xb2at {
 				}
 			}
 
-			texture.data.clear();
 			texture.data = result;
-			logger.info("Successfully deserialized MIBL.");
 		}
 
 		void MIBLDeswizzler::Deswizzle() {
@@ -205,7 +201,8 @@ namespace xb2at {
 			switch(texture.type) {
 				case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
 					// Not quite sure how to deal with this so..
-					logger.warn("Not handled yet, but NOTE: this is DE's most common format.");
+					logger.warn("This format is a bit buggy for the time being..");
+					SwizzleInternal(4, 1);
 					break;
 				case mibl::MiblTextureFormat::BC1_UNORM:
 					SwizzleInternal(3);
@@ -217,6 +214,9 @@ namespace xb2at {
 					SwizzleInternal(3);
 					break;
 				case mibl::MiblTextureFormat::BC5_UNORM:
+					SwizzleInternal(4);
+					break;
+				case mibl::MiblTextureFormat::BC7_UNORM:
 					SwizzleInternal(4);
 					break;
 

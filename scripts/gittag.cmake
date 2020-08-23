@@ -3,7 +3,10 @@
 # Headless script to generate git versioning with only cmake installed
 #
 
+# the output version filename relative to the PWD of the script
 set(VERSION_FILENAME "version.h")
+
+# execute all the things we need
 execute_process(COMMAND git describe --tags --always HEAD OUTPUT_VARIABLE GIT_TAG OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE GIT_COMMIT OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND git rev-parse --abbrev-ref HEAD OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -15,28 +18,45 @@ file(APPEND ${VERSION_FILENAME} "//\n")
 file(APPEND ${VERSION_FILENAME} "\n")
 file(APPEND ${VERSION_FILENAME} "#ifndef RC_INVOKED\n")
 file(APPEND ${VERSION_FILENAME} "namespace xb2at {\n")
-file(APPEND ${VERSION_FILENAME} "namespace version {\n")
+file(APPEND ${VERSION_FILENAME} "\tnamespace version {\n")
+
 if("${GIT_BRANCH}" STREQUAL "master")
 	# master/stable releases
-	file(APPEND ${VERSION_FILENAME} "\tconstexpr static char tag[] = \"${GIT_TAG}\";\n")
+	file(APPEND ${VERSION_FILENAME} "\t\tconstexpr static char tag[] = \"${GIT_TAG}\";\n")
 else()
-	file(APPEND ${VERSION_FILENAME} "\tconstexpr static char tag[] = \"${GIT_TAG}-${GIT_COMMIT}-${GIT_BRANCH}\";\n")
+	if("${GIT_TAG}" STREQUAL "${GIT_COMMIT}")
+		# git describe --tags will fallback to shorthand commit if no tags can describe this version
+		file(APPEND ${VERSION_FILENAME} "\t\tconstexpr static char tag[] = \"${GIT_TAG}-${GIT_BRANCH}\";\n")
+	else()
+		# we actually have a tag, so do this instead
+		file(APPEND ${VERSION_FILENAME} "\t\tconstexpr static char tag[] = \"${GIT_TAG}-${GIT_COMMIT}-${GIT_BRANCH}\";\n")
+	endif()
 endif()
 
-file(APPEND ${VERSION_FILENAME} "\tconstexpr static char branch[] = \"${GIT_BRANCH}\";")
-file(APPEND ${VERSION_FILENAME} "\n}")
+file(APPEND ${VERSION_FILENAME} "\t\tconstexpr static char branch[] = \"${GIT_BRANCH}\";")
+file(APPEND ${VERSION_FILENAME} "\n\t}")
 file(APPEND ${VERSION_FILENAME} "\n}\n")
 file(APPEND ${VERSION_FILENAME} "#else\n")
 
 file(APPEND ${VERSION_FILENAME} "// Legacy macros for stamping Windows binaries\n")
-file(APPEND ${VERSION_FILENAME} "// with the Git tag/commit/brnach in their version manifest.\n")
+file(APPEND ${VERSION_FILENAME} "// with the Git tag/commit/branch in their version manifest.\n")
 
 if("${GIT_BRANCH}" STREQUAL "master")
 	file(APPEND ${VERSION_FILENAME} "\t#define GIT_TAG \"${GIT_TAG}\"\n")
 else()
-	file(APPEND ${VERSION_FILENAME} "\t#define GIT_TAG \"${GIT_TAG}-${GIT_COMMIT}-${GIT_BRANCH}\";\n")
+	if("${GIT_TAG}" STREQUAL "${GIT_COMMIT}")
+		# git describe --tags will fallback to shorthand commit if no tags can describe this version
+		file(APPEND ${VERSION_FILENAME} "\t#define GIT_TAG \"${GIT_TAG}-${GIT_BRANCH}\";\n")
+	else()
+		# we actually have a tag, so do this instead
+		file(APPEND ${VERSION_FILENAME} "\t#define GIT_TAG \"${GIT_TAG}-${GIT_COMMIT}-${GIT_BRANCH}\";\n")
+	endif()
 endif()
 file(APPEND ${VERSION_FILENAME} "\t#define GIT_BRANCH \"${GIT_BRANCH}\"\n")
 file(APPEND ${VERSION_FILENAME} "#endif\n")
 
-message(STATUS "Generated ${VERSION_FILENAME} for commit ${GIT_COMMIT} on tag ${GIT_TAG} on branch ${GIT_BRANCH}.")
+if("${GIT_TAG}" STREQUAL "${GIT_COMMIT}")
+	message(STATUS "Generated ${VERSION_FILENAME} for commit ${GIT_COMMIT} on branch ${GIT_BRANCH}.")
+else()
+	message(STATUS "Generated ${VERSION_FILENAME} for commit ${GIT_COMMIT} on tag ${GIT_TAG} on branch ${GIT_BRANCH}.")
+endif()
