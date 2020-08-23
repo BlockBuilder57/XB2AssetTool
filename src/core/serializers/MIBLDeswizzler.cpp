@@ -145,9 +145,6 @@ namespace xb2at {
 			return address;
 		}
 
-		// TODO(lily): this is kind of pimpl idiom without any of the goodness,
-		// and we pass things around that only the object should ever have
-		// should this just become a member?
 		/**
 		 * Internal function that actually performs deswizzle.
 		 * 
@@ -168,8 +165,9 @@ namespace xb2at {
 
 			const int hh = Pow2RoundUp(originHeight) >> 1;
 
-			// TODO: figure out some way to make this const
-			// there's ZERO reason it needs to be mutable
+			// TODO(lily): figure out some way to make this const
+			// there's ZERO reason it needs to be mutable at any point
+			// and it could easily be made immutable
 
 			int yb = count_zeros(Pow2RoundUp(originHeight));
 
@@ -195,9 +193,7 @@ namespace xb2at {
 				}
 			}
 
-			texture.data.clear();
 			texture.data = result;
-			logger.info("Successfully deserialized MIBL.");
 		}
 
 		void MIBLDeswizzler::Deswizzle() {

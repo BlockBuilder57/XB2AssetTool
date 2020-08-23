@@ -27,10 +27,7 @@ make xb2at
 ```
 
 #### Windows
-You need Visual Studio 2019 with the C++ and CMake tools installed. 
-
-We reccomend also installing the Clang compiler from within the VS installer, 
-and it's going to be used for any further binary releases going on (the CMakeSettings.json will also prefer Clang by default).
+You need Visual Studio 2019 with the C++ and CMake tools installed, including the Clang compiler.
 
 MSVC *can* be used with modifiation to the CMakeSettings, however there's a high chance that the binaries may be slightly slower than Clang.
 
@@ -39,7 +36,7 @@ First:
 -  Install Qt 5 (the current releases use 5.15.0). For Clang, you can just use the MSVC 2019 libraries if you don't feel like compiling from source.
 
 If you chose to install Qt to C:\Qt and used 5.15.0, then that's all the setup you need!
-If not, you'll have to edit CMakeSettings.json to change the Qt path to where you installed Qt.
+If not, you'll have to edit CMakeSettings.json to change the Qt path to wherever you installed Qt.
 
 Open the folder in Visual Studio (Visual Studio will autodetect a CMake project and use the CMakeSettings.json in the repository), pick the build type you want, or generate projects and build with CMake like:
 ```batch

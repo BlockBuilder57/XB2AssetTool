@@ -65,15 +65,17 @@ namespace xb2at {
 
 			// Logging functions
 
-			template<typename T, typename... Args>
-			inline void info(const T value, Args... args) {
+			template<typename... Args>
+			inline void info(Args... args) {
 				if(!Logger::OutputFunction)
 					return;
 
 				std::ostringstream ss;
 
 				//ss << TimestampString() << "[" << channel_name << "] " << Stringify(value, args...);
-				ss << "[" << channel_name << "] " << Stringify(value, args...);
+				ss << "[" << channel_name << "] ";
+
+				((ss << std::forward<Args>(args)), ...);
 
 				Logger::OutputFunction(ss.str(), LogSeverity::Info);
 
@@ -86,13 +88,15 @@ namespace xb2at {
 				ss.clear();
 			}
 
-			template<typename T, typename... Args>
-			inline void warn(const T value, Args... args) {
+			template<typename... Args>
+			inline void warn(Args... args) {
 				if(!Logger::OutputFunction)
 					return;
 
 				std::ostringstream ss;
-				ss << "[" << channel_name << "] " << Stringify(value, args...);
+				ss << "[" << channel_name << "] ";
+
+				((ss << std::forward<Args>(args)), ...);
 
 				Logger::OutputFunction(ss.str(), LogSeverity::Warning);
 
@@ -105,13 +109,15 @@ namespace xb2at {
 				ss.clear();
 			}
 
-			template<typename T, typename... Args>
-			inline void error(const T value, Args... args) {
+			template<typename... Args>
+			inline void error(Args... args) {
 				if(!Logger::OutputFunction)
 					return;
 
 				std::ostringstream ss;
-				ss << "[" << channel_name << "] " << Stringify(value, args...);
+				ss << "[" << channel_name << "] ";
+
+				((ss << std::forward<Args>(args)), ...);
 
 				Logger::OutputFunction(ss.str(), LogSeverity::Error);
 
@@ -124,13 +130,16 @@ namespace xb2at {
 				ss.clear();
 			}
 
-			template<typename T, typename... Args>
-			inline void verbose(const T value, Args... args) {
+			template<typename... Args>
+			inline void verbose(Args... args) {
 				if(!Logger::OutputFunction)
 					return;
 
 				std::ostringstream ss;
-				ss << "[" << channel_name << "] " << Stringify(value, args...);
+				ss << "[" << channel_name << "] ";
+
+				// use pack expansion
+				((ss << std::forward<Args>(args)), ...);
 
 				// We always output verbose messages to the windows debug console
 #if defined(_WIN32) && defined(_DEBUG)
@@ -177,29 +186,8 @@ namespace xb2at {
 
 			return ts;
 		}
+
 #endif
-
-			template<typename Head, typename... Tail>
-			static std::string Stringify(Head h, Tail... t) {
-				std::string s;
-				StringifyImpl(s, h, t...);
-				return s;
-			}
-
-			template<typename Head, typename... Tail>
-			static void StringifyImpl(std::string& string, Head h, Tail... t) {
-				StringifyImpl(string, h);
-				StringifyImpl(string, t...);
-			}
-
-			template<typename T>
-			static void StringifyImpl(std::string& string, T item) {
-				std::ostringstream ss;
-				ss << item;
-				const std::string str = ss.str();
-
-				string += str;
-			}
 
 			/**
 			 * The channel name that the logger will use.

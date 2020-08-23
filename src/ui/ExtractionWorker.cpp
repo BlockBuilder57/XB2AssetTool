@@ -147,6 +147,9 @@ namespace xb2at {
 			MIBLDeswizzler deswizzler(texture);
 			deswizzler.Deswizzle();
 
+			if(texture.cached)
+				texture.filename += "_CachedMIBL";
+
 			auto path = outputPath / texture.filename;
 
 			// This is very temporary
@@ -210,6 +213,10 @@ namespace xb2at {
 
 			logger.info("Reading MSRD file.");
 
+			// TODO for asynchronous: the MSRD is the only thing
+			// that can't be read async.
+			// also should easy api maybe have ReadXXX and ReadXXXAsync() ?
+
 			if(!ReadMSRD(path, msrd, msrdoptions)) {
 				logger.error("Error reading MSRD file: ", msrdReaderStatusToString(msrdoptions.Result));
 				Done();
@@ -238,9 +245,7 @@ namespace xb2at {
 #endif
 
 					case msrd::data_item_type::Texture: {
-						logger.verbose("MSRD file ", i, " is a texture");
-
-						//if(msrd.dataItems[i].tocIndex != 0)
+						logger.verbose("MSRD file ", i, " is a regular MIBL");
 
 						mibl::texture texture;
 						miblReaderOptions mibloptions(msrd.files[1].data, &msrd.files[msrd.dataItems[i].tocIndex == 0 ? 0 : msrd.dataItems[i].tocIndex - 1].data);
@@ -248,7 +253,9 @@ namespace xb2at {
 						mibloptions.offset = msrd.dataItems[i].offset;
 						mibloptions.size = msrd.dataItems[i].size;
 
+#ifdef _DEBUG
 						logger.info("regular MIBL name \"", msrd.textureNames[i-3],'\"');
+#endif
 
 						if(!ReadMIBL(texture, mibloptions)) {
 							logger.error("Error reading MIBL: ", miblReaderStatusToString(mibloptions.Result));
@@ -271,11 +278,13 @@ namespace xb2at {
 							mibloptions.offset = msrd.dataItems[i].offset + msrd.textureInfo[j].offset;
 							mibloptions.size = msrd.textureInfo[j].size;
 
-							logger.verbose("MSRD texture ", j, " has a CachedTexture");
+							logger.verbose("MSRD texture ", j, " has a Cached MIBL");
 
 							mibl::texture texture;
-							
+
+#ifdef _DEBUG
 							logger.info("Cached MIBL name \"", msrd.textureNames[j],'\"');
+#endif
 
 							if(!ReadMIBL(texture, mibloptions)) {
 								logger.error("Error reading Cached MIBL: ", miblReaderStatusToString(mibloptions.Result));
