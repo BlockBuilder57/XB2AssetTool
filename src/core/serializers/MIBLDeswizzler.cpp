@@ -233,13 +233,14 @@ namespace xb2at {
 
 			DdsHeader header;
 
-			// Setup the header by clearing stuff we can't then setting some fields
+			// Setup the header by clearing a few things
 			memset(&header.reserved, 0, sizeof(header.reserved) / sizeof(uint32));
+
 			header.height = texture.height;
 			header.width = texture.width;
 			header.pitchOrLinearSize = texture.data.size();
 
-			// Setup the pixel format for each format.
+			// Setup the pixel format
 			switch(Format) {
 
 				// In this case we need to actually fill out the pixel format structure.
@@ -257,23 +258,23 @@ namespace xb2at {
 					break;
 
 				case TextureFormat::BC1_UNORM:
-					header.pixFormat.fourcc = 0x31545844;
+					header.pixFormat.fourcc = 0x31545844; // DXT1
 					break;
 
 				case TextureFormat::BC2_UNORM:
-					header.pixFormat.fourcc = 0x33545844;
+					header.pixFormat.fourcc = 0x33545844; // DXT3
 					break;
 
 				case TextureFormat::BC3_UNORM:
-					header.pixFormat.fourcc = 0x35545844;
+					header.pixFormat.fourcc = 0x35545844; // DXT5
 					break;
 
 				case TextureFormat::BC4_UNORM:
-					header.pixFormat.fourcc = 0x31495441;
+					header.pixFormat.fourcc = 0x31495441; // ATI1
 					break;
 
 				case TextureFormat::BC5_UNORM:
-					header.pixFormat.fourcc = 0x32495441;
+					header.pixFormat.fourcc = 0x32495441; // ATI2
 					break;
 
 				default:

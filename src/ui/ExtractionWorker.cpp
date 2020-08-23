@@ -143,7 +143,7 @@ namespace xb2at {
 			return true;
 		}
 
-		bool ExtractionWorker::SerializeMIBL(fs::path& outputPath, mibl::texture& texture) {
+		void ExtractionWorker::SerializeMIBL(fs::path& outputPath, mibl::texture& texture) {
 			MIBLDeswizzler deswizzler(texture);
 			deswizzler.Deswizzle();
 
@@ -151,7 +151,6 @@ namespace xb2at {
 			path.replace_extension(".dds");
 
 			deswizzler.Write(path);
-			return true;
 		}
 
 		void ExtractionWorker::SerializeMesh(std::vector<mesh::mesh>& meshesToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options) {
@@ -296,7 +295,7 @@ namespace xb2at {
 
 			logger.info("Serializing textures");
 
-			// returns true if a full size texture exists with the given name
+			// returns true if a full size texture exists with the same name
 			// false otherwise
 			auto FullSizeExists = [&](std::string name) {
 				auto it = std::find_if(msrd.textures.begin(), msrd.textures.end(), [&name](const mibl::texture& other) {
@@ -316,6 +315,9 @@ namespace xb2at {
 					SerializeMIBL(outputPath, *it);
 				}
 			}
+
+			// NOTE(lily): this will have to be moved to something awaiting for if/when async stuff happens
+			msrd.textures.clear();
 
 			mxmd::mxmd mxmd;
 			skel::skel skel;

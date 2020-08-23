@@ -59,7 +59,7 @@ namespace xb2at {
 			 * Returns true on success, false otherwise.
 			 * 
 			 * \param[in] path Path to MSRD file.
-			 * \param[in] msrdtoReadTo The core MSRD structure to read to
+			 * \param[out] msrdtoReadTo The core MSRD structure to read to
 			 * \param[in] options Options to pass to the reader.
 			 */
 			bool ReadMSRD(fs::path& path, msrd::msrd& msrdToReadTo, msrdReaderOptions& options);
@@ -69,7 +69,7 @@ namespace xb2at {
 			 * Returns true on success, false otherwise.
 			 * 
 			 * \param[in] path Path to MXMD file.
-			 * \param[in] mxmdtoReadTo The core MXMD structure to read to
+			 * \param[out] mxmdtoReadTo The core MXMD structure to read to
 			 * \param[in] options Options to pass to the reader.
 			 */
 			bool ReadMXMD(fs::path& path, mxmd::mxmd& mxmdToReadTo, mxmdReaderOptions& options);
@@ -79,7 +79,8 @@ namespace xb2at {
 			 * Returns true on success, false otherwise.
 			 * 
 			 * \param[in] path Path to SAR1 file.
-			 * \param[in] sar1toReadTo The core SAR1 structure to read to
+			 * \param[in] extension extension
+			 * \param[out] sar1toReadTo The core SAR1 structure to read to
 			 * \param[in] options Options to pass to the reader.
 			 */
 			bool ReadSAR1(fs::path& path, const std::string& extension, sar1::sar1& sar1ToReadTo, sar1ReaderOptions& options);
@@ -89,7 +90,7 @@ namespace xb2at {
 			 * Returns true on success, false otherwise.
 			 * 
 			 * \param[in] path Path to SKEL file.
-			 * \param[in] skeltoReadto The core SKEL structure to read to
+			 * \param[out] skeltoReadto The core SKEL structure to read to
 			 * \param[in] options Options to pass to the reader.
 			 */
 			bool ReadSKEL(fs::path& path, skel::skel& skelToReadto);
@@ -99,7 +100,7 @@ namespace xb2at {
 			/**
 			 * Reads a mesh
 			 *
-			 * \param[in] mesh Reference to mesh to read into
+			 * \param[out] mesh Reference to mesh to read into
 			 * \param[in] options Options to pass to reader
 			 */
 			bool ReadMesh(mesh::mesh& mesh, meshReaderOptions& options);
@@ -107,14 +108,19 @@ namespace xb2at {
 			/**
 			 * Reads a MIBL texture
 			 *
-			 * \param[in] texture Reference to texture to read into
+			 * \param[out] texture Reference to texture to read into
 			 * \param[in] options Options to pass to reader
 			 */
 			bool ReadMIBL(mibl::texture& texture, miblReaderOptions& options);
 
-			bool SerializeMIBL(fs::path& outputPath, mibl::texture& texture);
+			/**
+			 * Deswizzle textures then output them to DDS texture files.
+			 * 
+			 * \param[in] outputPath Base output path.
+			 * \param[in] texture Texture to deswizzle.
+			*/
+			void SerializeMIBL(fs::path& outputPath, mibl::texture& texture);
 
-			// TODO(lily): we'll probably have to give this texture access too
 			/**
 			 * Serializes meshes.
 			 *
@@ -135,7 +141,7 @@ namespace xb2at {
 			void ExtractAll(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options);
 
 			/**
-			 * This is a very, very very, VERY bad hack to avoid memory leaking.
+			 * This is a very, very very, **VERY** bad hack to avoid memory leaking.
 			 * We delete ourselves when we're done with a secondary purpose of also emitting the finished signal.
 			 */
 			inline void Done() {
