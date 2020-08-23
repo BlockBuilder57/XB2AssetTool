@@ -148,75 +148,9 @@ namespace xb2at {
 			deswizzler.Deswizzle();
 
 			auto path = outputPath / "Textures" / texture.filename;
-
-			// output the MIBL to a DDS file.
-
 			path.replace_extension(".dds");
-			std::ofstream ofs(path.string(), std::ofstream::binary);
 
-			DdsHeader header;
-
-			// Setup the header by clearing stuff we can't then setting some fields
-			memset(&header.reserved, 0, sizeof(header.reserved) / sizeof(uint32));
-			header.height = texture.height;
-			header.width = texture.width;
-			header.pitchOrLinearSize = texture.data.size();
-
-			// Setup the pixel format for each format.
-			switch(deswizzler.Format) {
-
-				// In this case we need to actually fill out the pixel format structure.
-				// This isn't terribly hard, thankfully.
-				case TextureFormat::R8G8B8A8_UNORM:
-					header.pixFormat.flags = 0x00000041; // DDS_RGBA (DDSPF_RGB | ALPHAPIXELS)
-					header.pixFormat.fourcc = 0;
-
-					header.pixFormat.RgbBitCount = 32;
-
-					header.pixFormat.RbitMask = 0x000000ff;
-					header.pixFormat.GbitMask = 0x0000ff00;
-					header.pixFormat.BbitMask = 0x00ff0000;
-					header.pixFormat.AbitMask = 0xff000000;
-					break;
-
-				case TextureFormat::BC1_UNORM:
-					header.pixFormat.fourcc = 0x31545844;
-					break;
-
-				case TextureFormat::BC2_UNORM:
-					header.pixFormat.fourcc = 0x33545844;
-					break;
-
-				case TextureFormat::BC3_UNORM:
-					header.pixFormat.fourcc = 0x35545844;
-					break;
-
-				case TextureFormat::BC4_UNORM:
-					header.pixFormat.fourcc = 0x31495441;
-					break;
-
-				case TextureFormat::BC5_UNORM:
-					header.pixFormat.fourcc = 0x32495441;
-					break;
-
-				default:
-					// Default to writing the DX10 DDS magic.
-					header.pixFormat.fourcc = 0x30315844;
-					break;
-			}
-
-			ofs.write((char*)&header, sizeof(DdsHeader));
-
-			// Write the DX10 format header if required.
-			if(header.pixFormat.fourcc == 0x30315844) {
-				DdsHeader::Dx10Header dx10;
-				dx10.format = deswizzler.Format;
-				ofs.write((char*)&dx10, sizeof(DdsHeader::Dx10Header));
-			}
-
-			// then write actual texture data
-			ofs.write(&texture.data[0], texture.data.size());
-			ofs.close();
+			deswizzler.Write(path);
 			return true;
 		}
 

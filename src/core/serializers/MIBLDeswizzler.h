@@ -137,7 +137,7 @@ namespace xb2at {
 		// NOTE: All of the things that are set
 		// here are things that don't need to ever be changed.
 		/**
-		 * DDS header without DX SDK requirement
+		 * DDS header without DX SDK or Windows requirement
 		 */
 		struct DdsHeader {
 			uint32 magic = 0x20534444;
@@ -228,6 +228,8 @@ namespace xb2at {
 			 * In-place deswizzle the MIBL.
 			 */
 			void Deswizzle();
+
+			void Write(fs::path& path);
 
 		   private:
 			void SwizzleInternal(int bppPower, int swizzleSize = 4);
