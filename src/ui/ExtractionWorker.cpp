@@ -147,20 +147,62 @@ namespace xb2at {
 			MIBLDeswizzler deswizzler(texture);
 			deswizzler.Deswizzle();
 
+			// append cachedmibl file name to the rats
 			if(texture.cached)
 				texture.filename += "_CachedMIBL";
 
 			auto path = outputPath / texture.filename;
 
-			// This is very temporary
-			// output the raw deswizzled MIBL to a file on disk
-			path.replace_extension(".deswiz");
+			// output the MIBL to a DDS file.
+
+			path.replace_extension(".dds");
 			std::ofstream ofs(path.string(), std::ofstream::binary);
 
+			DdsHeader header;
+			header.height = texture.height;
+			header.width = texture.width;
+			header.pitchOrLinearSize = texture.data.size();
 
+			// Set the pix format fourcc
+			switch(deswizzler.Format) {
+				case TextureFormat::BC1_UNORM:
+					header.pixFormat.fourcc = 0x31545844;
+					break;
 
+				case TextureFormat::BC2_UNORM:
+					header.pixFormat.fourcc = 0x33545844;
+					break;
+
+				case TextureFormat::BC3_UNORM:
+					header.pixFormat.fourcc = 0x35545844;
+					break;
+
+				case TextureFormat::BC4_UNORM:
+					header.pixFormat.fourcc = 0x31495441;
+					break;
+
+				case TextureFormat::BC5_UNORM:
+					header.pixFormat.fourcc = 0x32495441;
+					break;
+
+				default:
+					// set to DX10
+					header.pixFormat.fourcc = 0x30315844;
+					break;
+			}
+
+			ofs.write((char*)&header, sizeof(DdsHeader));
+
+			// Write the Dx10 header if we need to
+			if(header.pixFormat.fourcc == 0x30315844) {
+				logger.info("DDS Writing DX10");
+				DdsHeader::Dx10Header dx10;
+				dx10.format = deswizzler.Format;
+				ofs.write((char*)&dx10, sizeof(DdsHeader::Dx10Header));
+			}
+
+			// then write actual texture data
 			ofs.write(&texture.data[0], texture.data.size());
-
 			ofs.close();
 			return true;
 		}
@@ -223,7 +265,6 @@ namespace xb2at {
 				return;
 			}
 
-
 			for(int i = 0; i < msrd.dataItems.size(); ++i) {
 				switch(msrd.dataItems[i].type) {
 #ifndef _DEBUG
@@ -256,7 +297,7 @@ namespace xb2at {
 						mibloptions.size = msrd.dataItems[i].size;
 
 #ifdef _DEBUG
-						logger.info("regular MIBL name \"", mibl_filename,'\"');
+						logger.info("regular MIBL name \"", mibl_filename, '\"');
 #endif
 
 						if(!ReadMIBL(texture, mibloptions)) {
@@ -265,7 +306,7 @@ namespace xb2at {
 							texture.filename = mibl_filename;
 							texture.offset = mibloptions.offset;
 							texture.size = mibloptions.size;
-							
+
 							msrd.textures.push_back(texture);
 
 							logger.info("MIBL ", i, " successfully read.");
@@ -285,7 +326,7 @@ namespace xb2at {
 							mibl::texture texture;
 
 #ifdef _DEBUG
-							logger.info("Cached MIBL name \"", msrd.textureNames[j],'\"');
+							logger.info("Cached MIBL name \"", msrd.textureNames[j], '\"');
 #endif
 
 							if(!ReadMIBL(texture, mibloptions)) {
@@ -315,8 +356,6 @@ namespace xb2at {
 
 			mxmd::mxmd mxmd;
 			skel::skel skel;
-
-
 
 			if(!ReadSKEL(path, skel)) {
 				logger.warn("Continuing without skeletons");
