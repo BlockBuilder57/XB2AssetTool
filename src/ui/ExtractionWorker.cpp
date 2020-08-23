@@ -156,14 +156,29 @@ namespace xb2at {
 
 			DdsHeader header;
 
-			// Setup the header
+			// Setup the header by clearing stuff we can't then setting some fields
 			memset(&header.reserved, 0, sizeof(header.reserved) / sizeof(uint32));
 			header.height = texture.height;
 			header.width = texture.width;
 			header.pitchOrLinearSize = texture.data.size();
 
-			// Set the pix format fourcc
+			// Setup the pixel format for each format.
 			switch(deswizzler.Format) {
+
+				// In this case we need to actually fill out the pixel format structure.
+				// This isn't terribly hard, thankfully.
+				case TextureFormat::R8G8B8A8_UNORM:
+					header.pixFormat.flags = 0x00000041; // DDS_RGBA (DDSPF_RGB | ALPHAPIXELS)
+					header.pixFormat.fourcc = 0;
+
+					header.pixFormat.RgbBitCount = 32;
+
+					header.pixFormat.RbitMask = 0x000000ff;
+					header.pixFormat.GbitMask = 0x0000ff00;
+					header.pixFormat.BbitMask = 0x00ff0000;
+					header.pixFormat.AbitMask = 0xff000000;
+					break;
+
 				case TextureFormat::BC1_UNORM:
 					header.pixFormat.fourcc = 0x31545844;
 					break;
@@ -185,14 +200,14 @@ namespace xb2at {
 					break;
 
 				default:
-					// set to DX10
+					// Default to writing the DX10 DDS magic.
 					header.pixFormat.fourcc = 0x30315844;
 					break;
 			}
 
 			ofs.write((char*)&header, sizeof(DdsHeader));
 
-			// Write the Dx10 header if we need to
+			// Write the DX10 format header if required.
 			if(header.pixFormat.fourcc == 0x30315844) {
 				DdsHeader::Dx10Header dx10;
 				dx10.format = deswizzler.Format;
