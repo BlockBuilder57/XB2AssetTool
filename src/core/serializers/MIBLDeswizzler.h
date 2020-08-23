@@ -134,6 +134,8 @@ namespace xb2at {
 			FORCE_UINT
 		};
 
+		// NOTE: All of the things that are set
+		// here are things that don't need to ever be changed.
 		/**
 		 * DDS header without DX SDK requirement
 		 */
@@ -145,28 +147,31 @@ namespace xb2at {
 			uint32 width;
 			uint32 pitchOrLinearSize;
 			uint32 depth = 1;
-			uint32 mipCount = 1; //?
+			uint32 mipCount = 1;
 			uint32 reserved[11];
 
+			/**
+			 * Pixel format data structure
+			 */
 			struct PixelFormat {
 				uint32 size = 32;
 				uint32 flags = 0x4; // _FOURCC
 				uint32 fourcc;
-				uint32 RgbBitCount;
-				uint32 RbitMask;
-				uint32 GbitMask;
-				uint32 BbitMask;
-				uint32 AbitMask;
+				uint32 RgbBitCount = 0;
+				uint32 RbitMask = 0;
+				uint32 GbitMask = 0;
+				uint32 BbitMask = 0;
+				uint32 AbitMask = 0;
 			} pixFormat;
-			
-			uint32 caps;
-			uint32 caps2;
-			uint32 caps3;
-			uint32 caps4;
-			uint32 reserved2;
+
+			uint32 caps = 0x1000;
+			uint32 caps2 = 0;
+			uint32 caps3 = 0;
+			uint32 caps4 = 0;
+			uint32 reserved2 = 0;
 
 			/**
-			 * DX10 header
+			 * DX10 DDS header
 			 */
 			struct Dx10Header {
 				TextureFormat format;
@@ -176,7 +181,6 @@ namespace xb2at {
 				uint32 misc2 = 0;
 			};
 		};
-
 
 		/**
 		 * A Tegra X1 deswizzler for MIBL textures.

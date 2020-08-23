@@ -147,11 +147,7 @@ namespace xb2at {
 			MIBLDeswizzler deswizzler(texture);
 			deswizzler.Deswizzle();
 
-			// append cachedmibl file name to the rats
-			if(texture.cached)
-				texture.filename += "_CachedMIBL";
-
-			auto path = outputPath / texture.filename;
+			auto path = outputPath / "Textures" / texture.filename;
 
 			// output the MIBL to a DDS file.
 
@@ -159,6 +155,9 @@ namespace xb2at {
 			std::ofstream ofs(path.string(), std::ofstream::binary);
 
 			DdsHeader header;
+
+			// Setup the header
+			memset(&header.reserved, 0, sizeof(header.reserved) / sizeof(uint32));
 			header.height = texture.height;
 			header.width = texture.width;
 			header.pitchOrLinearSize = texture.data.size();
@@ -195,7 +194,6 @@ namespace xb2at {
 
 			// Write the Dx10 header if we need to
 			if(header.pixFormat.fourcc == 0x30315844) {
-				logger.info("DDS Writing DX10");
 				DdsHeader::Dx10Header dx10;
 				dx10.format = deswizzler.Format;
 				ofs.write((char*)&dx10, sizeof(DdsHeader::Dx10Header));
@@ -347,11 +345,27 @@ namespace xb2at {
 				}
 			}
 
-			logger.info("Serializing MIBL's");
+			logger.info("Serializing textures");
+
+			// returns true if a full size texture exists with the given name
+			// false otherwise
+			auto FullSizeExists = [&](std::string name) {
+				auto it = std::find_if(msrd.textures.begin(), msrd.textures.end(), [&name](const mibl::texture& other) {
+					return name == other.filename && !other.cached;
+				});
+
+				return it != msrd.textures.end();
+			};
 
 			for(auto it = msrd.textures.begin(); it != msrd.textures.end(); ++it) {
-				auto out = outputPath / "Textures";
-				SerializeMIBL(out, *it);
+				if(FullSizeExists((*it).filename)) {
+					if(!(*it).cached)
+						SerializeMIBL(outputPath, *it);
+					else
+						logger.verbose("Ignoring ", (*it).filename, "'s cached version because full size one exists");
+				} else {
+					SerializeMIBL(outputPath, *it);
+				}
 			}
 
 			mxmd::mxmd mxmd;
