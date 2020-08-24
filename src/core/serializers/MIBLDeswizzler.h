@@ -212,16 +212,12 @@ namespace xb2at {
 						break;
 
 					default:
-						logger.error("Unknown/Unhandled LBIM type ", (int)tex.type, "!");
+						logger.error("Unknown/Unhandled MIBL type ", (int)tex.type, "!");
 						break;
 				}
 			}
 
-			uint32 GetBpp();
-			uint32 GetBlockWidth();
-			uint32 GetBlockHeight();
-
-			TextureFormat Format;
+			TextureFormat Format = TextureFormat::UNKNOWN;
 			mibl::texture& texture;
 
 			/**

@@ -144,38 +144,6 @@ namespace xb2at {
 			byte a;
 		};
 
-		struct [[deprecated("[xb2at.core] Use glm::mat4 from now on")]] matrix4x4 {
-			float m1, m2, m3, m4;
-			float m5, m6, m7, m8;
-			float m9, m10, m11, m12;
-			float m13, m14, m15, m16;
-		};
-
-		/**
-		 * Like std::map<Key, Value> but compile time compatiable! 
-		 */
-		template<class Key, class Value, std::size_t Size>
-		struct CompileTimeMap {
-			/**
-			 * Find a value in the map.
-			 * This search can be done during compile time,
-			 * and if so, the value will actually be replaced with just the applicable 
-			 * value *at* compile time!
-			 */
-			[[nodiscard]] constexpr Value at(const Key& key) const {
-				const auto it = std::find_if(std::begin(values), std::end(values), [&key](const auto& v) {
-					return v.first == key;
-				});
-
-				if(it != std::end(values))
-					return it->second;
-
-				throw std::range_error("not found");
-			}
-
-			std::array<std::pair<Key, Value>, Size> values;
-		};
-
 		/** @} */
 
 		/**
