@@ -9,7 +9,7 @@ namespace xb2at {
 		/**
 		 * Texture format in DirectX format
 		 */
-		enum class TextureFormat : uint16 {
+		enum class TextureFormat : uint32 {
 			UNKNOWN,
 			R32G32B32A32_TYPELESS,
 			R32G32B32A32_FLOAT,
@@ -206,7 +206,6 @@ namespace xb2at {
 					case mibl::MiblTextureFormat::BC5_UNORM:
 						Format = TextureFormat::BC5_UNORM;
 						break;
-
 					case mibl::MiblTextureFormat::BC7_UNORM:
 						Format = TextureFormat::BC7_UNORM;
 						break;
