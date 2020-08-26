@@ -215,46 +215,48 @@ namespace xb2at {
 				}
 			}
 
-			for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
-				mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
+			if(mesh.morphDataOffset > 0) {
+				for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
+					mesh::morph_descriptor& desc = mesh.morphData.morphDescriptors[i];
 
-				desc.targetIds.resize(desc.targetCounts);
-				stream.seekg(desc.targetIdOffsets, std::istream::beg);
+					desc.targetIds.resize(desc.targetCounts);
+					stream.seekg(desc.targetIdOffsets, std::istream::beg);
 
-				for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
-					reader.ReadType<int16>(desc.targetIds[j]);
+					for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
+						reader.ReadType<int16>(desc.targetIds[j]);
 
-				int morphTargetOffset = mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset;
-				stream.seekg(morphTargetOffset, std::istream::beg);
+					int morphTargetOffset = mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset;
+					stream.seekg(morphTargetOffset, std::istream::beg);
 
-				for(int j = 0; j < mesh.morphData.morphTargets[desc.targetIndex].vertCount; ++j) {
-					stream.seekg(morphTargetOffset + (0x20 * j), std::istream::beg);
+					for(int j = 0; j < mesh.morphData.morphTargets[desc.targetIndex].vertCount; ++j) {
+						stream.seekg(morphTargetOffset + (0x20 * j), std::istream::beg);
 
-					mesh.vertexTables[desc.bufferId].vertices[j] = reader.ReadVec3();
-					mesh.vertexTables[desc.bufferId].normals[j] = reader.ReadU8Quaternion();
-				}
+						mesh.vertexTables[desc.bufferId].vertices[j] = reader.ReadVec3();
+						mesh.vertexTables[desc.bufferId].normals[j] = reader.ReadU8Quaternion();
+					}
 
-				// j = 2 as we skip the basis, then skip something else I don't know what it is god help me
-				for(int j = 2; j < mesh.morphData.morphTargetCount; ++j) {
-					mesh.morphData.morphTargets[desc.targetIndex + j].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
-					mesh.morphData.morphTargets[desc.targetIndex + j].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+					// j = 2 as we skip the basis, then skip something else I don't know what it is god help me
+					for(int j = 2; j < mesh.morphData.morphTargetCount; ++j) {
+						mesh.morphData.morphTargets[desc.targetIndex + j].vertices.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
+						mesh.morphData.morphTargets[desc.targetIndex + j].normals.resize(mesh.morphData.morphTargets[desc.targetIndex].vertCount);
 
-					stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex + j].bufferOffset, std::istream::beg);
-					for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex + j].vertCount; ++k) {
-						int32 dummy;
+						stream.seekg(mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex + j].bufferOffset, std::istream::beg);
+						for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex + j].vertCount; ++k) {
+							int32 dummy;
 
-						vector3 vert = reader.ReadVec3();
-						reader.ReadType<int32>(dummy);
-						quaternion norm = reader.ReadS8Quaternion();
+							vector3 vert = reader.ReadVec3();
+							reader.ReadType<int32>(dummy);
+							quaternion norm = reader.ReadS8Quaternion();
 
-						reader.ReadType<int32>(dummy);
-						reader.ReadType<int32>(dummy);
+							reader.ReadType<int32>(dummy);
+							reader.ReadType<int32>(dummy);
 
-						int32 index;
-						reader.ReadType<int32>(index);
+							int32 index;
+							reader.ReadType<int32>(index);
 
-						mesh.morphData.morphTargets[desc.targetIndex + j].vertices[index] = vert;
-						mesh.morphData.morphTargets[desc.targetIndex + j].normals[index] = norm;
+							mesh.morphData.morphTargets[desc.targetIndex + j].vertices[index] = vert;
+							mesh.morphData.morphTargets[desc.targetIndex + j].normals[index] = norm;
+						}
 					}
 				}
 			}

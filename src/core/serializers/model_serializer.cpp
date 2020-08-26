@@ -198,7 +198,7 @@ namespace xb2at {
 						gltf_defintion defWeights = AddElement(doc, weights, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec4, false);
 
 						modelBuffer.byteLength = (uint32)modelBuffer.data.size();
-						if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
+						if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || doc.buffers.size() != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
 							modelBuffer.SetEmbeddedResource();
 
 						// insert into document
@@ -264,7 +264,7 @@ namespace xb2at {
 							}
 
 							morphBuffer.byteLength = (uint32)morphBuffer.data.size();
-							if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || j != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field."
+							if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || doc.buffers.size() != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
 								morphBuffer.SetEmbeddedResource();
 
 							// insert into document
@@ -318,7 +318,9 @@ namespace xb2at {
 
 						gltf::Node node {};
 						node.mesh = (int32)doc.meshes.size() - 1;
-						node.skin = (int32)doc.skins.size(); //not size - 1 as we create the skin later
+
+						if(strncmp(skelData.magic, "SKEL", sizeof(skelData.magic)) == 0) //if skel is defined
+							node.skin = (int32)doc.skins.size(); //not size - 1 as we create the skin later
 
 						doc.nodes.push_back(node);
 						scene.nodes.push_back((int32)doc.nodes.size() - 1);
@@ -327,63 +329,66 @@ namespace xb2at {
 					bonesNodeOffset = doc.nodes.size();
 					logger.info("Starting to add SKEL to glTF, bonesNodeOffset == ", bonesNodeOffset);
 
-					std::vector<xenoblade_node> xbnodes;
-					std::vector<float> globalMatricies;
+					if(strncmp(skelData.magic, "SKEL", sizeof(skelData.magic)) == 0) { //if skel is defined
+						std::vector<xenoblade_node> xbnodes;
+						std::vector<float> globalMatricies;
 
-					for(int k = 0; k < skelData.nodes.size(); ++k) {
-						gltf::Node node;
-						node.name = skelData.nodes[k].name;
-						if(skelData.nodeParents[k] != Max<uint16>::value) {
-							xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
-							doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
+						for(int k = 0; k < skelData.nodes.size(); ++k) {
+							gltf::Node node;
+							node.name = skelData.nodes[k].name;
+							if(skelData.nodeParents[k] != Max<uint16>::value) {
+								xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
+								doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
+							}
+
+							xenoblade_node xbnode(k);
+							xbnode.gltfNode = node;
+							xbnode.localTransform = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+
+							glm::mat4x4 global = xbnode.localTransform;
+							if(skelData.nodeParents[k] == Max<uint16>::value) {
+								xbnode.globalTransform = global;
+							} else {
+								xbnode.globalTransform = global * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
+							}
+
+							glm::mat4x4 inverse = glm::inverse(xbnode.globalTransform);
+							for(byte mx = 0; mx < inverse.length() - 1; ++mx)
+								for(byte my = 0; my < inverse[mx].length() - 1; ++my)
+									globalMatricies.push_back(inverse[mx][my]);
+
+							//memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
+							//memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
+							//memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
+							memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
+
+							xbnodes.push_back(xbnode);
+							doc.nodes.push_back(xbnode.gltfNode);
+							if(skelData.nodeParents[k] == Max_v<uint16>)
+								scene.nodes.push_back((int32)doc.nodes.size() - 1);
 						}
 
-						xenoblade_node xbnode(k);
-						xbnode.gltfNode = node;
-						xbnode.localTransform = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
+						gltf::Skin skin;
 
-						glm::mat4x4 global = xbnode.localTransform;
-						if(skelData.nodeParents[k] == Max<uint16>::value) {
-							xbnode.globalTransform = global;
-						} else {
-							xbnode.globalTransform = global * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
-						}
+						gltf::Buffer inverseBindBuffer {};
+						uint64 inverseBindBufferTally = 0;
 
-						glm::mat4x4 inverse = glm::inverse(xbnode.globalTransform);
-						for(byte mx = 0; mx < inverse.length() - 1; ++mx)
-							for(byte my = 0; my < inverse[mx].length() - 1; ++my)
-								globalMatricies.push_back(inverse[mx][my]);
+						uint32 buffersCount = (uint32)doc.buffers.size();
+						gltf_defintion defInverseBind = AddElement(doc, globalMatricies, inverseBindBuffer, inverseBindBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Mat4, false);
 
-						//memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
-						//memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
-						//memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
-						memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
+						for(int k = 0; k < skelData.nodes.size(); ++k)
+							skin.joints.push_back(k + bonesNodeOffset);
+						skin.inverseBindMatrices = defInverseBind.accessorIndex;
 
-						xbnodes.push_back(xbnode);
-						doc.nodes.push_back(xbnode.gltfNode);
-						if(skelData.nodeParents[k] == Max_v<uint16>)
-							scene.nodes.push_back((int32)doc.nodes.size() - 1);
+						inverseBindBuffer.byteLength = (uint32)inverseBindBuffer.data.size();
+						if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || doc.buffers.size() != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
+							inverseBindBuffer.SetEmbeddedResource();
+
+						// insert into document
+						doc.buffers.push_back(inverseBindBuffer);
+
+						doc.skins.push_back(skin);
 					}
-
-					gltf::Skin skin;
-
-					gltf::Buffer inverseBindBuffer {};
-					uint64 inverseBindBufferTally = 0;
-
-					uint32 buffersCount = (uint32)doc.buffers.size();
-					gltf_defintion defInverseBind = AddElement(doc, globalMatricies, inverseBindBuffer, inverseBindBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Mat4, false);
-
-					for(int k = 0; k < skelData.nodes.size(); ++k)
-						skin.joints.push_back(k + bonesNodeOffset);
-					skin.inverseBindMatrices = defInverseBind.accessorIndex;
-
-					inverseBindBuffer.byteLength = (uint32)inverseBindBuffer.data.size();
-					inverseBindBuffer.SetEmbeddedResource();
-
-					// insert into document
-					doc.buffers.push_back(inverseBindBuffer);
-
-					doc.skins.push_back(skin);
 
 					doc.scenes.push_back(scene);
 					doc.scene = i;

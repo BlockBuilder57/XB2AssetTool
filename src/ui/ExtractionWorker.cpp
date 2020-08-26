@@ -322,9 +322,12 @@ namespace xb2at {
 			mxmd::mxmd mxmd;
 			skel::skel skel;
 
+#ifdef _DEBUG
+			// NOTE(block): matricies are hard so skels will be disabled for now
 			if(!ReadSKEL(path, skel)) {
 				logger.warn("Continuing without skeletons");
 			}
+#endif
 
 			mxmdReaderOptions mxmdoptions {};
 
