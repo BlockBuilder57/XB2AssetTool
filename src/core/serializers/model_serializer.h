@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 
 #include <structs/mesh.h>
 #include <structs/mxmd.h>
@@ -69,7 +69,7 @@ namespace xb2at {
 			void Serialize(std::vector<mesh::mesh>& meshToDump, mxmd::mxmd& mxmdData, skel::skel& skelData, modelSerializerOptions& options);
 
 		   private:
-			Logger logger = Logger::CreateChannel("ModelSerializer");
+			mco::Logger logger = mco::Logger::CreateLogger("ModelSerializer");
 		};
 	} // namespace core
 } // namespace xb2at

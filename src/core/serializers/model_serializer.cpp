@@ -398,7 +398,8 @@ namespace xb2at {
 					try {
 						gltf::Save(doc, ofs, outPath.filename().string(), options.OutputFormat == modelSerializerOptions::Format::GLTFBinary);
 					} catch(gltf::invalid_gltf_document ex) {
-						logger.error("fx::glTF exception: ", ex.what());
+						logger.error("fx::glTF exception:");
+						logger.except(std::current_exception());
 					}
 
 					// clear document explicitly

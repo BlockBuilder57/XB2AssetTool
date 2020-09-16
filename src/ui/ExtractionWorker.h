@@ -50,8 +50,6 @@ namespace xb2at {
 
 			void MakeDirectoryIfNotExists(fs::path& root, const std::string& directoryName);
 
-			void LogCallback(std::string message, LogSeverity type);
-
 			// read seperation functions
 
 			/**
@@ -145,13 +143,17 @@ namespace xb2at {
 			 * We delete ourselves when we're done with a secondary purpose of also emitting the finished signal.
 			 */
 			inline void Done() {
+				// Set the sink to nullptr so that
+				// the logger can properly handle the sink
+				// being invalid.
+				mco::Logger::SetSink(nullptr);
 				delete this;
 			}
 
-			Logger logger = Logger::CreateChannel("ExtractionWorker");
+			mco::Logger logger = mco::Logger::CreateLogger("ExtractionWorker");
 
 		   signals:
-			void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
+			void LogMessage(QString message, mco::LogSeverity type = mco::LogSeverity::Info);
 			void Finished();
 		};
 

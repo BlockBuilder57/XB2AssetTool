@@ -106,10 +106,7 @@ namespace xb2at {
 			ui.extractButton->setDisabled(true);
 			ui.allTabs->setCurrentWidget(ui.logTab);
 
-			if(ui.enableVerbose->isChecked())
-				Logger::AllowVerbose = true;
-			else
-				Logger::AllowVerbose = false;
+			mco::Logger::SetAllowVerbose(ui.enableVerbose->isChecked());
 
 			QString file = ui.inputFiles->text();
 
@@ -151,7 +148,7 @@ namespace xb2at {
 
 			// connect all of the signals to the UI slots
 			connect(et, SIGNAL(Finished()), this, SLOT(Finished()));
-			connect(et, SIGNAL(LogMessage(QString, LogSeverity)), this, SLOT(LogMessage(QString, LogSeverity)));
+			connect(et, SIGNAL(LogMessage(QString, mco::LogSeverity)), this, SLOT(LogMessage(QString, mco::LogSeverity)));
 			connect(extraction_thread, SIGNAL(destroyed()), et, SLOT(deleteLater()));
 
 			fs::path outputPath(ui.outputDir->text().toStdString());
@@ -205,31 +202,30 @@ namespace xb2at {
 			QApplication::aboutQt();
 		}
 
-		void MainWindow::LogMessage(QString message, LogSeverity type) {
+		void MainWindow::LogMessage(QString message, mco::LogSeverity type) {
+			QTextCursor cursor(ui.debugConsole->textCursor());
+			QTextCharFormat format;
+
 			switch(type) {
+				case mco::LogSeverity::Verbose:
+				case mco::LogSeverity::Info:
 				default:
 					break;
 
-				case LogSeverity::Verbose:
-					ui.debugConsole->insertHtml("<font>[Verbose] ");
+				case mco::LogSeverity::Warning:
+					format.setForeground(Qt::darkYellow);
 					break;
 
-				case LogSeverity::Info:
-					ui.debugConsole->insertHtml("<font>[Info] ");
-					break;
-
-				case LogSeverity::Warning:
-					ui.debugConsole->insertHtml("<font color=\"#b3ae20\">[Warning] ");
-					break;
-
-				case LogSeverity::Error:
-					ui.debugConsole->insertHtml("<font color=\"#e00d0d\">[Error] ");
+				case mco::LogSeverity::Error:
+					format.setForeground(Qt::red);
 					break;
 			}
 
-			ui.debugConsole->insertHtml(message);
-			ui.debugConsole->insertHtml("</font><br>");
-			ui.debugConsole->verticalScrollBar()->setValue(ui.debugConsole->verticalScrollBar()->maximum());
+			cursor.setCharFormat(format);
+			cursor.insertText(message);
+			cursor.insertText("\n");
+
+			ui.debugConsole->ensureCursorVisible();
 
 			// process events when signal called
 			// (cheap and hacky way of making the application perform better)

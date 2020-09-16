@@ -10,3 +10,7 @@
 [submodule "vendor/glm"]
 	path = vendor/glm
 	url = https://github.com/g-truc/glm
+[submodule "vendor/mcommon"]
+	path = vendor/mcommon
+	url = https://github.com/modeco80/libmcommon.git
+	branch = xb2at

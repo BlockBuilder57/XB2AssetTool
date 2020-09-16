@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 #include <structs/mibl.h>
 
 namespace xb2at {
@@ -186,35 +186,7 @@ namespace xb2at {
 		 * A Tegra X1 deswizzler for MIBL textures.
 		 */
 		struct MIBLDeswizzler {
-			inline MIBLDeswizzler(mibl::texture& tex)
-				: texture(tex) {
-				// Convert from MIBL (nvn) format to DirectX format
-				// since that's what we will use when exporting
-				switch(tex.type) {
-					case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
-						Format = TextureFormat::R8G8B8A8_UNORM;
-						break;
-					case mibl::MiblTextureFormat::BC1_UNORM:
-						Format = TextureFormat::BC1_UNORM;
-						break;
-					case mibl::MiblTextureFormat::BC3_UNORM:
-						Format = TextureFormat::BC3_UNORM;
-						break;
-					case mibl::MiblTextureFormat::BC4_UNORM:
-						Format = TextureFormat::BC4_UNORM;
-						break;
-					case mibl::MiblTextureFormat::BC5_UNORM:
-						Format = TextureFormat::BC5_UNORM;
-						break;
-					case mibl::MiblTextureFormat::BC7_UNORM:
-						Format = TextureFormat::BC7_UNORM;
-						break;
-
-					default:
-						logger.error("Unknown/Unhandled MIBL type ", (int)tex.type, "!");
-						break;
-				}
-			}
+			MIBLDeswizzler(mibl::texture& tex);
 
 			TextureFormat Format = TextureFormat::UNKNOWN;
 			mibl::texture& texture;
@@ -229,7 +201,7 @@ namespace xb2at {
 		   private:
 			void SwizzleInternal(int bppPower, int swizzleSize = 4);
 
-			Logger logger = Logger::CreateChannel("MIBLDeswizzler");
+			mco::Logger logger = mco::Logger::CreateLogger("MIBLDeswizzler");
 		};
 
 	} // namespace core

@@ -1,5 +1,5 @@
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 
 #include <structs/skel.h>
 
@@ -54,7 +54,7 @@ namespace core {
 		skel::skel Read(skelReaderOptions& opts);
 
 	private:
-		Logger logger = Logger::CreateChannel("SKELReader");
+		mco::Logger logger = mco::Logger::CreateLogger("SKELReader");
 	};
 
 }

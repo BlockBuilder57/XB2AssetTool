@@ -5,9 +5,13 @@
 #include <QThread>
 
 #include <core.h>
-#include <Logger.h>
 
 #include "ui_xb2at.h"
+
+// we don't want the kludge here....
+#include <modeco/Logger.h>
+#undef error
+#undef verbose
 
 namespace xb2at {
 	namespace ui {
@@ -83,7 +87,7 @@ namespace xb2at {
 			 * \param[in] message The message to log.
 			 * \param[in] type The type/serverity of the message.
 			 */
-			void LogMessage(QString message, LogSeverity type = LogSeverity::Info);
+			void LogMessage(QString message, mco::LogSeverity type = mco::LogSeverity::Info);
 
 			/**
 			 * When fired, anything needed to be called when extraction is called.

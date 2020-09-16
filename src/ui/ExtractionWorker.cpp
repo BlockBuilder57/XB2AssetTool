@@ -1,5 +1,12 @@
 #include "ExtractionWorker.h"
 
+#include <qmessagebox.h>
+
+#include <modeco/Logger.h>
+
+//#define error(...) error(mco::source_location::current(), ##__VA_ARGS__)
+//#define verbose(...) verbose(mco::source_location::current(), ##__VA_ARGS__)
+
 namespace xb2at {
 	namespace ui {
 
@@ -14,11 +21,6 @@ namespace xb2at {
 				if(!fs::exists(root / directoryName))
 					fs::create_directories(root / directoryName);
 			}
-		}
-
-		void ExtractionWorker::LogCallback(std::string message, LogSeverity type) {
-			// Directly emit the signal so that performance isn't garbage
-			emit LogMessage(QString::fromStdString(message), type);
 		}
 
 		bool ExtractionWorker::ReadMSRD(fs::path& path, msrd::msrd& msrd, msrdReaderOptions& options) {
@@ -158,13 +160,29 @@ namespace xb2at {
 			ms.Serialize(meshesToDump, mxmdData, skelData, options);
 		}
 
+		// TODO: This is simplistic enough that I can let this slide
+		// but if this becomes any more complex we probably should move this elsewhere
+		/**
+		 * Mcommon logger sink for the UI.
+		 */
+		struct UILoggerSink : public mco::Sink {
+			UILoggerSink(ExtractionWorker* worker)
+				: worker(worker) {
+			}
+
+			void Output(const std::string& message, mco::LogSeverity logsev) {
+				emit worker->LogMessage(QString::fromStdString(message), logsev);
+			}
+
+		   private:
+			ExtractionWorker* worker = nullptr;
+		};
+
 		void ExtractionWorker::ExtractAll(std::string& filename, fs::path& outputPath, ExtractionWorkerOptions& options) {
 			using namespace std::placeholders;
 
-			// We can't only set it once because we rely on a non-static wrapper.
-			// We would have an invalid bound `this` pointer once this function exits.
-			// Sucks, I know.
-			Logger::OutputFunction = std::bind(&ExtractionWorker::LogCallback, this, _1, _2);
+			UILoggerSink sink(this);
+			mco::Logger::SetSink(&sink);
 
 #ifdef _DEBUG
 			// notify users they're using a development build that could be slower
