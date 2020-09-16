@@ -114,6 +114,36 @@ namespace xb2at {
 			texture.data = result;
 		}
 
+		MIBLDeswizzler::MIBLDeswizzler(mibl::texture& tex)
+			: texture(tex) {
+			// Convert from MIBL (nvn) format to DirectX format
+			// since that's what we will use when exporting
+			switch(tex.type) {
+				case mibl::MiblTextureFormat::R8G8B8A8_UNORM:
+					Format = TextureFormat::R8G8B8A8_UNORM;
+					break;
+				case mibl::MiblTextureFormat::BC1_UNORM:
+					Format = TextureFormat::BC1_UNORM;
+					break;
+				case mibl::MiblTextureFormat::BC3_UNORM:
+					Format = TextureFormat::BC3_UNORM;
+					break;
+				case mibl::MiblTextureFormat::BC4_UNORM:
+					Format = TextureFormat::BC4_UNORM;
+					break;
+				case mibl::MiblTextureFormat::BC5_UNORM:
+					Format = TextureFormat::BC5_UNORM;
+					break;
+				case mibl::MiblTextureFormat::BC7_UNORM:
+					Format = TextureFormat::BC7_UNORM;
+					break;
+
+				default:
+					logger.error("Unknown/Unhandled MIBL type ", (int)tex.type, "!");
+					break;
+			}
+		}
+
 		void MIBLDeswizzler::Deswizzle() {
 			// Call the deswizzle internal routine
 			switch(texture.type) {

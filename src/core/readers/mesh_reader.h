@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 
 #include <structs/mesh.h>
 
@@ -63,7 +63,7 @@ namespace core {
 		 */
 		mesh::mesh Read(meshReaderOptions& opts);
 		
-		Logger logger = Logger::CreateChannel("MeshReader");
+		mco::Logger logger = mco::Logger::CreateLogger("MeshReader");
 	};
 
 

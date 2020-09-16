@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 
 #include <structs/mxmd.h>
 
@@ -54,7 +54,7 @@ namespace core {
 		private:
 			std::istream& stream;
 
-			Logger logger = Logger::CreateChannel("MXMDReader");
+			mco::Logger logger = mco::Logger::CreateLogger("MXMDReader");
 		};
 
 

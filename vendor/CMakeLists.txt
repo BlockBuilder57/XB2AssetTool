@@ -19,3 +19,6 @@ option(FX_GLTF_USE_INSTALLED_DEPS OFF)
 add_subdirectory(fx-gltf)
 
 add_subdirectory(glm)
+
+set(MCOMMON_DO_NOT_INSTALL ON)
+add_subdirectory(mcommon)

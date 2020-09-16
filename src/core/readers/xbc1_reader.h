@@ -1,5 +1,5 @@
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 
 #include <structs/xbc1.h>
 
@@ -69,7 +69,7 @@ namespace core {
 	private:
 		std::istream& stream;
 
-		Logger logger = Logger::CreateChannel("XBC1Reader");
+		mco::Logger logger = mco::Logger::CreateLogger("XBC1Reader");
 	};
 
 }

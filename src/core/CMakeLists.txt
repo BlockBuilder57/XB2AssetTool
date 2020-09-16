@@ -9,10 +9,6 @@ set(XB2CORE_SOURCES
 	lowlevelmath.h
 	streamhelper.h
 	ivstream.h
-	
-# Cross-platform/cross-environment logging utility
-	Logger.h
-	Logger.cpp
 
 # Data structures
 
@@ -91,7 +87,7 @@ elseif(XB2AT_STDLIB STREQUAL "gnu")
 	target_link_libraries(xb2core stdc++fs)
 endif()
 
-target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT} mcommon)
 
 # We use the version tag so depend on it and add a private include path to where it's generated
 add_dependencies(xb2core __xb2at_gittag)

@@ -1,6 +1,6 @@
 #pragma once
 #include <core.h>
-#include <Logger.h>
+#include <modeco/Logger.h>
 
 #include <structs/msrd.h>
 
@@ -65,7 +65,7 @@ namespace core {
 	private:
 		std::istream& stream;
 
-		Logger logger = Logger::CreateChannel("MSRDReader");
+		mco::Logger logger = mco::Logger::CreateLogger("MSRDReader");
 	};
 
 

@@ -5,6 +5,8 @@
 namespace xb2at {
 	namespace core {
 
+		// TODO: REPLACE VECTOR STUFF WITH mco::Span<byte>
+
 		/**
 		 * A istream overload allowing a vector<char> to be used as a data buffer for the stream.
 		 * Essentially, like .NET's MemoryStream, but with some zero copy guarantees.

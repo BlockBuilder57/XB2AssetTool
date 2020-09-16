@@ -5,6 +5,8 @@
 #pragma once
 
 #include <cstdint>
+#include <modeco/types.h>
+
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -47,31 +49,18 @@ namespace xb2at {
 		 * \defgroup Types Core Library Types & Class Templates
 		 * @{
 		 */
+		
+		using mco::byte;
+		using mco::sbyte;
 
-		/**
-		 * Unsigned 8-bit value.
-		 */
-		typedef std::uint8_t byte;
+		using mco::int16;
+		using mco::uint16;
+		
+		using mco::int32;
+		using mco::uint32;
 
-		/**
-		 * Signed 8-bit value.
-		 */
-		typedef std::int8_t sbyte;
-
-		typedef std::int16_t int16;
-		typedef std::uint16_t uint16;
-
-		typedef std::int32_t int32;
-		typedef std::uint32_t uint32;
-
-		typedef std::int64_t int64;
-		typedef std::uint64_t uint64;
-
-		/**
-		 * A bool value that is not sizeof(int) bytes. Useful for if you don't want
-		 * to expand lots of structures just by adding a single bool
-		 */
-		typedef byte bytebool;
+		using mco::int64;
+		using mco::uint64;
 
 		/**
 		 * constexpr shorthand for numeric_limits<T>::min()
