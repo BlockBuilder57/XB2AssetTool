@@ -203,12 +203,10 @@ namespace xb2at {
 		}
 
 		void MainWindow::LogMessage(QString message, mco::LogSeverity type) {
-
-			QTextCursor cursor( ui.debugConsole->textCursor() );
+			QTextCursor cursor(ui.debugConsole->textCursor());
 			QTextCharFormat format;
 
 			switch(type) {
-
 				case mco::LogSeverity::Verbose:
 				case mco::LogSeverity::Info:
 				default:
