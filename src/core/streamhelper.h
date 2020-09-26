@@ -87,7 +87,7 @@ namespace xb2at {
 					return temp;
 
 				stream.read((char*)&temp, sizeof(T));
-				return true;
+				return temp;
 			}
 
 			/**
