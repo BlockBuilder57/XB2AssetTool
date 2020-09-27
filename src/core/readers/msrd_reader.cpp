@@ -7,11 +7,11 @@ namespace xb2at {
 	namespace core {
 
 		msrd::msrd msrdReader::Read(msrdReaderOptions& opts) {
-			StreamHelper reader(stream);
+			mco::BinaryReader reader(stream);
 			msrd::msrd data;
 
 			// Read the initial header
-			if(!reader.ReadType<msrd::msrd_header>(data)) {
+			if(!reader.ReadSingleType((msrd::msrd_header&)data)) {
 				opts.Result = msrdReaderStatus::ErrorReadingHeader;
 				return data;
 			}
@@ -28,7 +28,7 @@ namespace xb2at {
 				data.dataItems.resize(data.dataitemsCount);
 
 				for(int i = 0; i < data.dataitemsCount; ++i) {
-					reader.ReadType<msrd::data_item>(data.dataItems[i]);
+					reader.ReadSingleType(data.dataItems[i]);
 					stream.seekg(0x8, std::istream::cur);
 				}
 			}
@@ -38,21 +38,21 @@ namespace xb2at {
 				data.textureIds.resize(data.textureIdsCount);
 
 				for(int i = 0; i < data.textureIdsCount; ++i)
-					reader.ReadType<int16>(data.textureIds[i]);
+					reader.ReadSingleType(data.textureIds[i]);
 			}
 
 			if(data.textureCountOffset != 0) {
 				stream.seekg(data.offset + data.textureCountOffset, std::istream::beg);
 
-				reader.ReadType<int32>(data.textureCount);
-				reader.ReadType<int32>(data.textureChunkSize);
-				reader.ReadType<int32>(data.unknown2);
-				reader.ReadType<int32>(data.textureStringBufferOffset);
+				reader.ReadSingleType(data.textureCount);
+				reader.ReadSingleType(data.textureChunkSize);
+				reader.ReadSingleType(data.unknown2);
+				reader.ReadSingleType(data.textureStringBufferOffset);
 
 				data.textureInfo.resize(data.textureCount);
 
 				for(int i = 0; i < data.textureCount; ++i) {
-					reader.ReadType<msrd::texture_info>(data.textureInfo[i]);
+					reader.ReadSingleType(data.textureInfo[i]);
 				}
 
 				data.textureNames.resize(data.textureCount);
@@ -67,7 +67,7 @@ namespace xb2at {
 
 			for(int i = 0; i < data.fileCount; ++i) {
 				stream.seekg(data.offset + data.tocOffset + (i * sizeof(msrd::toc_entry)), std::istream::beg);
-				reader.ReadType<msrd::toc_entry>(data.toc[i]);
+				reader.ReadSingleType(data.toc[i]);
 
 				// display some information about the MSRD file when verbose logging
 				logger.verbose("MSRD TOC file ", i, ':');

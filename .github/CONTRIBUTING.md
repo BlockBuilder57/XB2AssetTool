@@ -9,7 +9,7 @@
 
 - **Do** keep any discussions on issues centered.
 
-- **Don't** make a huge PR (25/50+ commits in one PR).
+- **Don't** make a huge PR (50/70+ commits in one PR).
 	- Instead, if it's getting that big, squash your changes to one commit or force push your branch forwards.
 
 - **Don't** commit code that isn't yours, or that is NDA breaking. 

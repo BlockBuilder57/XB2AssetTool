@@ -6,14 +6,14 @@ namespace xb2at {
 	namespace core {
 
 		xbc1::xbc1 xbc1Reader::Read(xbc1ReaderOptions& opts) {
-			StreamHelper reader(stream);
+			mco::BinaryReader reader(stream);
 			xbc1::xbc1 xbc;
 
 			logger.info("Reading XBC1 file at ", opts.offset);
 
 			stream.seekg(opts.offset, std::istream::beg);
 
-			if(!reader.ReadType<xbc1::header>(xbc)) {
+			if(!reader.ReadSingleType((xbc1::header&)xbc)) {
 				opts.Result = xbc1ReaderStatus::ErrorReadingHeader;
 				return xbc;
 			}

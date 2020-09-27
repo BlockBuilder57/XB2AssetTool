@@ -9,11 +9,11 @@ namespace xb2at {
 
 		mesh::mesh meshReader::Read(meshReaderOptions& opts) {
 			ivstream stream(opts.file);
-			StreamHelper reader(stream);
+			mco::BinaryReader reader(stream);
 			mesh::mesh mesh;
 
 			// Read the mesh header
-			if(!reader.ReadType<mesh::mesh_header>(mesh)) {
+			if(!reader.ReadSingleType((mesh::mesh_header&)mesh)) {
 				opts.Result = meshReaderStatus::ErrorReadingHeader;
 				return mesh;
 			}
@@ -26,7 +26,7 @@ namespace xb2at {
 					logger.verbose("Reading mesh vertex table ", i);
 
 					stream.seekg(mesh.vertexTableOffset + (i * sizeof(mesh::vertex_table_header)), std::istream::beg);
-					if(!reader.ReadType<mesh::vertex_table_header>(mesh.vertexTables[i])) {
+					if(!reader.ReadSingleType((mesh::vertex_table_header&)mesh.vertexTables[i])) {
 						opts.Result = meshReaderStatus::ErrorReadingVertexData;
 						return mesh;
 					}
@@ -38,7 +38,7 @@ namespace xb2at {
 					for(int j = 0; j < mesh.vertexTables[i].descriptorCount; ++j) {
 						logger.verbose("Reading mesh vertex descriptor ", j);
 
-						if(!reader.ReadType<mesh::vertex_descriptor>(mesh.vertexTables[i].vertexDescriptors[j])) {
+						if(!reader.ReadSingleType(mesh.vertexTables[i].vertexDescriptors[j])) {
 							opts.Result = meshReaderStatus::ErrorReadingVertexData;
 							return mesh;
 						}
@@ -55,7 +55,7 @@ namespace xb2at {
 
 					stream.seekg(mesh.faceTableOffset + (i * sizeof(mesh::face_table_header)), std::istream::beg);
 
-					if(!reader.ReadType<mesh::face_table_header>(mesh.faceTables[i])) {
+					if(!reader.ReadSingleType((mesh::face_table_header&)mesh.faceTables[i])) {
 						opts.Result = meshReaderStatus::ErrorReadingFaceData;
 						return mesh;
 					}
@@ -64,9 +64,9 @@ namespace xb2at {
 
 					mesh.faceTables[i].vertices.resize(mesh.faceTables[i].vertCount);
 					for(int j = 0; j < mesh.faceTables[i].vertCount; ++j) {
-						if(!reader.ReadType<uint16>(mesh.faceTables[i].vertices[j])) {
+						if(!reader.ReadSingleType(mesh.faceTables[i].vertices[j])) {
 							opts.Result = meshReaderStatus::ErrorReadingFaceData;
-							//VARARGS_LOG(LogSeverity::Error, "Error reading face table " << i)
+							logger.error("Error reading face table ", j);
 							return mesh;
 						}
 					}
@@ -79,7 +79,7 @@ namespace xb2at {
 
 				stream.seekg(mesh.weightDataOffset, std::istream::beg);
 
-				if(!reader.ReadType<mesh::weight_data_header>(mesh.weightData)) {
+				if(!reader.ReadSingleType((mesh::weight_data_header&)mesh.weightData)) {
 					opts.Result = meshReaderStatus::ErrorReadingWeightData;
 					return mesh;
 				}
@@ -88,7 +88,7 @@ namespace xb2at {
 				stream.seekg(mesh.weightData.managerOffset, std::istream::beg);
 
 				for(int i = 0; i < mesh.weightData.managerCount; ++i) {
-					if(!reader.ReadType<mesh::weight_manager>(mesh.weightData.weightManagers[i])) {
+					if(!reader.ReadSingleType(mesh.weightData.weightManagers[i])) {
 						opts.Result = meshReaderStatus::ErrorReadingWeightData;
 						logger.error("Error reading weight manager");
 						return mesh;
@@ -102,7 +102,7 @@ namespace xb2at {
 
 				stream.seekg(mesh.morphDataOffset, std::istream::beg);
 
-				if(!reader.ReadType<mesh::morph_data_header>(mesh.morphData)) {
+				if(!reader.ReadSingleType((mesh::morph_data_header&)mesh.morphData)) {
 					opts.Result = meshReaderStatus::ErrorReadingMorphData;
 					return mesh;
 				}
@@ -111,7 +111,7 @@ namespace xb2at {
 				stream.seekg(mesh.morphData.morphDescriptorOffset, std::istream::beg);
 
 				for(int i = 0; i < mesh.morphData.morphDescriptorCount; ++i) {
-					if(!reader.ReadType<mesh::morph_descriptor_header>(mesh.morphData.morphDescriptors[i])) {
+					if(!reader.ReadSingleType((mesh::morph_descriptor_header&)mesh.morphData.morphDescriptors[i])) {
 						opts.Result = meshReaderStatus::ErrorReadingMorphData;
 						logger.error("Error reading morph descriptor header");
 						return mesh;
@@ -122,7 +122,7 @@ namespace xb2at {
 				stream.seekg(mesh.morphData.morphTargetOffset, std::istream::beg);
 
 				for(int i = 0; i < mesh.morphData.morphTargetCount; ++i) {
-					if(!reader.ReadType<mesh::morph_target_header>(mesh.morphData.morphTargets[i])) {
+					if(!reader.ReadSingleType((mesh::morph_target_header&)mesh.morphData.morphTargets[i])) {
 						opts.Result = meshReaderStatus::ErrorReadingMorphData;
 						logger.error("Error reading morph target header");
 						return mesh;
@@ -164,47 +164,47 @@ namespace xb2at {
 					for(mesh::vertex_descriptor& desc : mesh.vertexTables[i].vertexDescriptors) {
 						switch(desc.type) {
 							case mesh::vertex_descriptor_type::Position:
-								mesh.vertexTables[i].vertices[j] = reader.ReadVec3();
+								mesh.vertexTables[i].vertices[j] = ReadVec3(reader);
 								break;
 
 							case mesh::vertex_descriptor_type::UV1:
 							case mesh::vertex_descriptor_type::UV2:
 							case mesh::vertex_descriptor_type::UV3:
-								mesh.vertexTables[i].uvPos[desc.type - 5][j] = reader.ReadVec2();
+								mesh.vertexTables[i].uvPos[desc.type - 5][j] = ReadVec2(reader);
 								if(desc.type - 4 > mesh.vertexTables[i].uvLayerCount)
 									mesh.vertexTables[i].uvLayerCount = desc.type - 4;
 								break;
 
 							case mesh::vertex_descriptor_type::VertexColor:
-								reader.ReadType<byte>(mesh.vertexTables[i].vertexColor[j].a);
-								reader.ReadType<byte>(mesh.vertexTables[i].vertexColor[j].r);
-								reader.ReadType<byte>(mesh.vertexTables[i].vertexColor[j].g);
-								reader.ReadType<byte>(mesh.vertexTables[i].vertexColor[j].b);
+								reader.ReadSingleType(mesh.vertexTables[i].vertexColor[j].a);
+								reader.ReadSingleType(mesh.vertexTables[i].vertexColor[j].r);
+								reader.ReadSingleType(mesh.vertexTables[i].vertexColor[j].g);
+								reader.ReadSingleType(mesh.vertexTables[i].vertexColor[j].b);
 								break;
 
 							case mesh::vertex_descriptor_type::Normal:
 							case mesh::vertex_descriptor_type::Normal2:
-								mesh.vertexTables[i].normals[j] = reader.ReadS8Quaternion();
+								mesh.vertexTables[i].normals[j] = ReadS8Quaternion(reader);
 								break;
 
 							case mesh::vertex_descriptor_type::WeightID:
-								reader.ReadType<int32>(mesh.vertexTables[i].weightTableIndex[j]);
+								reader.ReadSingleType(mesh.vertexTables[i].weightTableIndex[j]);
 								break;
 
 							case mesh::vertex_descriptor_type::Weight16:
-								mesh.vertexTables[i].weightStrengths[j] = reader.ReadU16Quaternion();
+								mesh.vertexTables[i].weightStrengths[j] = ReadU16Quaternion(reader);
 								break;
 
 							case mesh::vertex_descriptor_type::Weight32:
-								mesh.vertexTables[i].weightStrengths[j] = reader.ReadU8Quaternion();
+								mesh.vertexTables[i].weightStrengths[j] = ReadU8Quaternion(reader);
 								break;
 
 							case mesh::vertex_descriptor_type::BoneID:
 							case mesh::vertex_descriptor_type::BoneID2:
-								reader.ReadType<byte>(mesh.vertexTables[i].weightIds[0][j]);
-								reader.ReadType<byte>(mesh.vertexTables[i].weightIds[1][j]);
-								reader.ReadType<byte>(mesh.vertexTables[i].weightIds[2][j]);
-								reader.ReadType<byte>(mesh.vertexTables[i].weightIds[3][j]);
+								reader.ReadSingleType(mesh.vertexTables[i].weightIds[0][j]);
+								reader.ReadSingleType(mesh.vertexTables[i].weightIds[1][j]);
+								reader.ReadSingleType(mesh.vertexTables[i].weightIds[2][j]);
+								reader.ReadSingleType(mesh.vertexTables[i].weightIds[3][j]);
 								break;
 
 							default:
@@ -223,7 +223,7 @@ namespace xb2at {
 					stream.seekg(desc.targetIdOffsets, std::istream::beg);
 
 					for(int j = 0; j < mesh.morphData.morphDescriptors[i].targetCounts; ++j)
-						reader.ReadType<int16>(desc.targetIds[j]);
+						reader.ReadSingleType(desc.targetIds[j]);
 
 					int morphTargetOffset = mesh.dataOffset + mesh.morphData.morphTargets[desc.targetIndex].bufferOffset;
 					stream.seekg(morphTargetOffset, std::istream::beg);
@@ -231,8 +231,8 @@ namespace xb2at {
 					for(int j = 0; j < mesh.morphData.morphTargets[desc.targetIndex].vertCount; ++j) {
 						stream.seekg(morphTargetOffset + (0x20 * j), std::istream::beg);
 
-						mesh.vertexTables[desc.bufferId].vertices[j] = reader.ReadVec3();
-						mesh.vertexTables[desc.bufferId].normals[j] = reader.ReadU8Quaternion();
+						mesh.vertexTables[desc.bufferId].vertices[j] = ReadVec3(reader);
+						mesh.vertexTables[desc.bufferId].normals[j] = ReadU8Quaternion(reader);
 					}
 
 					// j = 2 as we skip the basis, then skip something else I don't know what it is god help me
@@ -244,15 +244,15 @@ namespace xb2at {
 						for(int k = 0; k < mesh.morphData.morphTargets[desc.targetIndex + j].vertCount; ++k) {
 							int32 dummy;
 
-							vector3 vert = reader.ReadVec3();
-							reader.ReadType<int32>(dummy);
-							quaternion norm = reader.ReadS8Quaternion();
+							vector3 vert = ReadVec3(reader);
+							reader.ReadSingleType(dummy);
+							quaternion norm = ReadS8Quaternion(reader);
 
-							reader.ReadType<int32>(dummy);
-							reader.ReadType<int32>(dummy);
+							reader.ReadSingleType(dummy);
+							reader.ReadSingleType(dummy);
 
 							int32 index;
-							reader.ReadType<int32>(index);
+							reader.ReadSingleType(index);
 
 							mesh.morphData.morphTargets[desc.targetIndex + j].vertices[index] = vert;
 							mesh.morphData.morphTargets[desc.targetIndex + j].normals[index] = norm;

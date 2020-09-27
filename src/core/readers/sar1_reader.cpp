@@ -5,10 +5,10 @@ namespace xb2at {
 	namespace core {
 
 		sar1::sar1 sar1Reader::Read(sar1ReaderOptions& opts) {
-			StreamHelper reader(stream);
+			mco::BinaryReader reader(stream);
 			sar1::sar1 sar;
 
-			if(!reader.ReadType<sar1::header>(sar)) {
+			if(!reader.ReadSingleType((sar1::header&)sar)) {
 				opts.Result = sar1ReaderStatus::ErrorReadingSAR1Header;
 				return sar;
 			}
@@ -23,7 +23,7 @@ namespace xb2at {
 			sar.tocItems.resize(sar.numFiles);
 			for(int i = 0; i < sar.numFiles; i++) {
 				stream.seekg(sar.tocOffset + (i * 0x40), std::istream::beg);
-				reader.ReadType<sar1::toc_data>(sar.tocItems[i]);
+				reader.ReadSingleType((sar1::toc_data&)sar.tocItems[i]);
 				sar.tocItems[i].filename = reader.ReadString();
 			}
 
@@ -32,7 +32,7 @@ namespace xb2at {
 				stream.seekg(sar.tocItems[i].offset, std::istream::beg);
 				sar1::bc& bcItem = sar.bcItems[i];
 
-				if(!reader.ReadType<sar1::bc_data>(bcItem)) {
+				if(!reader.ReadSingleType((sar1::bc_data&)bcItem)) {
 					opts.Result = sar1ReaderStatus::ErrorReadingBCHeader;
 					return sar;
 				}

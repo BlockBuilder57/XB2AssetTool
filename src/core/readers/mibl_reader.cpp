@@ -11,6 +11,7 @@ namespace xb2at {
 			std::shared_ptr<ivstream> stream;
 			mibl::texture texture;
 
+			// TODO shared_ptr may be a biiit of a code smell
 			if(opts.file != nullptr) {
 				texture.cached = false;
 				stream = std::make_shared<ivstream>(opts.file->data);
@@ -22,11 +23,11 @@ namespace xb2at {
 			// initiate a new scope here cause these objects are only ever used once
 			{
 				ivstream miblStream(opts.miblFile);
-				StreamHelper reader(miblStream);
+				mco::BinaryReader reader(miblStream);
 
 				miblStream.seekg(opts.offset + opts.size - sizeof(mibl::header), std::istream::beg);
 
-				if(!reader.ReadType<mibl::header>(texture)) {
+				if(!reader.ReadSingleType((mibl::header&)texture)) {
 					opts.Result = miblReaderStatus::ErrorReadingHeader;
 					return texture;
 				}
