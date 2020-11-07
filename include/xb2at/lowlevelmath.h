@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include <core.h>
+#include <xb2at/core.h>
 
 // Because we use compiler dependent builtins
 // we need to switch between them with ifdefs

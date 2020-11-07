@@ -10,6 +10,8 @@ option(XB2AT_XB2CORE_ONLY "Only include the xb2core library. For 3rd-party proje
 # defaulted to off
 option(XB2AT_XB2CORE_EASYMODE "Include the Easymode API with xb2core" OFF)
 
+option(XB2CORE_DO_NOT_INSTALL "Do not install xb2core. Default on due to inclusion in xb2at" ON)
+
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()

@@ -3,8 +3,8 @@
  * SKEL structures.
  */
 #pragma once
-#include <core.h>
-#include "sar1.h"
+#include <xb2at/core.h>
+#include <xb2at/structs/sar1.h>
 
 namespace xb2at {
 	namespace core {

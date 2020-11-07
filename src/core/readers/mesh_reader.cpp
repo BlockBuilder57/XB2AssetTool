@@ -1,7 +1,7 @@
-#include "streamhelper.h"
-#include "mesh_reader.h"
+#include <xb2at/streamhelper.h>
+#include <xb2at/readers/mesh_reader.h>
 
-#include "ivstream.h"
+#include <xb2at/ivstream.h>
 #include <algorithm>
 
 namespace xb2at {

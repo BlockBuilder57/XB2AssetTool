@@ -1,5 +1,5 @@
-#include "sar1_reader.h"
-#include "streamhelper.h"
+#include <xb2at/readers/sar1_reader.h>
+#include <xb2at/streamhelper.h>
 
 namespace xb2at {
 	namespace core {

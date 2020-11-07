@@ -4,10 +4,10 @@
  *
  */
 #pragma once
-#include <core.h>
-#include "xbc1.h"
-#include "mesh.h"
-#include "mibl.h"
+#include <xb2at/core.h>
+#include <xb2at/structs/xbc1.h>
+#include <xb2at/structs/mesh.h>
+#include <xb2at/structs/mibl.h>
 
 namespace xb2at {
 	namespace core {

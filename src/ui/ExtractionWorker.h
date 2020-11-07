@@ -1,17 +1,17 @@
 #pragma once
 #include <QThread>
 
-#include <core.h>
+#include <xb2at/core.h>
 
 // Core reader/serializer API
-#include <readers/msrd_reader.h>
-#include <readers/mesh_reader.h>
-#include <readers/mxmd_reader.h>
-#include <readers/mibl_reader.h>
-#include <readers/sar1_reader.h>
-#include <readers/skel_reader.h>
-#include <serializers/model_serializer.h>
-#include <serializers/MIBLDeswizzler.h>
+#include <xb2at/readers/msrd_reader.h>
+#include <xb2at/readers/mesh_reader.h>
+#include <xb2at/readers/mxmd_reader.h>
+#include <xb2at/readers/mibl_reader.h>
+#include <xb2at/readers/sar1_reader.h>
+#include <xb2at/readers/skel_reader.h>
+#include <xb2at/serializers/model_serializer.h>
+#include <xb2at/serializers/MIBLDeswizzler.h>
 
 using namespace xb2at::core;
 

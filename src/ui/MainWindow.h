@@ -4,7 +4,7 @@
 #include <QtWidgets/QTextEdit>
 #include <QThread>
 
-#include <core.h>
+#include <xb2at/core.h>
 
 #include "ui_xb2at.h"
 

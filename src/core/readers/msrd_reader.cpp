@@ -1,7 +1,9 @@
-#include "msrd_reader.h"
-#include "streamhelper.h"
-#include "xbc1_reader.h"
-#include "mesh_reader.h"
+#include <xb2at/readers/msrd_reader.h>
+
+#include <xb2at/ivstream.h>
+#include <xb2at/streamhelper.h>
+#include <xb2at/readers/xbc1_reader.h>
+#include <xb2at/readers/mesh_reader.h>
 
 namespace xb2at {
 	namespace core {

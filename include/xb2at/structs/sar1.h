@@ -3,7 +3,7 @@
  * SAR1 structures.
  */
 #pragma once
-#include <core.h>
+#include <xb2at/core.h>
 
 namespace xb2at {
 	namespace core {

@@ -1,8 +1,8 @@
-#include <core.h>
+#include <xb2at/core.h>
 #include <array>
-#include <serializers/MIBLDeswizzler.h>
+#include <xb2at/serializers/MIBLDeswizzler.h>
 
-#include <lowlevelmath.h>
+#include <xb2at/lowlevelmath.h>
 
 namespace xb2at {
 	namespace core {

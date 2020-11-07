@@ -1,11 +1,11 @@
 #pragma once
-#include <core.h>
+#include <xb2at/core.h>
 #include <modeco/Logger.h>
 
-#include <structs/mxmd.h>
+#include <xb2at/structs/mxmd.h>
 
 namespace xb2at {
-namespace core {
+	namespace core {
 
 		enum class mxmdReaderStatus {
 			Success,
@@ -28,19 +28,15 @@ namespace core {
 		 * Options for mxmdReader::Read()
 		 */
 		struct mxmdReaderOptions {
-
 			mxmdReaderStatus Result;
-
 		};
 
 		/**
 		 * Reads meshes.
 		 */
 		struct mxmdReader {
-
 			mxmdReader(std::istream& input_stream)
 				: stream(input_stream) {
-
 			}
 
 			/**
@@ -50,13 +46,11 @@ namespace core {
 			 */
 			mxmd::mxmd Read(mxmdReaderOptions& opts);
 
-
-		private:
+		   private:
 			std::istream& stream;
 
 			mco::Logger logger = mco::Logger::CreateLogger("MXMDReader");
 		};
 
-
-}
-}
+	} // namespace core
+} // namespace xb2at

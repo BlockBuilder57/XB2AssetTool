@@ -1,6 +1,6 @@
-#include "skel_reader.h"
-#include "streamhelper.h"
-#include "ivstream.h"
+#include <xb2at/readers/skel_reader.h>
+#include <xb2at/streamhelper.h>
+#include <xb2at/ivstream.h>
 
 namespace xb2at {
 	namespace core {

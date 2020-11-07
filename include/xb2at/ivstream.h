@@ -1,5 +1,5 @@
 #pragma once
-#include <core.h>
+#include <xb2at/core.h>
 #include <algorithm>
 
 namespace xb2at {

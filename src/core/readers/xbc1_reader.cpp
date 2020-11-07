@@ -1,5 +1,5 @@
-#include "xbc1_reader.h"
-#include "streamhelper.h"
+#include <xb2at/readers/xbc1_reader.h>
+#include <xb2at/streamhelper.h>
 #include <zlib.h>
 
 namespace xb2at {

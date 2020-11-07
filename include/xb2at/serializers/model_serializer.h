@@ -1,11 +1,11 @@
 #pragma once
-#include <core.h>
+#include <xb2at/core.h>
 #include <modeco/Logger.h>
 
-#include <structs/mesh.h>
-#include <structs/mxmd.h>
-#include <structs/mibl.h>
-#include <structs/skel.h>
+#include <xb2at/structs/mesh.h>
+#include <xb2at/structs/mxmd.h>
+#include <xb2at/structs/mibl.h>
+#include <xb2at/structs/skel.h>
 
 namespace xb2at {
 	namespace core {

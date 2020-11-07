@@ -1,7 +1,7 @@
-#include <core.h>
+#include <xb2at/core.h>
 #include <modeco/Logger.h>
 
-#include <structs/xbc1.h>
+#include <xb2at/structs/xbc1.h>
 
 namespace xb2at {
 	namespace core {
