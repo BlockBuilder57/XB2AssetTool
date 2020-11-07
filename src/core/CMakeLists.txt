@@ -9,6 +9,7 @@ set(XB2CORE_SOURCES
 	lowlevelmath.h
 	streamhelper.h
 	ivstream.h
+	AsyncExecutor.h
 
 # Data structures
 

@@ -49,13 +49,13 @@ namespace xb2at {
 		 * \defgroup Types Core Library Types & Class Templates
 		 * @{
 		 */
-		
+
 		using mco::byte;
 		using mco::sbyte;
 
 		using mco::int16;
 		using mco::uint16;
-		
+
 		using mco::int32;
 		using mco::uint32;
 
@@ -73,7 +73,7 @@ namespace xb2at {
 		 */
 		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type /* SFINAE to stop invalid types */>
 		struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
-		
+
 		/**
 		 * STL-style _v alias for Min<T>
 		 */
@@ -320,6 +320,13 @@ namespace xb2at {
 		}
 
 		/** @} */
+
+		/**
+		 * Make a fourcc value at compile time
+		 */
+		constexpr uint32 MakeFourCC(const char p[5]) {
+			return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+		}
 
 		/**
 		 * Namespace alias of the filesystem library, for shortening usage.

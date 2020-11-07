@@ -36,7 +36,7 @@ namespace core {
 		/**
 		 * MIBL magic value.
 		 */
-		constexpr int32 magic = 0x4D49424C;
+		constexpr int32 magic = MakeFourCC("MIBL");
 
 		/**
 		 * MIBL file header.
