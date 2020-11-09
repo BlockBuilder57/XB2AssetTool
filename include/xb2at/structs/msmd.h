@@ -19,7 +19,18 @@ namespace xb2at {
 			 */
 			struct header {
 				uint32 magic;
-				byte unknown_padding[0x77]; // unknown padding data, this will be figured out later
+
+				byte unknown_padding[0x5C]; // unknown padding data, this will be figured out later
+
+				uint32 other_table_offset; // could be abused to calculate the length of the xbc1 table
+										// alternatively this could be the end offset of the table
+
+				byte unknown_padding2[0xF]; // unknown padding data, this will be figured out later
+
+				uint32 first_table_begin_offset;
+
+				uint32 dummy; // padding always 0x0
+
 				uint32 table_offset; // this is duplicated at C8? 
 				// in ma02a 0x70 has what seems to be the true offset
 				// which in ma01a is the exact same as what's in 0x78 and c8 there
