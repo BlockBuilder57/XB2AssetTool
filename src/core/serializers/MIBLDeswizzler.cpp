@@ -77,7 +77,7 @@ namespace xb2at {
 			const int len = texture.data.size();
 
 			const int originWidth = (texture.width + 3) / 4;
-			const int originHeight = (texture.height + 3) / (texture.type == mibl::MiblTextureFormat::R8G8B8A8_UNORM ? 1 : 4);
+			const int originHeight = (texture.height + 3) / swizzleSize;
 
 			const int xb = count_zeros(Pow2RoundUp(originWidth));
 
@@ -182,7 +182,7 @@ namespace xb2at {
 			DdsHeader header;
 
 			// Setup the header by clearing a few things
-			memset(&header.reserved, 0, sizeof(header.reserved) * sizeof(uint32));
+			memset(&header.reserved, 0, sizeof(header.reserved));
 
 			header.height = texture.height;
 			header.width = texture.width;
