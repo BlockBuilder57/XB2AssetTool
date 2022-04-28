@@ -1,5 +1,5 @@
-#include "sar1_reader.h"
-#include "streamhelper.h"
+#include <xb2at/readers/sar1_reader.h>
+#include <xb2at/streamhelper.h>
 
 namespace xb2at {
 	namespace core {
@@ -46,6 +46,11 @@ namespace xb2at {
 
 				bcItem.data.resize(bcItem.fileSize);
 				stream.read(bcItem.data.data(), bcItem.fileSize);
+
+				/*stream.seekg(sar.tocItems[i].offset, std::istream::beg);
+
+				bcItem.data.resize(sar.tocItems[i].size);
+				stream.read(bcItem.data.data(), sar.tocItems[i].size);*/
 			}
 
 			opts.Result = sar1ReaderStatus::Success;

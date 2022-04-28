@@ -21,6 +21,9 @@
 # Doxygen output so that VS file watcher doesn't go completely crazy
 /html
 
+# ignore CLion
+/.idea
+/cmake-build-*
 
 # As well as their compressed equlivants.
 /**/*.7z

@@ -1,55 +1,23 @@
 # xb2core CMakeLists.txt
 
-# we have header files here so that when they're changed
-# they trigger a rebuild of xb2core source files
+
 set(XB2CORE_SOURCES
-
-# Core library nitty-gritty things
-	core.h
-	lowlevelmath.h
-	streamhelper.h
-	ivstream.h
-
-# Data structures
-
-	structs/xbc1.h
-	structs/msrd.h
-	structs/mesh.h
-	structs/mxmd.h
-	structs/mibl.h
-	structs/sar1.h
-	structs/skel.h
+	IoStreamReadStream.cpp
 
 # File Readers
 
-	readers/xbc1_reader.h
 	readers/xbc1_reader.cpp
-
-	readers/msrd_reader.h
 	readers/msrd_reader.cpp
-
-	readers/mesh_reader.h
 	readers/mesh_reader.cpp
-
-	readers/mxmd_reader.h
 	readers/mxmd_reader.cpp
-
-	readers/mibl_reader.h
 	readers/mibl_reader.cpp
-
-	readers/sar1_reader.h
 	readers/sar1_reader.cpp
-
-	readers/skel_reader.h
 	readers/skel_reader.cpp
 	
 # Serializers
-
-	serializers/model_serializer.h
 	serializers/model_serializer.cpp
 
 # Texture stuff
-	serializers/MIBLDeswizzler.h
 	serializers/MIBLDeswizzler.cpp
 )
 
@@ -65,14 +33,12 @@ if(XB2AT_XB2CORE_EASYMODE)
 endif()
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
-set_property(TARGET xb2core PROPERTY CXX_STANDARD 17)
-set_property(TARGET xb2core PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(xb2core PRIVATE ${PROJECT_SOURCE_DIR}/vendor/zlib)
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
 
 # Allow projects that import xb2core to immediately get includes of core
-target_include_directories(xb2core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(xb2core PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(xb2core zlibstatic nlohmann_json::nlohmann_json fx-gltf glm::glm)
 
 # Link additional libraries required for using the filesystem library with libc++ and libstdc++.
@@ -93,5 +59,16 @@ target_link_libraries(xb2core ${CMAKE_THREAD_LIBS_INIT} mcommon)
 add_dependencies(xb2core __xb2at_gittag)
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR})
 
-# precompile core.h
-target_precompile_headers(xb2core PUBLIC core.h)
+# Allow installation of xb2core in a standalone manner.
+# todo fix include copying
+if(NOT XB2CORE_DO_NOT_INSTALL)
+	install(TARGETS xb2core
+		ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+		LIBRARY DESTINATION "${INSTALL_LIB_DIR}")
+
+	install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/xb2at/"
+		DESTINATION "${CMAKE_INSTALL_PREFIX}/include/xb2at")
+
+	# Instga
+	install()
+endif()

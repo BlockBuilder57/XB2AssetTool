@@ -14,10 +14,12 @@ namespace xb2at {
 		MainWindow::MainWindow(QWidget* parent)
 			: QMainWindow(parent) {
 			ui.setupUi(this);
+
 			setFixedSize(width(), height());
 
 			// replace a keyword in the about Markdown with a value
-			auto ReplaceKeyWord = [&](QString identifier, QString replacement) {
+			auto ReplaceKeyWord = [=](const QString& identifier, const QString& replacement) {
+				// this makes copies which is Bad
 				auto text = ui.aboutxb2at->text();
 				text.replace(identifier, replacement);
 				ui.aboutxb2at->setText(text);
@@ -31,26 +33,29 @@ namespace xb2at {
 
 			// connect all of the UI events to functions in here
 
-			connect(ui.inputBrowse, SIGNAL(clicked()), this, SLOT(InputBrowseButtonClicked()));
-			connect(ui.outputBrowse, SIGNAL(clicked()), this, SLOT(OutputBrowseButtonClicked()));
-			connect(ui.extractButton, SIGNAL(clicked()), this, SLOT(ExtractButtonClicked()));
-			connect(ui.saveLog, SIGNAL(clicked()), this, SLOT(SaveLogButtonClicked()));
-			connect(ui.clearLog, SIGNAL(clicked()), this, SLOT(ClearLogButtonClicked()));
+			connect(ui.inputBrowse, &QPushButton::clicked, this, &MainWindow::InputBrowseButtonClicked);
+			connect(ui.outputBrowse, &QPushButton::clicked, this, &MainWindow::OutputBrowseButtonClicked);
+			connect(ui.extractButton, &QPushButton::clicked, this, &MainWindow::ExtractButtonClicked);
+			connect(ui.saveLog, &QPushButton::clicked, this,&MainWindow::SaveLogButtonClicked);
 
-			connect(ui.aboutQtButton, SIGNAL(clicked()), this, SLOT(AboutButtonClicked()));
+			connect(ui.clearLog, &QPushButton::clicked, [=](){
+				ui.debugConsole->clear();
+			});
+
+			connect(ui.aboutQtButton, &QPushButton::clicked, []() {
+				QApplication::aboutQt();
+			});
 
 			// connect textchanged events to our handler for both of them
-			connect(ui.inputFiles, SIGNAL(textChanged(const QString&)), this, SLOT(TextChanged()));
-			connect(ui.outputDir, SIGNAL(textChanged(const QString&)), this, SLOT(TextChanged()));
+			connect(ui.inputFiles, &QLineEdit::textChanged, this, &MainWindow::TextChanged);
+			connect(ui.outputDir, &QLineEdit::textChanged, this, &MainWindow::TextChanged);
 		}
 
 		MainWindow::~MainWindow() {
 			// do any cleanup here
 
 			// if the extraction thread somehow exists remove it
-			if(extraction_thread) {
-				delete extraction_thread;
-			}
+			delete extraction_thread;
 		}
 
 		void MainWindow::InputBrowseButtonClicked() {
@@ -106,7 +111,7 @@ namespace xb2at {
 			ui.extractButton->setDisabled(true);
 			ui.allTabs->setCurrentWidget(ui.logTab);
 
-			mco::Logger::SetAllowVerbose(ui.enableVerbose->isChecked());
+			//mco::Logger::SetAllowVerbose(ui.enableVerbose->isChecked());
 
 			QString file = ui.inputFiles->text();
 
@@ -141,7 +146,7 @@ namespace xb2at {
 
 			// Create the thread and extraction objects
 			extraction_thread = new QThread(this);
-			ExtractionWorker* et = new ExtractionWorker();
+			auto* et = new ExtractionWorker();
 
 			// and move the extraction worker to the thread
 			et->moveToThread(extraction_thread);

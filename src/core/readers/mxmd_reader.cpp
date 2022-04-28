@@ -1,12 +1,12 @@
-#include "mxmd_reader.h"
-#include "streamhelper.h"
+#include <xb2at/readers/mxmd_reader.h>
+#include <xb2at/streamhelper.h>
 
 namespace xb2at {
 	namespace core {
 
 		mxmd::mxmd mxmdReader::Read(mxmdReaderOptions& opts) {
 			mco::BinaryReader reader(stream);
-			mxmd::mxmd data{};
+			mxmd::mxmd data {};
 
 			// Read the initial header
 			if(!reader.ReadSingleType((mxmd::mxmd_header&)data)) {
@@ -18,7 +18,7 @@ namespace xb2at {
 				opts.Result = mxmdReaderStatus::NotMXMD;
 				return data;
 			}
-			
+
 			logger.verbose("MXMD version: ", data.version, " (0x", std::hex, data.version, ")");
 
 			if(data.modelStructOffset != 0) {
@@ -34,7 +34,7 @@ namespace xb2at {
 					for(int i = 0; i < data.Model.morphControllers.count; ++i) {
 						auto& mp = data.Model.morphControllers.controls[i];
 						reader.ReadSingleType((mxmd::morph_control_info&)mp);
-						
+
 						if(mp.nameOffset1 != 0) {
 							auto oldpos = stream.tellg();
 
@@ -133,5 +133,5 @@ namespace xb2at {
 			return data;
 		}
 
-	}
-}
+	} // namespace core
+} // namespace xb2at

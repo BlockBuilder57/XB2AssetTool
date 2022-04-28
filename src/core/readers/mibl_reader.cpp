@@ -1,17 +1,17 @@
-#include "streamhelper.h"
-#include "mibl_reader.h"
+#include <xb2at/readers/mibl_reader.h>
 
-#include "ivstream.h"
-#include <algorithm>
+#include <xb2at/structs/xbc1.h>
 
-namespace xb2at {
-	namespace core {
+#include <xb2at/core/ivstream.h>
+#include <xb2at/core/IoStreamReadStream.h>
+//#include <algorithm>
+
+namespace xb2at::core {
 
 		mibl::texture miblReader::Read(miblReaderOptions& opts) {
 			std::shared_ptr<ivstream> stream;
 			mibl::texture texture;
 
-			// TODO shared_ptr may be a biiit of a code smell
 			if(opts.file != nullptr) {
 				texture.cached = false;
 				stream = std::make_shared<ivstream>(opts.file->data);
@@ -20,19 +20,19 @@ namespace xb2at {
 				stream = std::make_shared<ivstream>(opts.miblFile);
 			}
 
-			// initiate a new scope here cause these objects are only ever used once
 			{
 				ivstream miblStream(opts.miblFile);
-				mco::BinaryReader reader(miblStream);
+				IoStreamReadStream readStream(miblStream);
 
 				miblStream.seekg(opts.offset + opts.size - sizeof(mibl::header), std::istream::beg);
 
-				if(!reader.ReadSingleType((mibl::header&)texture)) {
+				// read the MIBL header
+				if(!texture.header.Transform(readStream)) {
 					opts.Result = miblReaderStatus::ErrorReadingHeader;
 					return texture;
 				}
 
-				if(texture.magic != mibl::magic && texture.version != 0x2711) {
+				if(texture.header.magic != mibl::magic && texture.header.version != 0x2711) {
 					opts.Result = miblReaderStatus::NotMIBL;
 					return texture;
 				}
@@ -46,18 +46,18 @@ namespace xb2at {
 			// resize to the appropriate size depending on if the texture
 			// is a CachedTexture or not
 			if(!texture.cached)
-				texture.data.resize(opts.file->decompressedSize);
+				texture.data.resize(opts.file->header.decompressedSize);
 			else
 				texture.data.resize(opts.size);
 
 			if(!texture.cached) {
 				// non cached textures use the passed-in xbc1
 
-				stream->read(texture.data.data(), opts.file->decompressedSize);
+				stream->read(texture.data.data(), opts.file->header.decompressedSize);
 
 				// non cached means we need to *2 width and height for some reason
-				texture.width *= 2;
-				texture.height *= 2;
+				texture.header.width *= 2;
+				texture.header.height *= 2;
 			} else {
 				// CachedTextures use the LBIM stream itself
 				stream->seekg(opts.offset, std::istream::beg);
@@ -68,5 +68,4 @@ namespace xb2at {
 			return texture;
 		}
 
-	} // namespace core
-} // namespace xb2at
+	} // namespace xb2at

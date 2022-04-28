@@ -1,8 +1,8 @@
-#include <core.h>
+#include <xb2at/core.h>
 #include <array>
-#include <serializers/MIBLDeswizzler.h>
+#include <xb2at/serializers/MIBLDeswizzler.h>
 
-#include <lowlevelmath.h>
+#include <xb2at/lowlevelmath.h>
 
 namespace xb2at {
 	namespace core {
@@ -77,7 +77,7 @@ namespace xb2at {
 			const int len = texture.data.size();
 
 			const int originWidth = (texture.width + 3) / 4;
-			const int originHeight = (texture.height + 3) / 4;
+			const int originHeight = (texture.height + 3) / swizzleSize;
 
 			const int xb = count_zeros(Pow2RoundUp(originWidth));
 
@@ -93,6 +93,7 @@ namespace xb2at {
 				--yb;
 
 			auto result = std::vector<char>(len);
+			auto data = result.data();
 
 			const int width = RoundSize(originWidth, 64 >> bppPower);
 			const int xBase = 4 - bppPower;
@@ -105,7 +106,7 @@ namespace xb2at {
 
 					// then deswizzle by memcpying the bpp block out
 					if(posOut + bpp <= len && pos + bpp <= len)
-						memcpy(&result[posOut], &texture.data[pos], bpp);
+						memcpy(&data[posOut], &texture.data[pos], bpp);
 
 					posOut += bpp;
 				}
@@ -181,7 +182,7 @@ namespace xb2at {
 			DdsHeader header;
 
 			// Setup the header by clearing a few things
-			memset(&header.reserved, 0, sizeof(header.reserved) / sizeof(uint32));
+			memset(&header.reserved, 0, sizeof(header.reserved));
 
 			header.height = texture.height;
 			header.width = texture.width;
