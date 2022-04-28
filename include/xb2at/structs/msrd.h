@@ -4,174 +4,230 @@
  *
  */
 #pragma once
-#include <xb2at/core.h>
+
+#include <xb2at/core/UnderlyingValue.h>
+#include <xb2at/core/Stream.h>
+// TODO: can we get away with forward decls?
 #include <xb2at/structs/xbc1.h>
 #include <xb2at/structs/mesh.h>
 #include <xb2at/structs/mibl.h>
 
-namespace xb2at {
-	namespace core {
+namespace xb2at::core::msrd {
+
+	/**
+	 * The possible types of a data item.
+	 */
+	enum DataItemType : std::uint16_t {
+		Model = 0,
+		ShaderBundle,
+		CachedTextures,
+		Texture
+	};
+
+	/**
+	 * A data item.
+	 */
+	struct DataItem {
+		/**
+		 * The offset of the data item.
+		 */
+		std::uint32_t offset;
 
 		/**
-		 * MSRD structures.
+		 * Size of the data item.
 		 */
-		namespace msrd {
+		std::uint32_t size;
 
-			/**
-			 * The possible types of a data item.
-			 */
-			enum data_item_type : int16 {
-				Model = 0,
-				ShaderBundle,
-				CachedTextures,
-				Texture
-			};
+		/**
+		 * Index in the TOC.
+		 */
+		std::uint16_t tocIndex;
 
-			/**
-			 * A data item.
-			 */
-			struct data_item {
-				/**
-				 * The offset of the data item.
-				 */
-				int32 offset;
+		/**
+		 * Type of the data item.
+		 */
+		DataItemType type;
 
-				/**
-				 * Size of the data item.
-				 */
-				int32 size;
+		std::uint8_t unknown1[0x8]; // possibly reserved padding data?
 
-				/**
-				 * Index in the TOC.
-				 */
-				int16 tocIndex;
+		template<core::Stream Stream>
+		inline bool Transform(Stream& stream) {
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(offset));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(size));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint16<std::endian::little>(tocIndex));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint16<std::endian::little>(core::UnderlyingValue(type)));
+			XB2AT_TRANSFORM_CATCH(stream.template FixedSizeArray(unknown1));
+			return true;
+		}
+	};
 
-				/**
-				 * Type of the data item.
-				 */
-				data_item_type type;
-			};
+	/**
+	 * An entry in the TOC.
+	 */
+	struct TocEntry {
+		/**
+		 * Compressed file size.
+		 */
+		std::uint32_t compressedSize;
 
-			/**
-			 * A entry in the TOC.
-			 */
-			struct toc_entry {
-				/**
-				 * Compressed file size.
-				 */
-				int32 compressedSize;
+		/**
+		 * True/decompressed file size.
+		 */
+		std::uint32_t fileSize;
 
-				/**
-				 * True/decompressed file size.
-				 */
-				int32 fileSize;
+		/**
+		 * Offset of where the file is.
+		 */
+		std::uint32_t offset;
 
-				/**
-				 * Offset of where the file is.
-				 */
-				int32 offset;
-			};
+		template<core::Stream Stream>
+		inline bool Transform(Stream& stream) {
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(compressedSize));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(fileSize));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(offset));
+			return true;
+		}
+	};
 
-			/**
-			 * Texture information.
-			*/
-			struct texture_info {
-				int32 unknown;
+	/**
+	 * Texture information.
+	*/
+	struct TextureInfo {
+		std::uint32_t unknown;
 
-				/**
-				 * Size of the texture.
-				 */
-				int32 size;
+		/**
+		 * Size of the texture.
+		 */
+		std::uint32_t size;
 
-				/**
-				 * Offset to start of texture data.
-				 */
-				int32 offset;
+		/**
+		 * Offset to start of texture data.
+		 */
+		std::uint32_t offset;
 
-				/**
-				 * Offset to position in the string buffer where this texture's name is.
-				 */
-				int32 stringOffset;
-			};
+		/**
+		 * Offset to position in the string buffer where this texture's name is.
+		 */
+		std::uint32_t stringOffset;
 
-			struct texture_header {
-				/**
-				 * Size (repeated again)
-				 */
-				int32 size;
+		template<core::Stream Stream>
+		inline bool Transform(Stream& stream) {
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(unknown));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(size));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(offset));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(stringOffset));
+			return true;
+		}
+	};
 
-				/**
-				 * Offset to start of texture data (repeated again)
-				 */
-				int32 offset;
-			};
+	struct TextureHeader {
+		/**
+		 * Size (repeated again)
+		 */
+		std::uint32_t size;
 
-			struct texture : public texture_header {
-				/**
-				 * Name of the texture.
-				 */
-				std::string name;
-			};
+		/**
+		 * Offset to start of texture data (repeated again)
+		 */
+		std::uint32_t offset;
 
-			/**
-			 * MSRD header
-			 */
-			struct msrd_header {
-				/**
-				 * Magic value. Should be "DRSM"
-				 */
-				char magic[4];
+		template<core::Stream Stream>
+		inline bool Transform(Stream& stream) {
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(size));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(offset));
+			return true;
+		}
+	};
 
-				int32 version;
-				int32 headerSize;
-				int32 offset;
+	struct Texture : public TextureHeader {
+		/**
+		 * Name of the texture.
+		 */
+		std::string name;
+	};
 
-				int32 tag;
-				int32 revision;
+	/**
+	 * MSRD header
+	 */
+	struct MsrdHeader {
+		/**
+		 * Magic value. Should be "DRSM"
+		 */
+		char magic[4];
 
-				int32 dataitemsCount;
-				int32 dataitemsOffset;
-				int32 fileCount;
-				int32 tocOffset;
+		std::uint32_t version;
+		std::uint32_t headerSize;
+		std::uint32_t offset;
 
-				byte unknown1[0x1c];
+		std::uint32_t tag;
+		std::uint32_t revision;
 
-				int32 textureIdsCount;
-				int32 textureIdsOffset;
-				int32 textureCountOffset;
-			};
+		std::uint32_t dataitemsCount;
+		std::uint32_t dataitemsOffset;
+		std::uint32_t fileCount;
+		std::uint32_t tocOffset;
 
-			/**
-			 * MSRD data
-			 */
-			struct msrd : public msrd_header {
-				std::vector<data_item> dataItems;
-				std::vector<toc_entry> toc;
+		std::uint8_t unknown1[0x1c];
 
-				/**
-				 * XBC1 files
-				 */
-				std::vector<xbc1::xbc1> files;
+		std::uint32_t textureIdsCount;
+		std::uint32_t textureIdsOffset;
+		std::uint32_t textureCountOffset;
 
-				std::vector<mesh::mesh> meshes;
+		template<core::Stream Stream>
+		inline bool Transform(Stream& stream) {
+			XB2AT_TRANSFORM_CATCH(stream.template FixedString(magic)); //TODO: FourCC
 
-				std::vector<int16> textureIds;
-				int32 textureCount;
-				int32 textureChunkSize;
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(version));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(headerSize));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(offset));
 
-				int32 unknown2;
-				int32 textureStringBufferOffset;
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(tag));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(revision));
 
-				std::vector<texture_info> textureInfo;
-				std::vector<std::string> textureNames;
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(dataitemsCount));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(dataitemsOffset));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(fileCount));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(tocOffset));
 
-				/**
-				 * List of textures
-				 */
-				std::vector<mibl::texture> textures;
-			};
+			XB2AT_TRANSFORM_CATCH(stream.template FixedSizeArray(unknown1));
 
-		} // namespace msrd
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(textureIdsCount));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(textureIdsOffset));
+			XB2AT_TRANSFORM_CATCH(stream.template Uint32<std::endian::little>(textureCountOffset));
+			return true;
+		}
+	};
 
-	} // namespace core
-} // namespace xb2at
+	/**
+	 * MSRD data
+	 */
+	struct Msrd {
+		MsrdHeader header;
+
+		std::vector<DataItem> dataItems;
+		std::vector<TocEntry> toc;
+
+		/**
+		 * XBC1 files
+		 */
+		std::vector<Xbc1> files;
+
+		std::vector<mesh::mesh> meshes;
+
+		std::vector<std::uint16_t> textureIds;
+		std::uint32_t textureCount;
+		std::uint32_t textureChunkSize;
+
+		std::uint32_t unknown2;
+		std::uint32_t textureStringBufferOffset;
+
+		std::vector<TextureInfo> textureInfo;
+		std::vector<std::string> textureNames;
+
+		/**
+		 * List of textures
+		 */
+		std::vector<mibl::texture> textures;
+	};
+
+} // namespace xb2at::core::msrd

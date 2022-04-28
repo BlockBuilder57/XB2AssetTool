@@ -1,12 +1,14 @@
 #pragma once
-#include <xb2at/core.h>
-#include <modeco/Logger.h>
 
+#include <memory>
 #include <xb2at/structs/mibl.h>
-#include <xb2at/structs/xbc1.h>
+#include <string>
+#include <vector>
 
-namespace xb2at {
-namespace core {
+namespace xb2at::core {
+
+		// fwd decl
+		struct Xbc1;
 
 		enum class miblReaderStatus {
 			Success,
@@ -32,7 +34,7 @@ namespace core {
 
 			// TODO(lily): rename some of these members so they're not as confusing
 
-			miblReaderOptions(std::vector<char>& miblFileData, xbc1::xbc1* fileData)
+			miblReaderOptions(std::vector<std::uint8_t>& miblFileData, Xbc1* fileData)
 				: miblFile(miblFileData) {
 				file = fileData;
 			}
@@ -41,29 +43,30 @@ namespace core {
 			 * Decompressed file data from XBC1 containing every MIBL for the MSRD textures.
 			 * Is always index 1 of the MSRD files.
 			 */
-			std::vector<char>& miblFile;
+			std::vector<std::uint8_t>& miblFile;
 
 			/**
 			 * Decompressed texture data as an XBC1 file.
+			 * If this is provided the reader will assume this is not a cached texture.
 			 */
-			xbc1::xbc1* file;
+			Xbc1* file;
 
 			/**
 			 * Start offset of the texture.
 			 */
-			int32 offset;
+			std::uint32_t offset{};
 
 			/**
 			 * Size of the texture data.
 			 */
-			int32 size;
+			std::uint32_t size{};
 
 			/**
 			 * The result of the read operation.
 			 * Will be miblReaderStatus::Success if the read was successful, any other
 			 * value to indicate a varying error state.
 			 */
-			miblReaderStatus Result;
+			miblReaderStatus Result{};
 		};
 
 		/**
@@ -81,9 +84,8 @@ namespace core {
 
 		private:
 
-			mco::Logger logger = mco::Logger::CreateLogger("MIBLReader");
+			//mco::Logger logger = mco::Logger::CreateLogger("MIBLReader");
 		};
 
 
 	}
-}

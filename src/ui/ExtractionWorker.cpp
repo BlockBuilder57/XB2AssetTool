@@ -194,13 +194,6 @@ namespace xb2at {
 			logger.info("Input: ", filename);
 			logger.info("Output path: ", outputPath.string());
 
-			// These are globals used througout the extraction process
-
-			fs::path path(filename);
-			std::string filenameOnly = path.stem().string();
-
-			msrd::msrd msrd;
-
 			// Make directory tree if it doesn't already exist
 
 			logger.info("Creating output directory tree");
@@ -211,6 +204,33 @@ namespace xb2at {
 
 			if(options.saveXBC1)
 				MakeDirectoryIfNotExists(outputPath, "Dump");
+
+			// These are globals used througout the extraction process
+
+			fs::path path(filename);
+			std::string filenameOnly = path.stem().string();
+
+			// temporary .xsp test
+			/*sar1::sar1 sar;
+			sar1ReaderOptions opts = {};
+
+			if (ReadSAR1(path, ".xsp", sar, opts)) {
+				logger.info("read good!");
+
+				for (int i = 0; i < sar.numFiles; i++) {
+					fs::path filepath = outputPath / "Dump" / sar.tocItems[i].filename;
+
+					logger.info(filepath.c_str());
+
+					std::ofstream stream(filepath, std::ofstream::binary);
+					stream.write(&sar.bcItems[i].data[0], sar.bcItems[i].data.size());
+					stream.close();
+				}
+			}
+			else
+				logger.info("read bad");*/
+
+			msrd::msrd msrd;
 
 			msrdReaderOptions msrdoptions {
 				outputPath / "Dump",
@@ -231,7 +251,7 @@ namespace xb2at {
 
 			for(int i = 0; i < msrd.dataItems.size(); ++i) {
 				switch(msrd.dataItems[i].type) {
-#ifndef _DEBUG
+#ifdef _DEBUG
 					case msrd::data_item_type::Model: {
 						logger.verbose("MSRD file ", i, " is a mesh");
 						logger.verbose("Reading mesh ", i, "...");
@@ -340,12 +360,9 @@ namespace xb2at {
 			mxmd::mxmd mxmd;
 			skel::skel skel;
 
-#ifdef _DEBUG
-			// NOTE(block): matricies are hard so skels will be disabled for now
 			if(!ReadSKEL(path, skel)) {
 				logger.warn("Continuing without skeletons");
 			}
-#endif
 
 			mxmdReaderOptions mxmdoptions {};
 
@@ -355,7 +372,7 @@ namespace xb2at {
 				return;
 			}
 
-#ifndef _DEBUG
+#ifdef _DEBUG
 			modelSerializerOptions msoptions {
 				options.modelFormat,
 				outputPath,

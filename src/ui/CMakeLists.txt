@@ -30,8 +30,6 @@ target_include_directories(xb2at PRIVATE ${PROJECT_BINARY_DIR})
 # fixes clang screaming about microsoft include rules
 target_include_directories(xb2at PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-set_property(TARGET xb2at PROPERTY CXX_STANDARD 17)
-set_property(TARGET xb2at PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(xb2at xb2core Qt5::Widgets)
 
 # Install xb2at in the install root

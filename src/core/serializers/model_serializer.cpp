@@ -1,22 +1,38 @@
 #include <xb2at/serializers/model_serializer.h>
 
 #include <fx/gltf.h>
+
+#include <xb2at/core/StorageMathTypes.h>
+
 #include <glm/mat4x4.hpp>
 #include <glm/common.hpp>
 #include <glm/matrix.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "version.h"
 
 namespace gltf = fx::gltf;
 using vec3 = xb2at::core::vector3;
 
-namespace xb2at {
-	namespace core {
+namespace xb2at::core {
+
+		/**
+ 		 * Convert a Vector3 position, a quaternion rotation, and a Vector3 scale to a 4x4 matrix.
+ 		 *
+ 		 * \param[in] pos Position of the object.
+ 		 * \param[in] rot Rotation of the object.
+ 		 * \param[in] scale Scale of the object.
+ 	 	 */
+		inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale) {
+			return glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z)) *	  // position
+				   glm::toMat4(glm::quat(rot.w, rot.x, rot.y, rot.z)) *					  // rotation
+				   glm::translate(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z)); // matrix scale
+		}
 
 		template<typename T>
-		inline uint32 FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, uint64& offset) {
-			uint32 bytesToSerialize = sizeof(T) * (uint32)from.size();
+		inline std::uint32_t FlattenSerialize(std::vector<T> const& from, std::vector<uint8_t>& to, std::uint64_t& offset) {
+			std::uint32_t bytesToSerialize = sizeof(T) * (std::uint32_t)from.size();
 
 			to.resize(to.size() + bytesToSerialize);
 			std::memcpy(&to[offset], &from[0], bytesToSerialize);
@@ -26,24 +42,24 @@ namespace xb2at {
 		}
 
 		struct gltf_defintion {
-			uint32 sizeInBuffer;
-			uint32 bufferViewIndex;
-			uint32 accessorIndex;
+			std::uint32_t sizeInBuffer;
+			std::uint32_t bufferViewIndex;
+			std::uint32_t accessorIndex;
 		};
 
 		struct xenoblade_node {
-			uint16 nodeIndex;
+			std::uint16_t nodeIndex;
 			gltf::Node gltfNode;
 			glm::mat4x4 localTransform;
 			glm::mat4x4 globalTransform;
 
-			inline xenoblade_node(uint16 nodeIndex)
+			inline xenoblade_node(std::uint16_t nodeIndex)
 				: nodeIndex(nodeIndex) {
 			}
 		};
 
 		template<typename T>
-		inline gltf_defintion AddElement(gltf::Document& doc, std::vector<T>& data, gltf::Buffer& buffer, uint64& bufferTally, int32 bufferIndex, gltf::Accessor::ComponentType accessorComponentType, gltf::Accessor::Type accessorType, bool accessorNormalized, std::string accessorName = "") {
+		inline gltf_defintion AddElement(gltf::Document& doc, std::vector<T>& data, gltf::Buffer& buffer, std::uint64_t& bufferTally, std::uint32_t bufferIndex, gltf::Accessor::ComponentType accessorComponentType, gltf::Accessor::Type accessorType, bool accessorNormalized, std::string accessorName = "") {
 			gltf_defintion def;
 
 			def.sizeInBuffer = FlattenSerialize(data, buffer.data, bufferTally);
@@ -51,22 +67,22 @@ namespace xb2at {
 			gltf::BufferView bufferView {};
 			bufferView.buffer = bufferIndex;
 			bufferView.byteLength = def.sizeInBuffer;
-			bufferView.byteOffset = (uint32)bufferTally - def.sizeInBuffer;
+			bufferView.byteOffset = (std::uint32_t)bufferTally - def.sizeInBuffer;
 
 			doc.bufferViews.push_back(bufferView);
-			def.bufferViewIndex = (uint32)doc.bufferViews.size() - 1;
+			def.bufferViewIndex = (std::uint32_t)doc.bufferViews.size() - 1;
 
 			gltf::Accessor accessor {};
 			accessor.bufferView = def.bufferViewIndex;
 			accessor.componentType = accessorComponentType;
 			accessor.normalized = accessorNormalized;
-			accessor.count = (uint32)data.size();
+			accessor.count = (std::uint32_t)data.size();
 			accessor.type = accessorType;
 			if(!accessorName.empty())
 				accessor.name = accessorName;
 
 			doc.accessors.push_back(accessor);
-			def.accessorIndex = (uint32)doc.accessors.size() - 1;
+			def.accessorIndex = (std::uint32_t)doc.accessors.size() - 1;
 
 			return def;
 		}
@@ -102,7 +118,7 @@ namespace xb2at {
 
 					logger.info("Converting mesh ", i, " (", i, '/', mxmdData.Model.meshesCount, ')');
 
-					int32 bonesNodeOffset = doc.nodes.size();
+					std::int32_t bonesNodeOffset = doc.nodes.size();
 
 					std::map<std::string, int> SKELNameToNodeIndex;
 					for(int k = 0; k < skelData.nodes.size(); ++k)
@@ -150,7 +166,7 @@ namespace xb2at {
 						}
 
 						//model buffers
-						std::vector<uint16_t> indices = faceTbl.vertices;
+						std::vector<std::uint16_t> indices = faceTbl.vertices;
 
 						std::vector<vec3> positions(vertTbl.vertices.size());
 						memcpy(&positions[0], &vertTbl.vertices[0], vertTbl.vertices.size() * sizeof(vec3));
@@ -158,10 +174,10 @@ namespace xb2at {
 						std::vector<vec3> normals(vertTbl.dataCount);
 						for(int k = 0; k < vertTbl.dataCount; ++k) {
 							memcpy(&normals[k], &vertTbl.normals[k], sizeof(vec3));
-							normals[k] = NormalizeVector3(normals[k]);
+							normals[k] = normals[k].Normalized();
 						}
 
-						std::vector<color> vertexColors = vertTbl.vertexColor;
+						std::vector<core::Rgba32> vertexColors = vertTbl.vertexColor;
 
 						std::vector<vector2> uv0 = vertTbl.uvPos[0];
 						std::vector<vector2> uv1 = vertTbl.uvPos[1];
@@ -184,9 +200,9 @@ namespace xb2at {
 						// toss all vectors into a buffer
 						// model buffer format: indices, positions, normals, vertexColors, uv0, uv1, uv2, uv3
 						gltf::Buffer modelBuffer {};
-						uint64 modelBufferTally = 0;
+						std::uint64_t modelBufferTally = 0;
 
-						uint32 buffersCount = (uint32)doc.buffers.size();
+						std::uint32_t buffersCount = (std::uint32_t)doc.buffers.size();
 						gltf_defintion defIndices = AddElement(doc, indices, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Scalar, false);
 						gltf_defintion defPositions = AddElement(doc, positions, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false);
 						gltf_defintion defNormals = AddElement(doc, normals, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec3, false);
@@ -198,7 +214,7 @@ namespace xb2at {
 						gltf_defintion defJoints = AddElement(doc, joints, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::UnsignedShort, gltf::Accessor::Type::Vec4, false);
 						gltf_defintion defWeights = AddElement(doc, weights, modelBuffer, modelBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Vec4, false);
 
-						modelBuffer.byteLength = (uint32)modelBuffer.data.size();
+						modelBuffer.byteLength = (std::uint32_t)modelBuffer.data.size();
 						if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || doc.buffers.size() != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
 							modelBuffer.SetEmbeddedResource();
 
@@ -219,8 +235,8 @@ namespace xb2at {
 						// toss all morphs into a buffer
 						// morph buffer format: morph0pos, morph0norm, morph1pos, morph1norm, etc.
 						gltf::Buffer morphBuffer {};
-						uint64 morphBufferTally = 0;
-						buffersCount = (uint32)doc.buffers.size();
+						std::uint64_t morphBufferTally = 0;
+						buffersCount = (std::uint32_t)doc.buffers.size();
 
 						std::vector<gltf_defintion> morphPositionDefs;
 						std::vector<gltf_defintion> morphNormalDefs;
@@ -264,7 +280,7 @@ namespace xb2at {
 								morphNormalDefs.push_back(defMorphNormals);
 							}
 
-							morphBuffer.byteLength = (uint32)morphBuffer.data.size();
+							morphBuffer.byteLength = (std::uint32_t)morphBuffer.data.size();
 							if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || doc.buffers.size() != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
 								morphBuffer.SetEmbeddedResource();
 
@@ -321,7 +337,7 @@ namespace xb2at {
 						node.mesh = (int32)doc.meshes.size() - 1;
 
 						if(strncmp(skelData.magic, "SKEL", sizeof(skelData.magic)) == 0) //if skel is defined
-							node.skin = (int32)doc.skins.size(); //not size - 1 as we create the skin later
+							node.skin = (int32)doc.skins.size();						 //not size - 1 as we create the skin later
 
 						doc.nodes.push_back(node);
 						scene.nodes.push_back((int32)doc.nodes.size() - 1);
@@ -330,15 +346,15 @@ namespace xb2at {
 					bonesNodeOffset = doc.nodes.size();
 					logger.info("Starting to add SKEL to glTF, bonesNodeOffset == ", bonesNodeOffset);
 
-					if(strncmp(skelData.magic, "SKEL", sizeof(skelData.magic)) == 0) { //if skel is defined
+					if(strncmp(skelData.magic, "SKEL", sizeof(skelData.magic)) == 0) { // if skel is defined
 						std::vector<xenoblade_node> xbnodes;
 						std::vector<float> globalMatricies;
 
 						for(int k = 0; k < skelData.nodes.size(); ++k) {
 							gltf::Node node;
 							node.name = skelData.nodes[k].name;
-							if(skelData.nodeParents[k] != Max<uint16>::value) {
-								xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
+							if(skelData.nodeParents[k] != MaxValue<std::uint16_t>()) {
+								//xbnodes[skelData.nodeParents[k]].gltfNode.children.push_back(k + bonesNodeOffset);
 								doc.nodes[skelData.nodeParents[k] + bonesNodeOffset].children.push_back(k + bonesNodeOffset);
 							}
 
@@ -346,42 +362,44 @@ namespace xb2at {
 							xbnode.gltfNode = node;
 							xbnode.localTransform = MatrixGarbage(skelData.transforms[k].position, skelData.transforms[k].rotation, skelData.transforms[k].scale);
 
-							glm::mat4x4 global = xbnode.localTransform;
-							if(skelData.nodeParents[k] == Max<uint16>::value) {
-								xbnode.globalTransform = global;
+							glm::mat4x4 local = xbnode.localTransform;
+							if(skelData.nodeParents[k] == MaxValue<std::uint16_t>()) {
+								// no parent, global should just be the local
+								xbnode.globalTransform = local;
 							} else {
-								xbnode.globalTransform = global * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
+								// take the global of the parent node and multiply the local by it to get the global of this node
+								xbnode.globalTransform = local * xbnodes[skelData.nodeParents[xbnode.nodeIndex]].globalTransform;
 							}
 
 							glm::mat4x4 inverse = glm::inverse(xbnode.globalTransform);
-							for(byte mx = 0; mx < inverse.length() - 1; ++mx)
-								for(byte my = 0; my < inverse[mx].length() - 1; ++my)
+							for(std::size_t mx = 0; mx < inverse.length(); ++mx)
+								for(std::size_t my = 0; my < inverse[mx].length(); ++my)
 									globalMatricies.push_back(inverse[mx][my]);
 
-							//memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
-							//memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
-							//memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
-							memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
+							memcpy(&node.translation, &skelData.transforms[k].position, sizeof(vec3));
+							memcpy(&node.rotation, &skelData.transforms[k].rotation, sizeof(quaternion));
+							memcpy(&node.scale, &skelData.transforms[k].scale, sizeof(vec3));
+							//memcpy(&node.matrix, &xbnode.localTransform, sizeof(glm::mat4x4));
 
 							xbnodes.push_back(xbnode);
 							doc.nodes.push_back(xbnode.gltfNode);
-							if(skelData.nodeParents[k] == Max_v<uint16>)
-								scene.nodes.push_back((int32)doc.nodes.size() - 1);
+							if(skelData.nodeParents[k] == MaxValue<std::uint16_t>())
+								scene.nodes.push_back((std::int32_t)doc.nodes.size() - 1);
 						}
 
 						gltf::Skin skin;
 
 						gltf::Buffer inverseBindBuffer {};
-						uint64 inverseBindBufferTally = 0;
+						std::uint64_t inverseBindBufferTally = 0;
 
-						uint32 buffersCount = (uint32)doc.buffers.size();
+						std::uint32_t buffersCount = (std::uint32_t)doc.buffers.size();
 						gltf_defintion defInverseBind = AddElement(doc, globalMatricies, inverseBindBuffer, inverseBindBufferTally, buffersCount, gltf::Accessor::ComponentType::Float, gltf::Accessor::Type::Mat4, false);
 
 						for(int k = 0; k < skelData.nodes.size(); ++k)
 							skin.joints.push_back(k + bonesNodeOffset);
 						skin.inverseBindMatrices = defInverseBind.accessorIndex;
 
-						inverseBindBuffer.byteLength = (uint32)inverseBindBuffer.data.size();
+						inverseBindBuffer.byteLength = (std::uint32_t)inverseBindBuffer.data.size();
 						if(options.OutputFormat == modelSerializerOptions::Format::GLTFText || doc.buffers.size() != 0) // "Only 1 buffer, the very first, is allowed to have an empty buffer.uri field.
 							inverseBindBuffer.SetEmbeddedResource();
 
@@ -412,5 +430,4 @@ namespace xb2at {
 			ofs.close();
 		}
 
-	} // namespace core
-} // namespace xb2at
+	} // namespace xb2at

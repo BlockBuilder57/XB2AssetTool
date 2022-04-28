@@ -1,11 +1,11 @@
 /**
  * \file 
  * Core library common include file.
+ * This header is being phased out...
  */
 #pragma once
 
 #include <cstdint>
-#include <modeco/types.h>
 
 #include <cstring>
 #include <iostream>
@@ -19,11 +19,7 @@
 #include <functional>
 #include <algorithm>
 
-#include <glm/mat4x4.hpp>
-#include <glm/common.hpp>
-#include <glm/matrix.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
+
 
 namespace xb2at {
 	namespace core {
@@ -50,88 +46,18 @@ namespace xb2at {
 		 * @{
 		 */
 
-		using mco::byte;
-		using mco::sbyte;
 
-		using mco::int16;
-		using mco::uint16;
 
-		using mco::int32;
-		using mco::uint32;
+		template<class T>
+		constexpr T MaxValue() {
+			return std::numeric_limits<T>::max();
+		}
 
-		using mco::int64;
-		using mco::uint64;
+		template<class T>
+		constexpr T MinValue() {
+			return std::numeric_limits<T>::min();
+		}
 
-		/**
-		 * constexpr shorthand for numeric_limits<T>::min()
-		 */
-		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type /* SFINAE to stop invalid types */>
-		struct Min { constexpr static T value = std::numeric_limits<T>::min(); };
-
-		/**
-		 * constexpr shorthand for numeric_limits<T>::max()
-		 */
-		template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type /* SFINAE to stop invalid types */>
-		struct Max { constexpr static T value = std::numeric_limits<T>::max(); };
-
-		/**
-		 * STL-style _v alias for Min<T>
-		 */
-		template<typename T>
-		constexpr static T Min_v = Min<T>::value;
-
-		/**
-		 * STL-style _v alias for Max<T>
-		 */
-		template<typename T>
-		constexpr static T Max_v = Max<T>::value;
-
-		/**
-		 * Vector2 of floats, used only for reading into.
-		 */
-		struct vector2 {
-			float x;
-			float y;
-		};
-
-		/**
-		 * Vector3 of floats, used only for reading into.
-		 */
-		struct vector3 {
-			float x;
-			float y;
-			float z;
-		};
-
-		/**
-		 * Quaternion of floats, used only for reading into.
-		 */
-		struct quaternion {
-			float x;
-			float y;
-			float z;
-			float w;
-		};
-
-		/**
-		 * Quaternion of u16's, used only for reading into.
-		 */
-		struct u16_quaternion {
-			uint16 x;
-			uint16 y;
-			uint16 z;
-			uint16 w;
-		};
-
-		/**
-		 * RGBA color
-		 */
-		struct color {
-			byte r;
-			byte g;
-			byte b;
-			byte a;
-		};
 
 		/** @} */
 
@@ -140,33 +66,9 @@ namespace xb2at {
 		 * @{
 		 */
 
-		/**
-		 * Normalize a Vector3.
-		 * Returns copy-elided normalized vector.
-		 *
-		 * \param[in] vector Vector to normalize.
-		 */
-		inline vector3 NormalizeVector3(vector3 vector) {
-			const double mag = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
-			return {
-				vector.x / (float)mag,
-				vector.y / (float)mag,
-				vector.z / (float)mag
-			};
-		}
 
-		/**
-		 * Convert a Vector3 position, a quaternion rotation, and a Vector3 scale to a 4x4 matrix.
-		 *
-		 * \param[in] pos Position of the object.
-		 * \param[in] rot Rotation of the object.
-		 * \param[in] scale Scale of the object.
-		 */
-		inline glm::mat4x4 MatrixGarbage(quaternion pos, quaternion rot, quaternion scale) {
-			return glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z)) *	  // position
-				   glm::toMat4(glm::quat(rot.w, rot.x, rot.y, rot.z)) *					  // rotation
-				   glm::translate(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z)); // matrix scale
-		}
+
+
 
 		/** @} */
 
@@ -321,12 +223,6 @@ namespace xb2at {
 
 		/** @} */
 
-		/**
-		 * Make a fourcc value at compile time
-		 */
-		constexpr uint32 MakeFourCC(const char p[5]) {
-			return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
-		}
 
 		/**
 		 * Namespace alias of the filesystem library, for shortening usage.

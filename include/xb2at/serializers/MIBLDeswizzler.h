@@ -9,8 +9,8 @@ namespace xb2at {
 		/**
 		 * Texture format in DirectX format
 		 */
-		enum class TextureFormat : uint32 {
-			UNKNOWN,
+		enum class TextureFormat : std::uint32_t {
+			UNKNOWN = 0,
 			R32G32B32A32_TYPELESS,
 			R32G32B32A32_FLOAT,
 			R32G32B32A32_UINT,

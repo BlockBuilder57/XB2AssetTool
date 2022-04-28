@@ -12,13 +12,16 @@ option(XB2AT_XB2CORE_EASYMODE "Include the Easymode API with xb2core" OFF)
 
 option(XB2CORE_DO_NOT_INSTALL "Do not install xb2core. Default on due to inclusion in xb2at" ON)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
 if(MSVC)
 	# It's 2020. Get with the program and stop faking C++98.
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /D_CRT_SECURE_NO_WARNINGS")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /D_CRT_SECURE_NO_WARNINGS /EHsc")
 endif()
 
 # clang-cl & gcc optimizations

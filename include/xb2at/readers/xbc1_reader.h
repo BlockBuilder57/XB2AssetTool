@@ -1,5 +1,4 @@
 #include <xb2at/core.h>
-#include <modeco/Logger.h>
 
 #include <xb2at/structs/xbc1.h>
 
@@ -32,7 +31,7 @@ namespace xb2at {
 			/**
 			 * Offset where XBC1 file starts.
 			 */
-			int32 offset;
+			std::uint32_t offset;
 
 			/**
 			 * Output directory.
@@ -60,12 +59,12 @@ namespace xb2at {
 			 *
 			 * \param[in] opts Options to pass to the reader.
 			*/
-			xbc1::xbc1 Read(xbc1ReaderOptions& opts);
+			Xbc1 Read(xbc1ReaderOptions& opts);
 
 		   private:
 			std::istream& stream;
 
-			mco::Logger logger = mco::Logger::CreateLogger("XBC1Reader");
+			//mco::Logger logger = mco::Logger::CreateLogger("XBC1Reader");
 		};
 
 	} // namespace core

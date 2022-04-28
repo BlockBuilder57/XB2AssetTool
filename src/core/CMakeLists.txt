@@ -2,6 +2,7 @@
 
 
 set(XB2CORE_SOURCES
+	IoStreamReadStream.cpp
 
 # File Readers
 
@@ -32,8 +33,6 @@ if(XB2AT_XB2CORE_EASYMODE)
 endif()
 
 add_library(xb2core STATIC ${XB2CORE_SOURCES})
-set_property(TARGET xb2core PROPERTY CXX_STANDARD 17)
-set_property(TARGET xb2core PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_include_directories(xb2core PRIVATE ${PROJECT_SOURCE_DIR}/vendor/zlib)
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR}/vendor/zlib)
@@ -61,7 +60,6 @@ add_dependencies(xb2core __xb2at_gittag)
 target_include_directories(xb2core PRIVATE ${PROJECT_BINARY_DIR})
 
 # Allow installation of xb2core in a standalone manner.
-# TODO we depend on mcommon so install that too
 # todo fix include copying
 if(NOT XB2CORE_DO_NOT_INSTALL)
 	install(TARGETS xb2core
@@ -70,4 +68,7 @@ if(NOT XB2CORE_DO_NOT_INSTALL)
 
 	install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/xb2at/"
 		DESTINATION "${CMAKE_INSTALL_PREFIX}/include/xb2at")
+
+	# Instga
+	install()
 endif()

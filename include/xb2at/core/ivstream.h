@@ -2,34 +2,34 @@
 #include <xb2at/core.h>
 #include <algorithm>
 
-namespace xb2at {
-	namespace core {
+namespace xb2at::core {
 
-		// TODO: REPLACE VECTOR STUFF WITH mco::Span<byte>
+	namespace detail {
+		template<class ByteType>
+		struct basic_ivstream : public std::istream {
 
-		/**
-		 * A istream overload allowing a vector<char> to be used as a data buffer for the stream.
-		 * Essentially, like .NET's MemoryStream, but with some zero copy guarantees.
-		 */
-		struct ivstream : public std::istream {
+			// TODO: This really should be using spans (as we should assume we don't own the memory and don't try allocating)
 			class vector_streambuf : public std::streambuf {
-				typedef std::vector<char>::size_type size_type;
+				using size_type = typename std::vector<ByteType>::size_type;
 
 				size_type read_pos;
 
-			   public:
-				std::vector<char>& buffer;
+				/**
+			 	 * Underlying buffer
+			 	 */
+				std::vector<ByteType>& buffer;
 
-				vector_streambuf(std::vector<char>& buffer_)
+			   public:
+				explicit vector_streambuf(std::vector<ByteType>& buffer_)
 					: read_pos(0),
 					  buffer(buffer_) {
 					// code worked fine without this but I'm doing it here for correctness
-					setg(&buffer_[0], &buffer_[1], &buffer_[0] + buffer_.size());
+					setg(reinterpret_cast<char*>(&buffer_[0]), reinterpret_cast<char*>(&buffer_[1]), reinterpret_cast<char*>(&buffer_[buffer_.size()]));
 				}
 
 				pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which = std::ios_base::in) override {
 					if(dir == std::ios_base::cur)
-						gbump((int32)off);
+						gbump((std::int32_t)off);
 					else if(dir == std::ios_base::end)
 						setg(eback(), egptr() + off, egptr());
 					else if(dir == std::ios_base::beg)
@@ -82,11 +82,11 @@ namespace xb2at {
 			};
 
 			/**
-			 * Constructor 
-			 * 
-			 * \param[in] buffer Reference to buffer to use for this ivstream
-			 */
-			ivstream(std::vector<char>& buffer)
+		 	 * Constructor
+		 	 *
+		 	 * \param[in] buffer Reference to buffer to use for this ivstream
+		 	 */
+			explicit basic_ivstream(std::vector<ByteType>& buffer)
 				: std::istream(&buf),
 				  buf(buffer) {
 			}
@@ -94,6 +94,13 @@ namespace xb2at {
 		   private:
 			vector_streambuf buf;
 		};
+	}
 
-	} // namespace core
-} // namespace xb2at
+	/**
+	 * A istream Implementation allowing a vector<char> to be used as a data buffer for the stream.
+	 * Essentially, like .NET's MemoryStream, but with some zero copy guarantees.
+	 */
+	using ivstream = detail::basic_ivstream<std::uint8_t>;
+	using signed_ivstream = detail::basic_ivstream<std::int8_t>;
+
+} // namespace xb2at::core

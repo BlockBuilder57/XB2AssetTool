@@ -3,14 +3,12 @@
  * Mesh structures.
  */
 #pragma once
-#include <xb2at/core.h>
+#include <xb2at/core/Stream.h>
+#include <xb2at/core/StorageMathTypes.h>
 
-namespace xb2at {
-	namespace core {
+namespace xb2at::core::mesh {
 
-		namespace mesh {
-
-			enum vertex_descriptor_type : int16 {
+			enum vertex_descriptor_type : std::uint16_t {
 				Position,
 				Weight32,
 				BoneID,
@@ -34,39 +32,39 @@ namespace xb2at {
 			};
 
 			struct face_table_header {
-				int32 offset;
-				int32 vertCount;
+				std::uint32_t offset;
+				std::uint32_t vertCount;
 
-				byte unknown[0xC];
+				std::uint8_t unknown[0xC];
 			};
 
 			struct face_table : public face_table_header {
-				std::vector<uint16> vertices;
+				std::vector<std::uint16_t> vertices;
 			};
 
 			struct vertex_descriptor {
 				vertex_descriptor_type type;
-				int16 size;
+				std::int16_t size;
 			};
 
 			struct weight_manager {
-				int32 unknown1;
-				int32 offset;
-				int32 count;
+				std::uint32_t unknown1;
+				std::uint32_t offset;
+				std::uint32_t count;
 
 				char unknown2[0x11];
-				byte lod;
+				std::uint8_t lod;
 				char unknown3[0xA];
 			};
 
 			struct weight_data_header {
-				int32 managerCount;
-				int32 managerOffset;
+				std::uint32_t managerCount;
+				std::uint32_t managerOffset;
 
-				int16 vertexIndex;
-				int16 unknown;
+				std::int16_t vertexIndex;
+				std::int16_t unknown;
 
-				int32 offset2;
+				std::uint32_t offset2;
 			};
 
 			struct weight_data : public weight_data_header {
@@ -74,33 +72,33 @@ namespace xb2at {
 			};
 
 			struct morph_data_header {
-				int32 morphDescriptorCount;
-				int32 morphDescriptorOffset;
-				int32 morphTargetCount;
-				int32 morphTargetOffset;
+				std::uint32_t morphDescriptorCount;
+				std::uint32_t morphDescriptorOffset;
+				std::uint32_t morphTargetCount;
+				std::uint32_t morphTargetOffset;
 			};
 
 			struct morph_descriptor_header {
-				int32 bufferId;
+				std::uint32_t bufferId;
 
-				int32 targetIndex;
-				int32 targetCounts;
-				int32 targetIdOffsets;
+				std::uint32_t targetIndex;
+				std::uint32_t targetCounts;
+				std::uint32_t targetIdOffsets;
 
-				int32 unknown1;
+				std::uint32_t unknown1;
 			};
 
 			struct morph_descriptor : public morph_descriptor_header {
-				std::vector<int16> targetIds;
+				std::vector<std::int16_t> targetIds;
 			};
 
 			struct morph_target_header {
-				int32 bufferOffset;
-				int32 vertCount;
-				int32 blockSize;
+				std::uint32_t bufferOffset;
+				std::uint32_t vertCount;
+				std::uint32_t blockSize;
 
-				int16 unknown1;
-				int16 type;
+				std::int16_t unknown1;
+				std::int16_t type;
 			};
 
 			struct morph_target : public morph_target_header {
@@ -114,12 +112,12 @@ namespace xb2at {
 			};
 
 			struct vertex_table_header {
-				int32 dataOffset;
-				int32 dataCount;
-				int32 blockSize;
+				std::uint32_t dataOffset;
+				std::uint32_t dataCount;
+				std::uint32_t blockSize;
 
-				int32 descriptorOffset;
-				int32 descriptorCount;
+				std::uint32_t descriptorOffset;
+				std::uint32_t descriptorCount;
 
 				char unknown1[0xC];
 			};
@@ -129,32 +127,34 @@ namespace xb2at {
 
 				// not in order but i'll fix it later
 				std::vector<vector3> vertices;
-				std::vector<int32> weightTableIndex;
+				std::vector<std::uint32_t> weightTableIndex;
 				std::vector<std::vector<vector2>> uvPos;
-				int32 uvLayerCount;
-				std::vector<color> vertexColor;
+				std::uint32_t uvLayerCount;
+				std::vector<Rgba32> vertexColor;
 				std::vector<quaternion> normals;
 				std::vector<quaternion> weightStrengths;
-				std::vector<std::vector<byte>> weightIds;
+
+				// maybe TODO: a MultiDim<T> using for vector<vector<T>>?
+				std::vector<std::vector<std::uint8_t>> weightIds;
 			};
 
 			struct mesh_header {
-				int32 vertexTableOffset;
-				int32 vertexTableCount;
-				int32 faceTableOffset;
-				int32 faceTableCount;
+				std::uint32_t vertexTableOffset;
+				std::uint32_t vertexTableCount;
+				std::uint32_t faceTableOffset;
+				std::uint32_t faceTableCount;
 
 				char unknown1[0xC];
 
-				int32 unkOffset1;
-				int32 unkOffset2;
-				int32 unkOffset2Count;
+				std::uint32_t unkOffset1;
+				std::uint32_t unkOffset2;
+				std::uint32_t unkOffset2Count;
 
-				int32 morphDataOffset;
-				int32 dataSize;
-				int32 dataOffset;
-				int32 weightDataSize;
-				int32 weightDataOffset;
+				std::uint32_t morphDataOffset;
+				std::uint32_t dataSize;
+				std::uint32_t dataOffset;
+				std::uint32_t weightDataSize;
+				std::uint32_t weightDataOffset;
 
 				char unknown2[0x14];
 			};
@@ -167,7 +167,4 @@ namespace xb2at {
 				morph_data morphData;
 			};
 
-		} // namespace mesh
-
-	} // namespace core
-} // namespace xb2at
+		} // namespace xb2at

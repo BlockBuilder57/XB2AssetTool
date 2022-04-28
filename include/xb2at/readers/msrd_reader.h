@@ -1,6 +1,5 @@
 #pragma once
 #include <xb2at/core.h>
-#include <modeco/Logger.h>
 
 #include <xb2at/structs/msrd.h>
 
@@ -9,6 +8,7 @@ namespace xb2at {
 
 		enum class msrdReaderStatus {
 			Success,
+			GeneralReadError,
 			ErrorReadingHeader,
 			NotMSRD,
 		};
@@ -17,6 +17,7 @@ namespace xb2at {
 			// avoiding magic const by using constexpr
 			constexpr static const char* status_str[] = {
 				"Success",
+				"General read error"
 				"Error reading MSRD header",
 				"File is not a MSRD file"
 			};
@@ -61,7 +62,7 @@ namespace xb2at {
 		   private:
 			std::istream& stream;
 
-			mco::Logger logger = mco::Logger::CreateLogger("MSRDReader");
+			//mco::Logger logger = mco::Logger::CreateLogger("MSRDReader");
 		};
 
 	} // namespace core
