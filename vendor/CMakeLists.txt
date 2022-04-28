@@ -1,3 +1,5 @@
+# TODO TODO TODO OH GOD PLEASE: SYSTEM LIBRARIES (where possible)
+
 # stop zlib from trying to install anything (we use zlib static)
 set(SKIP_INSTALL_ALL ON CACHE BOOL "" FORCE)
 set(SKIP_INSTALL_FILES ON CACHE BOOL "" FORCE)
@@ -19,6 +21,3 @@ option(FX_GLTF_USE_INSTALLED_DEPS OFF)
 add_subdirectory(fx-gltf)
 
 add_subdirectory(glm)
-
-#set(MCOMMON_DO_NOT_INSTALL ON)
-#add_subdirectory(mcommon)
